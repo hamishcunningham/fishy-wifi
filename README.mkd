@@ -1,0 +1,23 @@
+fishy-wifi ESP8266 notes
+========================
+
+Scripts, notes and the odd subaquatic gizmo for the ESP8266 and what-have-you.
+
+Rebuilding ESPlorer:
+    ant -Dplatforms.JDK1.7.home=/usr/lib/jvm/jdk-8-oracle-arm-vfp-hflt/ jar
+
+Connecting via picocom:
+    (first disable getty on /dev/ttyAMA0 via /etc/inittab)
+    picocom /dev/ttyAMA0 --omap crcrlf
+    (then toggle DTR to get elua prompt)
+
+Picocom commands:
+    ^A plus...
+    ^T toggle DTR line
+    ^U baud rate up (^D for down)
+
+Flashing nodemcu:
+    sudo ./esptool.py --port /dev/ttyAMA0 write_flash 0x00000 ../nodemcu_512k_latest.bin
+
+Clipboard
+    xclip -selection clipboard myfile.txt

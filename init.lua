@@ -1,0 +1,6 @@
+node.heap()
+node.chipid()
+print("hello from init dot lua")
+print('MAC: ',  wifi.sta.getmac())
+print('chip: ', node.chipid())
+print('heap: ', node.heap())
