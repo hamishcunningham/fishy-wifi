@@ -30,3 +30,4 @@ Clipboard
 Luatool filetransfer thingy:
 
     git clone https://github.com/4refr0nt/luatool.git
+    ../luatool/luatool/luatool.py -p /dev/ttyAMA0 -f init.lua -t init.lua -v
