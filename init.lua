@@ -1,4 +1,4 @@
--- constants
+-- config data
 local CFILE = "fishyconf.lua"
 conf = nil -- not local as we want dofile to overwrite it
 
@@ -10,10 +10,7 @@ function sayhi()
     wifi.sta.getmac(), node.chipid(), node.heap())
   print("Wifi station ip: ", wifi.sta.getip())
 end
-function getconf()
-  dofile(CFILE)
-  return conf
-end
+function getconf() dofile(CFILE); return conf end
 function writeconf()
   f = file.open(CFILE, "w")
   if not f then return nil end
@@ -37,15 +34,11 @@ if conf -- we are configured
 then
   p("config incoming:")
   p(conf2string())
-  p("going into station mode")
   wifi.setmode(wifi.STATION)
   wifi.sta.config(conf.ssid, conf.key)
   wifi.sta.connect()
-  tmr.alarm(
-    0, 5000, 0, function()
-      print("Wifi station ip: ", wifi.sta.getip())
-    end
-  )
+  tmr.alarm(0, 5000, 0,
+    function() print("Wifi station ip: ", wifi.sta.getip()) end)
 else    -- no config, assume first run
   p("no config yet")
   -- writeconf(conf)
