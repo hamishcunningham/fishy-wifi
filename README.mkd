@@ -3,6 +3,9 @@ fishy-wifi ESP8266 notes
 
 # Scripts, notes and the odd subaquatic gizmo for the ESP8266 and what-have-you.
 
+Configuring ESPlorer: 
+- turn off turbo mode or hit the writing 0 byte files problem
+
 Rebuilding ESPlorer:
 
     ant -Dplatforms.JDK1.7.home=/usr/lib/jvm/jdk-8-oracle-arm-vfp-hflt/ jar
