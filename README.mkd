@@ -1,7 +1,5 @@
-fishy-wifi ESP8266 notes
-========================
-
-# Scripts, notes and the odd subaquatic gizmo for the ESP8266 and what-have-you.
+Scripts, notes and the odd fish for the ESP8266
+===
 
 Configuring ESPlorer: 
 - turn off turbo mode or hit the writing 0 byte files problem
@@ -34,3 +32,8 @@ Luatool filetransfer thingy:
 
     git clone https://github.com/4refr0nt/luatool.git
     ../luatool/luatool/luatool.py -p /dev/ttyAMA0 -f init.lua -t init.lua -v
+    
+
+## Resources
+
+- File API: https://raw.githubusercontent.com/nodemcu/nodemcu-firmware/master/app/modules/file.c
