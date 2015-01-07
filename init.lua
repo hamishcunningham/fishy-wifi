@@ -42,12 +42,7 @@ then
   wifi.sta.config(conf.ssid, conf.key)
   wifi.sta.connect()
   tmr.alarm(
-    0, 1000, 0, function()
-      print("Wifi station ip: ", wifi.sta.getip())
-    end
-  )
-  tmr.alarm(
-    0, 2000, 0, function()
+    0, 5000, 0, function()
       print("Wifi station ip: ", wifi.sta.getip())
     end
   )
