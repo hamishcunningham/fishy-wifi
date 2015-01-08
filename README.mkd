@@ -7,7 +7,6 @@ Scripts, notes and the odd fish for the ESP8266
 - add web server to init.lua
 - try flashing the rebuilt firmware
 
-
 ## How to...
 
 Build open source toolchain:
@@ -16,6 +15,12 @@ Build open source toolchain:
   http://nathan.chantrell.net/20141230/wifi-mqtt-display-with-the-esp8266/
 - sudo apt-get install make unrar autoconf automake libtool gcc g++ gperf flex
   bison texinfo gawk ncurses-dev libexpat-dev python sed
+- mkdir ${HOME}/esp8266-stuff; cd there
+- download 2nd esptool flasher util --
+  http://www.esp8266.com/download/file.php?id=86 -- from here
+  http://www.esp8266.com/viewtopic.php?f=9&t=304 (redundant now?)
+- git clone https://github.com/pfalcon/esp-open-sdk
+- cd esp-open-sdk
 - make STANDALONE=n
   - Xtensa toolchain is built, to use it:
   - export PATH=/home/hamish/esp-open-sdk/xtensa-lx106-elf/bin:$PATH
@@ -23,7 +28,10 @@ Build open source toolchain:
     components To link external proprietary libraries add:
   - xtensa-lx106-elf-gcc -I/home/hamish/esp-open-sdk/sdk/include
     -L/home/hamish/esp-open-sdk/sdk/lib
-- get (2nd!) esptool tgz from http://www.esp8266.com/viewtopic.php?f=9&t=304
+
+Rebuild NodeMCU:
+
+- PATH=${PATH}:${HOME}/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/bin make
 
 Configure ESPlorer: 
 
@@ -53,7 +61,6 @@ Luatool filetransfer thingy:
 
     git clone https://github.com/4refr0nt/luatool.git
     ../luatool/luatool/luatool.py -p /dev/ttyAMA0 -f init.lua -t init.lua -v
-
 
 ## Resources
 
