@@ -1,14 +1,39 @@
 Scripts, notes and the odd fish for the ESP8266
 ===
 
-Configuring ESPlorer: 
+## TODO
+
+- try fixed IP address
+- add web server to init.lua
+- try flashing the rebuilt firmware
+
+
+## How to...
+
+Build open source toolchain:
+
+- instructions from
+  http://nathan.chantrell.net/20141230/wifi-mqtt-display-with-the-esp8266/
+- sudo apt-get install make unrar autoconf automake libtool gcc g++ gperf flex
+  bison texinfo gawk ncurses-dev libexpat-dev python sed
+- make STANDALONE=n
+  - Xtensa toolchain is built, to use it:
+  - export PATH=/home/hamish/esp-open-sdk/xtensa-lx106-elf/bin:$PATH
+  - Espressif ESP8266 SDK is installed. Toolchain contains only Open Source
+    components To link external proprietary libraries add:
+  - xtensa-lx106-elf-gcc -I/home/hamish/esp-open-sdk/sdk/include
+    -L/home/hamish/esp-open-sdk/sdk/lib
+- get (2nd!) esptool tgz from http://www.esp8266.com/viewtopic.php?f=9&t=304
+
+Configure ESPlorer: 
+
 - turn off turbo mode or hit the writing 0 byte files problem
 
-Rebuilding ESPlorer:
+Rebuild ESPlorer:
 
     ant -Dplatforms.JDK1.7.home=/usr/lib/jvm/jdk-8-oracle-arm-vfp-hflt/ jar
 
-Connecting via picocom:
+Connect via picocom:
 
     (first disable getty on /dev/ttyAMA0 via /etc/inittab)
     picocom /dev/ttyAMA0 --omap crcrlf
@@ -20,19 +45,15 @@ Picocom commands:
     ^T toggle DTR line
     ^U baud rate up (^D for down)
 
-Flashing nodemcu:
+Flash nodemcu:
 
     sudo ./esptool.py --port /dev/ttyAMA0 write_flash 0x00000 ../nodemcu_512k_latest.bin
-
-Clipboard
-
-    xclip -selection clipboard myfile.txt
 
 Luatool filetransfer thingy:
 
     git clone https://github.com/4refr0nt/luatool.git
     ../luatool/luatool/luatool.py -p /dev/ttyAMA0 -f init.lua -t init.lua -v
-    
+
 
 ## Resources
 
