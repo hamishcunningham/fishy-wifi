@@ -29,9 +29,25 @@ Build open source toolchain:
   - xtensa-lx106-elf-gcc -I/home/hamish/esp-open-sdk/sdk/include
     -L/home/hamish/esp-open-sdk/sdk/lib
 
+
 Rebuild NodeMCU:
 
     PATH=${PATH}:${HOME}/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/bin make
+    ?
+    cd app
+    PATH=${PATH}:${HOME}/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/bin ./gen_misc[_plus].sh 
+missing genflashbinv6...
+
+try: git clone git@github.com:tommie/esptool-ck.git
+and method given at https://github.com/esp8266/esp8266-wiki/wiki/Building
+
+    cd .output/eagle/debug/image
+    ${HOME}/esp8266-stuff/esptool/esptool -eo eagle.app.v6.out -bo eagle.app.v6.flash.bin -bs .text -bs .data -bs .rodata -bc -ec
+    PATH=${PATH}:${HOME}/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/bin \
+      xtensa-lx106-elf-objcopy --only-section .irom0.text -O binary eagle.app.v6.out eagle.app.v6.irom0text.bin
+    cp eagle.app.v6.flash.bin ../../../../../bin/
+    cp eagle.app.v6.irom0text.bin ../../../../../bin/
+
 
 Configure ESPlorer: 
 
@@ -64,5 +80,13 @@ Luatool filetransfer thingy:
 
 ## Resources
 
+- ESP8266 BB: http://www.esp8266.com/
+- NodeMCU: http://nodemcu.com/index_en.html
 - File API:
   https://raw.githubusercontent.com/nodemcu/nodemcu-firmware/master/app/modules/file.c
+- Why not worth bothering with ad hoc Javascript PK encryption (do HTTPS
+  instead): http://matasano.com/articles/javascript-cryptography/
+- Chip datasheet:
+  https://nurdspace.nl/images/e/e0/ESP8266_Specifications_English.pdf
+- Nurdspace notes: https://nurdspace.nl/ESP8266
+- Espressif BB: http://bbs.espressif.com/
