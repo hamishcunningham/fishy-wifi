@@ -31,7 +31,7 @@ Build open source toolchain:
 
 Rebuild NodeMCU:
 
-- PATH=${PATH}:${HOME}/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/bin make
+    PATH=${PATH}:${HOME}/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/bin make
 
 Configure ESPlorer: 
 
