@@ -5,6 +5,7 @@ Scripts, notes and the odd fish for the ESP8266
 
 - finish adding web server to init.lua
 - document the firmware rebuiling
+- try filling the filesystem; if space, try penlight
 - try fixed IP address
 - verify sleep and deepsleep modes and current consumption
 - what about smartwifi as a joining protocol? does it still not work?
