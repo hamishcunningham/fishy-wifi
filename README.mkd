@@ -8,6 +8,7 @@ Scripts, notes and the odd fish for the ESP8266
 - try fixed IP address
 - verify sleep and deepsleep modes and current consumption
 - what about smartwifi as a joining protocol? does it still not work?
+- try file uploader: http://www.esp8266.com/viewtopic.php?f=22&t=1026
 
 ## How to...
 
@@ -18,9 +19,10 @@ Build open source toolchain:
 - sudo apt-get install make unrar autoconf automake libtool gcc g++ gperf flex
   bison texinfo gawk ncurses-dev libexpat-dev python sed
 - mkdir ${HOME}/esp8266-stuff; cd there
-- download 2nd esptool flasher util --
-  http://www.esp8266.com/download/file.php?id=86 -- from here
-  http://www.esp8266.com/viewtopic.php?f=9&t=304 (redundant now?)
+- download 2nd esptool flasher util (to use for flashing the firmware later)
+  -- http://www.esp8266.com/download/file.php?id=86 -- from here
+  http://www.esp8266.com/viewtopic.php?f=9&t=304
+  - or build from source: https://github.com/tommie/esptool-ck
 - git clone https://github.com/pfalcon/esp-open-sdk
 - cd esp-open-sdk
 - make STANDALONE=n
@@ -31,11 +33,11 @@ Build open source toolchain:
   - xtensa-lx106-elf-gcc -I/home/hamish/esp-open-sdk/sdk/include
     -L/home/hamish/esp-open-sdk/sdk/lib
 
-
 Rebuild NodeMCU:
 
     PATH=${PATH}:${HOME}/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/bin make
-    ?
+
+TODO
     cd app
     PATH=${PATH}:${HOME}/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/bin ./gen_misc[_plus].sh 
 missing genflashbinv6...
@@ -44,12 +46,15 @@ try: git clone git@github.com:tommie/esptool-ck.git
 and method given at https://github.com/esp8266/esp8266-wiki/wiki/Building
 
     cd .output/eagle/debug/image
-    ${HOME}/esp8266-stuff/esptool/esptool -eo eagle.app.v6.out -bo eagle.app.v6.flash.bin -bs .text -bs .data -bs .rodata -bc -ec
+    ${HOME}/esp8266-stuff/esptool-ck/esptool -eo eagle.app.v6.out -bo eagle.app.v6.flash.bin -bs .text -bs .data -bs .rodata -bc -ec
     PATH=${PATH}:${HOME}/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/bin \
       xtensa-lx106-elf-objcopy --only-section .irom0.text -O binary eagle.app.v6.out eagle.app.v6.irom0text.bin
     cp eagle.app.v6.flash.bin ../../../../../bin/
     cp eagle.app.v6.irom0text.bin ../../../../../bin/
 
+Reflash the firmware to the ESP8266:
+
+esptool.py --port /dev/ttyAMA0 write_flash 0x00000 eagle.app.v6.flash.bin 0x10000 eagle.app.v6.irom0text.bin 0x7c000 esp_init_data_default.bin 0x7e000 blank.bin
 
 Configure ESPlorer: 
 
@@ -71,7 +76,7 @@ Picocom commands:
     ^T toggle DTR line
     ^U baud rate up (^D for down)
 
-Flash nodemcu:
+Flash nodemcu from one of the recent binary builds:
 
     sudo ./esptool.py --port /dev/ttyAMA0 write_flash 0x00000 ../nodemcu_512k_latest.bin
 
