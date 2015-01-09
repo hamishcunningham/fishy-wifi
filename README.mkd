@@ -6,6 +6,8 @@ Scripts, notes and the odd fish for the ESP8266
 - try fixed IP address
 - add web server to init.lua
 - try flashing the rebuilt firmware
+- verify sleep and deepsleep modes and current consumption
+- change init.lua to allow the beast to use its own flash record of ip address
 
 ## How to...
 
