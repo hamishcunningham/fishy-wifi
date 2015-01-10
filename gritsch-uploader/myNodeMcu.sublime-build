@@ -1,0 +1,5 @@
+{
+	"shell_cmd": "C:\\Python25\\python.exe -u uploader.py \"$file\"",
+	"file_regex": "^(.*\\.lua):([0-9]*):",
+	"syntax": "Packages/Lua/Lua.tmLanguage"
+}
