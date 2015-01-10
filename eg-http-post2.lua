@@ -1,19 +1,19 @@
-    --wifi.setmode(wifi.STATION)
-    --wifi.sta.config("yourSSID","yourPassword")
-    outpin=3 -- Select right IO index !! Here is settings for GPIO2 (Lua build 20141219)
+--wifi.setmode(wifi.STATION)
+--wifi.sta.config("yourSSID","yourPassword")
+outpin=3 -- Select right IO index !! Here is settings for GPIO2 (Lua build 20141219)
 
-    local scanresults = ""
-    function listap(t)
-      res = "\n"
-      for k,v in pairs(t) do
-        res = res .. k .. " : " .. v .. "\n"
-      end
-      scanresults = res
-    end
-    wifi.sta.getap(listap)
+local scanresults = ""
+function listap(t)
+  res = "\n"
+  for k,v in pairs(t) do
+    res = res .. k .. " : " .. v .. "\n"
+  end
+  scanresults = res
+end
+wifi.sta.getap(listap)
 
-    srv=net.createServer(net.TCP) srv:listen(80,function(conn)
-    conn:on("receive",function(conn,payload)
+srv=net.createServer(net.TCP) srv:listen(80,function(conn)
+  conn:on("receive",function(conn,payload)
     --next row is for debugging output only
     print(payload)
 
