@@ -12,7 +12,8 @@ function listap(t)
 end
 wifi.sta.getap(listap)
 
-srv=net.createServer(net.TCP) srv:listen(80,function(conn)
+srv=net.createServer(net.TCP)
+srv:listen(80,function(conn)
   conn:on("receive",function(conn,payload)
     --next row is for debugging output only
     print(payload)
@@ -58,6 +59,6 @@ srv=net.createServer(net.TCP) srv:listen(80,function(conn)
     conn:send('<input type="submit" name="pwmi" value="FLC"> HW blinker</form>\n')
     conn:send('</body></html>\n')
     conn:on("sent",function(conn) conn:close() end)
-    end)
+  end)
 end)
 
