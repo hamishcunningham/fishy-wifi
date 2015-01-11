@@ -10,7 +10,7 @@ print("are we running on NodeMCU? ", nu.isnodemcu())
 local conffile = "joinmeconf.lua"
 local conf = nil
 
--- utilities
+-- local utilities
 local function p(fmt, ...) return print(string.format(fmt, ...)) end
 local function printip() print("Wifi station ip: ", wifi.sta.getip()) end
 local function sayhi()
@@ -19,14 +19,12 @@ local function sayhi()
     wifi.sta.getmac(), node.chipid(), node.heap())
   printip()
 end
-local function getconf() return require(conffile) end
 local function writeconf(conf)
   f = file.open(conffile, "w")
   if not f then return nil end
-  file.write("joinmeconf = {}\njoinmeconf = ")
-  file.write(conf2str())
-  file.write("return joinmeconf")
+  file.write("return " .. conf2str())
   file.close()
+  return true
 end
 local function conf2string(conf)
   buf = "{\n"
@@ -36,9 +34,12 @@ local function conf2string(conf)
   buf = buf .. "}\n"
   return buf
 end
-local function jm.joinwifi(conf)
-  jm.p("config incoming:")
-  jm.p(conf2string())
+
+-- exports
+local function joinme.getconf() return dofile(conffile) end
+local function joinme.joinwifi(conf)
+  p("config incoming:")
+  p(conf2string())
   wifi.setmode(wifi.STATION)
   wifi.sta.config(conf.ssid, conf.key)
   wifi.sta.connect()
