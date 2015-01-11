@@ -5,7 +5,7 @@
 nmutils = {}
 
 -- are we running on NodeMCU? if not then emulate...
-function nmutils.isnodemcu()
+local function nmutils.isnodemcu()
   return type(node) == "romtable" and type(node.info()) == "number"
 end
 if not nmutils.isnodemcu() -- define emulation functions
@@ -15,7 +15,7 @@ then
 end
 
 -- utils
-function nmutils.version() -- what version of NodeMCU is this?
+local function nmutils.version() -- what version of NodeMCU is this?
   ver1, ver2, ver3 = node.info()
   return string.format("%d.%d.%d", ver1, ver2, ver3)
 end

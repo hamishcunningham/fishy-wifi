@@ -1,3 +1,7 @@
+-- init.lua
+
+jm = require("joinme")
+
 -- config data
 local CFILE = "fishyconf.lua"
 conf = nil -- not local as we want dofile to overwrite it
