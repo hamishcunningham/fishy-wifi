@@ -6,7 +6,7 @@ jm = require("joinme")
 
 -- do the work
 jm.sayhi()
-jm.getconf()
+conf = jm.getconf()
 if conf -- we are configured
 then
   jm.joinwifi(conf)
