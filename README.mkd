@@ -4,12 +4,12 @@ Scripts, notes and the odd fish for the ESP8266
 ## TODO
 
 - finish adding web server to init.lua
-- try filling the filesystem; if space, try penlight
-- try fixed IP address
+  - penlight templates
+- does new method of build/flash not overwrite the file system?!
+- what causes the restart instability?
 - verify sleep and deepsleep modes and current consumption
 - what about smartwifi as a joining protocol? does it still not work?
 - try file uploader: http://www.esp8266.com/viewtopic.php?f=22&t=1026
-- try http://studio.zerobrane.com/
 
 ## How to...
 
