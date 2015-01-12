@@ -1,5 +1,5 @@
 -- init.lua
--- entry point for joinme wifi config utility
+-- entry point for JoinMe wifi config utility
 
 -- libraries
 jm = require("joinme")
