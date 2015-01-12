@@ -1,6 +1,8 @@
 Scripts, notes and the odd fish for the ESP8266
 ===
 
+ make flash ESPPORT=/dev/ttyAMA0
+    
     ../tools/esptool.py --port /dev/ttyAMA0 write_flash 0x00000 ../bin/0x00000.bin 0x10000 ../bin/0x10000.bin 0x7E000 ../bin/blank.bin 0x7C000 ../bin/esp_init_data_default.bin
 
 
