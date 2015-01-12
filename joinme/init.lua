@@ -1,5 +1,5 @@
 -- init.lua
--- WhiffyFishy entry point
+-- entry point for joinme wifi config utility
 
 -- libraries
 jm = require("joinme")
