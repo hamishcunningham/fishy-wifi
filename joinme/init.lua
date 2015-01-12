@@ -5,7 +5,7 @@
 jm = require("joinme")
 
 -- do the work
---jm.sayhi()
+jm.sayhi()
 conf = jm.getconf()
 if conf -- we are configured
 then
