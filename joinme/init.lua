@@ -12,5 +12,6 @@ then
   jm.joinwifi(conf)
 else    -- no config, assume first run
   jm.p("no config yet")
+  print(jm.chooserpage())
   -- jm.writeconf(conf)
 end

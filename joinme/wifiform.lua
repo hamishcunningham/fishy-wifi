@@ -5,7 +5,8 @@ return [=[
 <p>Choose a wifi access point to join:
 <form action="chooseap">
   <ol>
-# for _, ssid in pairs{aplist} do
+$(T)
+# for _, ssid in ipairs(T) do
   <li>SSID: <input type="radio" name="ssid" value="$(ssid)">$(ssid)<br/>
 # end
   </ol>

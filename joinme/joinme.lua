@@ -4,7 +4,17 @@
 -- preliminaries
 joinme = {}
 nu = require("nmutils")
-te = require("pltemplate")
+-- TODO te = require("pltemplate")
+template=require("pl.template")
+tmpl = [[
+<ul>
+# for i,val in ipairs(T) do
+<li>$(i) = $(val:upper())</li>
+# end
+</ul>
+]]
+res = template.substitute(tmpl,{T = {'one','two','three'}})
+print(res)
 
 -- debug code
 print("are we running on NodeMCU? ", nu.isnodemcu())
@@ -22,8 +32,11 @@ local function conf2string(conf)
   buf = buf .. "}\n"
   return buf
 end
-local function genform(aplist) -- takes list of APs
-  return
+local function genform(T) -- takes list of APs
+-- TODO
+  templ = dofile("wifiform.lua")
+  print(templ)
+  return te.substitute(templ, { T = { "apone", "aptwo", "apthree" } })
 end
 
 -- exports
@@ -52,6 +65,24 @@ function joinme.joinwifi(conf)
   wifi.sta.config(conf.ssid, conf.key)
   wifi.sta.connect()
   tmr.alarm(0, 5000, 0, function() printip() end)
+end
+function joinme.chooserpage(aplist)
+
+tmpl = [[
+<ul>
+# for i,val in ipairs(T) do
+<li>$(i) = $(val:upper())</li>
+# end
+</ul>
+]]
+print(tmpl)
+res = template.substitute(tmpl,{T = {'one','two','three'}})
+print(res)
+return res
+
+
+  -- TODO header and footer
+--  return genform(aplist)
 end
 
 return joinme

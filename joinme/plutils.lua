@@ -4,8 +4,8 @@
 local format,gsub,byte = string.format,string.gsub,string.byte
 
 -- UGH: renaming coz of lack of dirs on the ESP...
--- local compat = require 'plcompat'
-local compat = require 'pl.compat'
+-- local compat = require 'pl.compat'
+local compat = require 'plcompat'
 
 local clock = os.clock
 local stdout = io.stdout
