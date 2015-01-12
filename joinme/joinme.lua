@@ -31,8 +31,7 @@ _ITEMS_
   <input type="submit" value="Submit">
 </form></p>
 ]=]
-
-function joinme.genform(aplist) -- takes list of APs
+function genform(aplist) -- takes list of APs
   buf = ""
   for ssid, _ in pairs(aplist)
   do

@@ -14,6 +14,6 @@ then
 else    -- no config, assume first run
   jm.p("no config yet... going to scan")
   aplist = wifi.sta.getap(function(t) return t end)
-  print(jm.genform(aplist))
+  print(jm.chooserpage(aplist))
   -- jm.writeconf(conf)
 end
