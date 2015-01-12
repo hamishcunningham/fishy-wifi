@@ -4,17 +4,6 @@
 -- preliminaries
 joinme = {}
 nu = require("nmutils")
--- TODO te = require("pltemplate")
-template=require("pl.template")
-tmpl = [[
-<ul>
-# for i,val in ipairs(T) do
-<li>$(i) = $(val:upper())</li>
-# end
-</ul>
-]]
-res = template.substitute(tmpl,{T = {'one','two','three'}})
-print(res)
 
 -- debug code
 print("are we running on NodeMCU? ", nu.isnodemcu())
@@ -32,11 +21,25 @@ local function conf2string(conf)
   buf = buf .. "}\n"
   return buf
 end
-local function genform(T) -- takes list of APs
--- TODO
-  templ = dofile("wifiform.lua")
-  print(templ)
-  return te.substitute(templ, { T = { "apone", "aptwo", "apthree" } })
+local wifiform = [=[
+<p>Choose a wifi access point to join:
+<form action="chooseap">
+  <ol>
+_ITEMS_
+  </ol>
+  <br/>
+  <input type="submit" value="Submit">
+</form></p>
+]=]
+
+function joinme.genform(aplist) -- takes list of APs
+  buf = ""
+  for ssid, _ in pairs(aplist)
+  do
+    buf = buf .. '  <li>SSID: <input type="radio" name="' .. ssid ..
+      '" value="' .. ssid .. '">' .. ssid .. '<br/>\n'
+  end
+  return string.gsub(wifiform, "_ITEMS_", buf)
 end
 
 -- exports
@@ -46,6 +49,9 @@ function joinme.sayhi()
   joinme.p('MAC: %s; chip: %s; heap: %s',
     wifi.sta.getmac(), node.chipid(), node.heap())
   printip()
+end
+function joinme.t2s(t) -- one-level table to string
+  for k,v in pairs(t) do print(k.." : "..v) end
 end
 function joinme.getconf() 
   status, results = pcall(dofile, conffile)
@@ -67,22 +73,8 @@ function joinme.joinwifi(conf)
   tmr.alarm(0, 5000, 0, function() printip() end)
 end
 function joinme.chooserpage(aplist)
-
-tmpl = [[
-<ul>
-# for i,val in ipairs(T) do
-<li>$(i) = $(val:upper())</li>
-# end
-</ul>
-]]
-print(tmpl)
-res = template.substitute(tmpl,{T = {'one','two','three'}})
-print(res)
-return res
-
-
   -- TODO header and footer
---  return genform(aplist)
+  return genform(aplist)
 end
 
 return joinme

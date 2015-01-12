@@ -24,6 +24,9 @@ then
   function wifi.sta.getip()     return "|an ip address|" end
   function wifi.sta.config(s,k) return "|wifi.sta.config|" end
   function wifi.sta.connect()   return "|wifi.sta.connect|" end
+  function wifi.sta.getap(f)
+    return f( { apone= "onedata", aptwo= "twodata", } )
+  end
   file = {}
   function file.write(s)        return io.write(s) end
   function file.open(fname)     return io.output(fname) end
