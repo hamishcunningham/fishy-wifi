@@ -4,6 +4,9 @@
 -- preliminaries
 joinme = {}
 nu = require("nmutils")
+te = require("pltemplate")
+
+-- debug code
 print("are we running on NodeMCU? ", nu.isnodemcu())
 
 -- config data
