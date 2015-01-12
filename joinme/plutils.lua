@@ -2,7 +2,11 @@
 -- See  @{01-introduction.md.Generally_useful_functions|the Guide}.
 -- @module pl.utils
 local format,gsub,byte = string.format,string.gsub,string.byte
+
+-- UGH: renaming coz of lack of dirs on the ESP...
+-- local compat = require 'plcompat'
 local compat = require 'pl.compat'
+
 local clock = os.clock
 local stdout = io.stdout
 local append = table.insert

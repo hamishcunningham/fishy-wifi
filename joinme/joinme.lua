@@ -22,6 +22,9 @@ local function conf2string(conf)
   buf = buf .. "}\n"
   return buf
 end
+local function genform(aplist) -- takes list of APs
+  return
+end
 
 -- exports
 function joinme.p(fmt, ...) return print(string.format(fmt, ...)) end

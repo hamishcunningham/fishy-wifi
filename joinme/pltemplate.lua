@@ -28,7 +28,9 @@
 -- Dependencies: `pl.utils`
 -- @module pl.template
 
-local utils = require 'pl.utils'
+-- UGH -- got to rename this coz no dirs on the ESP chip...
+-- local utils = require 'pl.utils'
+local utils = require 'plutils'
 
 
 local function parseHashLines(chunk,brackets,esc)
