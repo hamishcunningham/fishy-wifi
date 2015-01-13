@@ -1,11 +1,8 @@
 -- init.lua
+
 -- entry point for JoinMe wifi config utility
-
--- libraries
-jm = require("joinme")
-
--- do the work
 function doinit()
+  if not jm then jm = require("joinme") end
   jm.sayhi()
   conf = jm.getconf()
   if conf -- we are configured
@@ -17,13 +14,15 @@ function doinit()
     wifi.setmode(wifi.STATION)
     aptbl = {}
     wifi.sta.getap(function(t) aptbl = t end)
-    -- tmr.alarm(0, 2000, 0, function() return end)
     jm.prtbl(aptbl)
+--[[
+    tmr.alarm(0, 2000, 0, function() return end)
     aplist = {}
     for k, v in pairs(aptbl) do table.insert(aplist, k) end
     jm.prtbl(aplist)
     wifi.setmode(wifi.SOFTAP)
     print(jm.chooserpage(aplist))
     -- jm.writeconf(conf)
+]] --
   end
 end

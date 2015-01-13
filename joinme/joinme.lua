@@ -5,9 +5,6 @@
 joinme = {}
 nu = require("nmutils")
 
--- debug code
-print("are we running on NodeMCU? ", nu.isnodemcu())
-
 -- config data
 local conffile = "joinmeconf.lua"
 
@@ -43,9 +40,10 @@ end
 
 -- exports
 function joinme.p(fmt, ...) return print(string.format(fmt, ...)) end
-function prtbl(t) for k, v in pairs(t) do print(k, v) end end
+function joinme.prtbl(t) for k, v in pairs(t) do print(k, v) end end
 function joinme.sayhi()
   joinme.p("Fishy wifi up and swimming...")
+  joinme.p("are we running on NodeMCU? %s", tostring(nu.isnodemcu()))
   joinme.p('MAC: %s; chip: %s; heap: %s',
     wifi.sta.getmac(), node.chipid(), node.heap())
   printip()
