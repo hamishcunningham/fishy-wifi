@@ -30,7 +30,7 @@ _ITEMS_
   <br/>
   <input type="submit" value="Submit">
 </form></p>
-]=]
+]=] -- comment needed to prevent upload issue
 function genform(aplist) -- takes list of APs
   buf = ""
   for ssid, _ in pairs(aplist)
