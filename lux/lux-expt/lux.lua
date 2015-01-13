@@ -15,11 +15,13 @@ end
 
 function lux.entrypoint()
   print("Starting...")
-  initialise(addr)
-  enable(addr)
-  settimegain(addr, tl.TSL2561_INTEGRATIONTIME_13MS, tl.TSL2561_GAIN_0X)
+  addr = 0x39
+  tl.initialise(addr)
+  tl.enable(addr)
+  tl.settimegain(addr, tl.TSL2561_INTEGRATIONTIME_13MS, tl.TSL2561_GAIN_0X)
   print("Set integration time and gain")
-  chan0,chan1=getFullLuminosity(addr)
+  chan0,chan1=tl.getFullLuminosity(addr)
+  return chan0, chan1
 end
 
 return lux
