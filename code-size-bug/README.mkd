@@ -13,7 +13,10 @@ This will succeed. Then try
 
 This will trigger a reboot...
 
-Tested with: 
+Tested with:
+
     hardware - ESP-01 module, Olinex ESP dev board
+    
     software - nodemcu_20150107.bin available github
+    
     Tools used - ESPlorer build 206 on Ubuntu 14.04/Mint Debian
