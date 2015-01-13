@@ -105,7 +105,8 @@ end
 function tl.enable(dev_addr) -- enable the device
   write_reg(dev_addr,bit.bor(TSL2561_COMMAND_BIT,TSL2561_REGISTER_CONTROL), TSL2561_CONTROL_POWERON)
 -- if we add the below statement, then require("lux") will trigger reboot
--- --[[
+-- TODO finish adding tl. references... but need to resolve code size issue first!
+--[[
   print(" ")
   print(" ")
   print(" ")
@@ -116,7 +117,7 @@ function tl.enable(dev_addr) -- enable the device
   print(" ")
   print(" ")
   print(" ")
--- ]] -- 
+]] -- 
 end
 
 function tl.disable(dev_addr) -- disable the device
