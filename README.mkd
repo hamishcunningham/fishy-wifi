@@ -72,6 +72,7 @@ Luatool filetransfer thingy:
 ## Resources
 
 - ESP8266 BB: http://www.esp8266.com/
+- Wiki: https://github.com/esp8266/esp8266-wiki/wiki/
 - NodeMCU: http://nodemcu.com/index_en.html
 - File API:
   https://raw.githubusercontent.com/nodemcu/nodemcu-firmware/master/app/modules/file.c
