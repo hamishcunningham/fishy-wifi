@@ -1,29 +1,10 @@
 Scripts, notes and the odd fish for the ESP8266
 ===
 
-wiring:
-
-module:
-- red vcc
-- black module gnd
-- brown module rx
-- gpio0
-- black gnd
-- white tx
-
-usb
-- 
-
- make flash ESPPORT=/dev/ttyAMA0
-    
-    ../tools/esptool.py --port /dev/ttyAMA0 write_flash 0x00000 ../bin/0x00000.bin 0x10000 ../bin/0x10000.bin 0x7E000 ../bin/blank.bin 0x7C000 ../bin/esp_init_data_default.bin
-
-
 ## TODO
 
 - finish adding web server to init.lua
   - penlight templates
-- what causes the restart instability?
 - verify sleep and deepsleep modes and current consumption
 - what about smartwifi as a joining protocol? does it still not work?
 - try file uploader: http://www.esp8266.com/viewtopic.php?f=22&t=1026
@@ -56,10 +37,13 @@ Flash the firmware to the ESP8266:
 
     cd app
     PATH=${PATH}:${HOME}/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/bin make flash
-
-Configure ESPlorer: 
-
-- turn off turbo mode or hit the writing 0 byte files problem
+      ESPPORT=/dev/ttyAMA0
+ 
+Older methods:
+    .../esptool.py --port /dev/ttyAMA0 write_flash 0x00000
+      ../bin/0x00000.bin 0x10000 ../bin/0x10000.bin 0x7E000 ../bin/blank.bin
+      0x7C000 ../bin/esp_init_data_default.bin
+    .../esptool.py --port /dev/ttyAMA0 write_flash 0x00000 ../nodemcu_512k_latest.bin
 
 Rebuild ESPlorer:
 
@@ -77,9 +61,14 @@ Picocom commands:
     ^T toggle DTR line
     ^U baud rate up (^D for down)
 
-Flash nodemcu from one of the recent binary builds:
+Wiring the ESP01 breadboard:
 
-    sudo ./esptool.py --port /dev/ttyAMA0 write_flash 0x00000 ../nodemcu_512k_latest.bin
+- red vcc
+- black module gnd
+- brown module rx
+- gpio0
+- black gnd
+- white tx
 
 Luatool filetransfer thingy:
 
