@@ -23,7 +23,6 @@ usb
 
 - finish adding web server to init.lua
   - penlight templates
-- does new method of build/flash not overwrite the file system?!
 - what causes the restart instability?
 - verify sleep and deepsleep modes and current consumption
 - what about smartwifi as a joining protocol? does it still not work?
