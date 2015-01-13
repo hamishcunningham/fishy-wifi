@@ -1,4 +1,5 @@
 JoinMe: a wifi config utility for the ESP8366 based on NodeMCU
+===
 
 Implementation notes
 - init.lua does nothing apart from loading code (which in turn does nothing
