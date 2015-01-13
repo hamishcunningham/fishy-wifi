@@ -13,9 +13,10 @@ This will succeed. Then try
 
 This will trigger a reboot...
 
-Test environment: 
+Tested with:
 
-- latest NodeMCU from github as of Jan 13 2015 16:22:01
-- Ubuntu 14.04
-- ESP-01 module
-- ESPlorer build 206
+    hardware - ESP-01 module, Olinex ESP dev board
+    
+    software - nodemcu_20150107.bin available github
+    
+    Tools used - ESPlorer build 206 on Ubuntu 14.04/Mint Debian
