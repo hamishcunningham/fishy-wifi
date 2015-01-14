@@ -62,10 +62,10 @@ end
 function j.doinit() -- TODO may want to take a continuation param
   wifi.setmode(wifi.STATION) -- we will either scan then swap mode, or join...
   conf = getconf()
-  if conf then -- we are configured
+  if conf then  -- we are configured
     joinwifi(conf)
-  else    -- no config, assume first run
-    wifi.sta.getap(sendchooser)
+  else          -- no config, assume first run
+    wifi.sta.getap(sendchooser) -- get AP list and pass to continuation
   end
 end
 return j
