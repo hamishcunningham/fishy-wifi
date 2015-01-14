@@ -39,6 +39,8 @@ very small portion of precious ESP memory.
 - captive portal code to redirect all requests to the server
 - minify the lua, and add a Makefile that minifies and uploads (or spiffies
   and flashes)
+- flash LEDs to distinguish the two modes
+- add a reset option (via GPIO) that deletes the config and restarts
 
 ## Implementation notes
 - the first version hit the limit of code size on the ESP; it is important to
