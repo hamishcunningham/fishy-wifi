@@ -1,4 +1,4 @@
-JoinMe: a wifi config utility for the ESP8366 based on NodeMCU
+JoinMe: a wifi config utility for the ESP8266 based on NodeMCU
 ===
 
 [Hamish Cunningham](https://hamish.gate.ac.uk/) and [Gareth
