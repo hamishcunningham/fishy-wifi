@@ -1,5 +1,5 @@
 -- j.lua: JoinMe wifi config utility
--- usage: j=require("j"); j.doinit()
+-- usage: j=require("j"); j.doinit(); j=nil
 j={}
 local cfile = "jconf.lua"
 local function getconf() 
@@ -21,7 +21,6 @@ local function writeconf(conf)
   return true
 end
 local function joinwifi(conf)
-  wifi.setmode(wifi.STATION)
   wifi.sta.config(conf.ssid, conf.key)
   wifi.sta.connect()
   -- tmr.alarm(0, 5000, 0, function() printip() end)
@@ -35,7 +34,7 @@ local function genform(aptbl) -- takes table of APs
   for ssid, _ in pairs(aptbl)
   do
     buf = buf .. '  <li>SSID: <input type="radio" name="' .. ssid ..
-      '" value="' .. ssid .. '">' .. ssid .. '<br/>\n'
+      '" value="' .. ssid .. '">' .. ssid .. '\n'
   end
   return string.gsub(wifiform, "_ITEMS_", buf)
 end
@@ -45,12 +44,12 @@ local function sendchooser(aptbl)
   -- wifi.setmode(wifi.SOFTAP)
 end
 function j.doinit() -- TODO may want to take a continuation param
-  conf = j.getconf()
+  wifi.setmode(wifi.STATION) -- we will either scan then swap mode, or join...
+  conf = getconf()
   if conf -- we are configured
   then
     joinwifi(conf)
   else    -- no config, assume first run
-    wifi.setmode(wifi.STATION)
     wifi.sta.getap(sendchooser)
     -- TODO writeconf(conf)
   end
