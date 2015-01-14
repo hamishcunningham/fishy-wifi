@@ -26,15 +26,17 @@ local function joinwifi(conf)
   -- tmr.alarm(0, 5000, 0, function() printip() end)
 end
 local wifiform = [=[
-<p>Choose a wifi access point to join:<form action="chooseap"><ol>
-_ITEMS_
-</ol><br/><input type="submit" value="Submit"></form></p> ]=] --:
+<!DOCTYPE html><html><body>
+<h2>Choose a wifi access point to join</h2><p><form action="chooseap">
+_ITEMS_<br/>Pass key: <input type="textarea" name="key"><br/><br/>
+<input type="submit" value="Submit"></form></p></body></html>
+]=] --:
 local function genform(aptbl) -- takes table of APs
-  buf = ""
+  buf = ""; checked = " checked"
   for ssid, _ in pairs(aptbl)
   do
-    buf = buf .. '  <li>SSID: <input type="radio" name="' .. ssid ..
-      '" value="' .. ssid .. '">' .. ssid .. '\n'
+    buf = buf .. '<input type="radio" name="ssid" value="' .. ssid .. '"' ..
+      checked .. '>' .. ssid .. '<br/>\n' checked = ""
   end
   return string.gsub(wifiform, "_ITEMS_", buf)
 end
