@@ -1,8 +1,24 @@
 -- j.lua: JoinMe wifi config utility
+-- usage: j=require("j"); j.doinit()
 j={}
+local cfile = "jconf.lua"
 local function getconf() 
-  status, results = pcall(dofile, "joinmeconf.lua")
+  status, results = pcall(dofile, cfile)
   if status then return results else return nil end
+end
+local function conf2string(conf)
+  buf = "{\n"
+  for k, v in pairs(conf) do
+    buf = buf .. string.format('  %s = "%s",\n', k, v)
+  end
+  return buf .. "}\n"
+end
+local function writeconf(conf)
+  f = file.open(cfile, "w")
+  if not f then return nil end
+  file.write("return " .. conf2string(conf))
+  file.close()
+  return true
 end
 local function joinwifi(conf)
   wifi.setmode(wifi.STATION)
@@ -11,11 +27,9 @@ local function joinwifi(conf)
   -- tmr.alarm(0, 5000, 0, function() printip() end)
 end
 local wifiform = [=[
-<p>Choose a wifi access point to join:<form action="chooseap">
-<ol>
+<p>Choose a wifi access point to join:<form action="chooseap"><ol>
 _ITEMS_
-</ol> <br/> <input type="submit" value="Submit"> </form></p>
-]=] --:
+</ol><br/><input type="submit" value="Submit"></form></p> ]=] --:
 local function genform(aptbl) -- takes table of APs
   buf = ""
   for ssid, _ in pairs(aptbl)
@@ -26,18 +40,19 @@ local function genform(aptbl) -- takes table of APs
   return string.gsub(wifiform, "_ITEMS_", buf)
 end
 local function sendchooser(aptbl)
-  wifi.setmode(wifi.SOFTAP)
   print(genform(aptbl))
+  -- TODO call continuation func
+  -- wifi.setmode(wifi.SOFTAP)
 end
-function j.doinit()
-  conf = getconf()
+function j.doinit() -- TODO may want to take a continuation param
+  conf = j.getconf()
   if conf -- we are configured
   then
     joinwifi(conf)
   else    -- no config, assume first run
     wifi.setmode(wifi.STATION)
     wifi.sta.getap(sendchooser)
-    -- writeconf(conf)
+    -- TODO writeconf(conf)
   end
 end
 return j
