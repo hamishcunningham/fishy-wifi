@@ -1,7 +1,24 @@
 JoinMe: a wifi config utility for the ESP8366 based on NodeMCU
 ===
 
-Usage
+## Get your Thing on 't Internet
+
+So you've got a shiney new ESP8266 all wired up and ready to go -- but how do
+you configure it to join an existing network?
+
+This library first scans for available access points. It then starts up an
+access point of its own to allow you to configure it. Join the network from
+your phone or other device, and then make a web request to the ESP. You'll be
+served a form on which you can select the network you want to join and pass
+over the network key (*beware!* this is currently over HTTP!). These
+credentials then get saved to file on the ESP, and the device restarts. This
+time it sees the config when it comes back up, and will join the network.
+
+Hey presto, your thing is on the net :-) And, because after the restart we
+don't need the code for serving the chooser form and so on, we only need a
+very small portion of precious ESP memory.
+
+## Usage
 - copy j.lua to the ESP
 - add this to init.lua: `j=require("j"); j.doinit()`
 - restart the ESP
@@ -13,15 +30,16 @@ Usage
 - you'll get a message saying "restarting"; the ESP will restart in station
   mode, and join the network that you specified
 
-TODO
+## TODO
 - split the code for the two cases (access point vs. station) into separate
   files and get init.lua to only load the one currently required
 - captive portal code to redirect all requests to the server
 - minify the lua, and add a Makefile that minifies and uploads (or spiffies
   and flashes)
 
-Implementation notes
+## Implementation notes
 - the first version hit the limit of code size on the ESP; it is important to
-  keep the code as small as possible
+  keep the code as small as possible, and to avoid loading the "choose an AP"
+  code when we don't need to
 - garbage collection doesn't seem to make an appreciable difference at present
   -- collecting available memory requires a restart
