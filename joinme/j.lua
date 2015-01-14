@@ -27,7 +27,7 @@ local function joinwifi(conf)
 end
 local wifiform = [=[
 <!DOCTYPE html><html><body>
-<h2>Choose a wifi access point to join</h2><p><form action="chooseap">
+<h2>Choose a wifi access point to join</h2><p><form method="POST" action="c">
 _ITEMS_<br/>Pass key: <input type="textarea" name="key"><br/><br/>
 <input type="submit" value="Submit"></form></p></body></html>
 ]=] --:
