@@ -30,10 +30,10 @@ _ITEMS_<br/>Pass key: <input type="textarea" name="key"><br/><br/>
 <input type="submit" value="Submit"></form></p></body></html> ]=] --:
 local function genform(aptbl) -- takes table of APs
   buf = ""; checked = " checked"
-  for ssid, _ in pairs(aptbl)
-  do
+  for ssid, _ in pairs(aptbl) do
     buf = buf .. '<input type="radio" name="ssid" value="' .. ssid .. '"' ..
-      checked .. '>' .. ssid .. '<br/>\n' checked = ""
+      checked .. '>' .. ssid .. '<br/>\n'
+    checked = ""
   end
   return string.gsub(wifiform, "_ITEMS_", buf)
 end
@@ -45,8 +45,7 @@ local function sendchooser(aptbl)
   srv:listen(80, function(conn)
     conn:on("receive", function(conn, payload)
       print("|", payload, "|") -- TODO debug
-      if string.find(payload, "POST /c HTTP")
-      then
+      if string.find(payload, "POST /c HTTP") then
         ssid, key = string.gmatch(payload, "ssid=(.*)&key=(.*)")()
         print(ssid, key) -- TODO debug
         if ssid and key then
@@ -63,8 +62,7 @@ end
 function j.doinit() -- TODO may want to take a continuation param
   wifi.setmode(wifi.STATION) -- we will either scan then swap mode, or join...
   conf = getconf()
-  if conf -- we are configured
-  then
+  if conf then -- we are configured
     joinwifi(conf)
   else    -- no config, assume first run
     wifi.sta.getap(sendchooser)
