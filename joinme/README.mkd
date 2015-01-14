@@ -44,6 +44,7 @@ very small portion of precious ESP memory.
 - add a reset option (via GPIO) that deletes the config and restarts
 - if joining doesn't work after a couple of tries, delete the config and
   restart
+- a better name for the access point we create
 
 ## Implementation notes
 - the first version hit the limit of code size on the ESP; it is important to
