@@ -3,8 +3,7 @@ Scripts, notes and the odd fish for the ESP8266
 
 ## TODO
 
-- finish adding web server to init.lua
-  - penlight templates
+- TODOs in j.lua
 - verify sleep and deepsleep modes and current consumption
 - what about smartwifi as a joining protocol? does it still not work?
 - try spiffy: https://github.com/xlfe/spiffy
