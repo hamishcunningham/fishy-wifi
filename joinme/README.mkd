@@ -37,8 +37,9 @@ very small portion of precious ESP memory.
 - split the code for the two cases (access point vs. station) into separate
   files and get init.lua to only load the one currently required
 - captive portal code to redirect all requests to the server
-- minify the lua, and add a Makefile that minifies and uploads (or spiffyfies
-  and flashes)
+- [minify](https://github.com/stravant/LuaMinify) the lua, and add a Makefile
+  that minifies and uploads (or [spiffyfies](https://github.com/xlfe/spiffy)
+  and [flashes](https://github.com/themadinventor/esptool))
 - flash LEDs to distinguish the two modes
 - add a reset option (via GPIO) that deletes the config and restarts
 - if joining doesn't work after a couple of tries, delete the config and
