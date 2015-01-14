@@ -7,11 +7,11 @@ local function getconf()
   if status then return results else return nil end
 end
 local function conf2string(conf)
-  buf = "{\n"
+  buf = "{"
   for k, v in pairs(conf) do
-    buf = buf .. string.format('  %s = "%s",\n', k, v)
+    buf = buf .. string.format(' %s = "%s",', k, v)
   end
-  return buf .. "}\n"
+  return buf .. " }\n"
 end
 local function writeconf(conf)
   f = file.open(cfile, "w")
@@ -23,14 +23,11 @@ end
 local function joinwifi(conf)
   wifi.sta.config(conf.ssid, conf.key)
   wifi.sta.connect()
-  -- tmr.alarm(0, 5000, 0, function() printip() end)
 end
-local wifiform = [=[
-<!DOCTYPE html><html><body>
+local wifiform = [=[ <html><body>
 <h2>Choose a wifi access point to join</h2><p><form method="POST" action="c">
 _ITEMS_<br/>Pass key: <input type="textarea" name="key"><br/><br/>
-<input type="submit" value="Submit"></form></p></body></html>
-]=] --:
+<input type="submit" value="Submit"></form></p></body></html> ]=] --:
 local function genform(aptbl) -- takes table of APs
   buf = ""; checked = " checked"
   for ssid, _ in pairs(aptbl)
@@ -44,15 +41,24 @@ local function sendchooser(aptbl)
   f = genform(aptbl)
   wifi.setmode(wifi.SOFTAP)
   srv=net.createServer(net.TCP)
+  -- TODO split these functions out
   srv:listen(80, function(conn)
-    conn:on("receive", function(conn,payload)
-      print(payload) -- debug
-      conn:send( genform(aptbl) )
-      conn:on("sent", function(conn) conn:close() end)
+    conn:on("receive", function(conn, payload)
+      print("|", payload, "|") -- TODO debug
+      if string.find(payload, "POST /c HTTP")
+      then
+        ssid, key = string.gmatch(payload, "ssid=(.*)&key=(.*)")()
+        print(ssid, key) -- TODO debug
+        if ssid and key then
+          writeconf({ ssid=ssid, key=key })
+          conn:send("<html><body><h2>Done! Restarting...</h2></body></html>")
+          conn:on("sent", function(_) node.restart() end)
+        end
+      else
+        conn:send( genform(aptbl) )
+      end
     end)
   end)
-
-  -- TODO call continuation func
 end
 function j.doinit() -- TODO may want to take a continuation param
   wifi.setmode(wifi.STATION) -- we will either scan then swap mode, or join...
@@ -62,7 +68,6 @@ function j.doinit() -- TODO may want to take a continuation param
     joinwifi(conf)
   else    -- no config, assume first run
     wifi.sta.getap(sendchooser)
-    -- TODO writeconf(conf)
   end
 end
 return j
