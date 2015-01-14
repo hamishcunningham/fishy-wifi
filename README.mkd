@@ -7,7 +7,7 @@ Scripts, notes and the odd fish for the ESP8266
   - penlight templates
 - verify sleep and deepsleep modes and current consumption
 - what about smartwifi as a joining protocol? does it still not work?
-- try file uploader: http://www.esp8266.com/viewtopic.php?f=22&t=1026
+- try spiffy: https://github.com/xlfe/spiffy
 
 ## How to...
 

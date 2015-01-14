@@ -41,9 +41,18 @@ local function genform(aptbl) -- takes table of APs
   return string.gsub(wifiform, "_ITEMS_", buf)
 end
 local function sendchooser(aptbl)
-  print(genform(aptbl))
+  f = genform(aptbl)
+  wifi.setmode(wifi.SOFTAP)
+  srv=net.createServer(net.TCP)
+  srv:listen(80, function(conn)
+    conn:on("receive", function(conn,payload)
+      print(payload) -- debug
+      conn:send( genform(aptbl) )
+      conn:on("sent", function(conn) conn:close() end)
+    end)
+  end)
+
   -- TODO call continuation func
-  -- wifi.setmode(wifi.SOFTAP)
 end
 function j.doinit() -- TODO may want to take a continuation param
   wifi.setmode(wifi.STATION) -- we will either scan then swap mode, or join...
