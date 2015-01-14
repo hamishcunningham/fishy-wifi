@@ -1,8 +1,25 @@
 JoinMe: a wifi config utility for the ESP8366 based on NodeMCU
 ===
 
+Usage
+- copy j.lua to the ESP
+- add this to init.lua: `j=require("j"); j.doinit()`
+- restart
+- the ESP will now start up into access point mode
+- join the network and identify your IP, e.g. 198.168.1.2
+- load <ip prefix>.1 in your browser, e.g. `http://192.168.1.1`
+- you will get a form listing available wifi networks; choose one, fill in the
+  pass key and submit
+- you'll get a message saying "restarting"; the ESP will restart in station
+  mode, and join the network that you specified
+
+TODO
+- split the code for the two cases (access point vs. station) into separate
+  files and get init.lua to only load the one currently required
+- captive portal code to redirect all requests to the server
+
 Implementation notes
-- init.lua does nothing apart from loading code (which in turn does nothing
-  apart from define packages).
-- Then there's a top-level `doinit()` function which is the main loop.
-- No globals except package tables and `doinit()` itself.
+- the first version hit the limit of code size on the ESP; it is important to
+  keep the code as small as possible
+- garbage collection doesn't seem to make an appreciable difference at present
+  -- collecting available memory requires a restart
