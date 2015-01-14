@@ -1,8 +1,7 @@
 JoinMe: a wifi config utility for the ESP8366 based on NodeMCU
 ===
 
-## Get your Thing on 't Internet
-
+## Get your Thing on t' Internet
 So you've got a shiney new ESP8266 all wired up and ready to go -- but how do
 you configure it to join an existing network?
 
