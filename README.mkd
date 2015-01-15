@@ -1,7 +1,8 @@
 Scripts, notes and the odd fish for the ESP8266
 ===
 
-[Hamish Cunningham](https://hamish.gate.ac.uk/) and [Gareth Coleman](http://l0l.org.uk/)
+[Hamish Cunningham](https://hamish.gate.ac.uk/), [Gareth
+Coleman](http://l0l.org.uk/) and [The.Crowd.Works](https://the.crowd.works)
 
 ## A small corner of The Commons
 

@@ -1,7 +1,9 @@
 How much Lua code can we fit on the ESP?
 ===
 
-[Gareth Coleman](http://l0l.org.uk/) and [Hamish Cunningham](https://hamish.gate.ac.uk/)
+[Gareth Coleman](http://l0l.org.uk/), [Hamish
+Cunningham](https://hamish.gate.ac.uk/) and
+[The.Crowd.Works](https://the.crowd.works)
 
 This isn't really a bug... more of a contribution to documentation.
 

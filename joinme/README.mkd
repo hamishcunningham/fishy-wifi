@@ -1,8 +1,8 @@
 JoinMe: a wifi config utility for the ESP8266 based on NodeMCU
 ===
 
-[Hamish Cunningham](https://hamish.gate.ac.uk/) and [Gareth
-Coleman](http://l0l.org.uk/)
+[Hamish Cunningham](https://hamish.gate.ac.uk/), [Gareth
+Coleman](http://l0l.org.uk/) and [The.Crowd.Works](https://the.crowd.works)
 
 ## Get your Thing on t' Internet
 So you've got a shiney new ESP8266 all wired up and ready to go -- but how do
