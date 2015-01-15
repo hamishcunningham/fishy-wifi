@@ -1,27 +1,58 @@
-JoinMe: a wifi config utility for the ESP8366 based on NodeMCU
+JoinMe: a wifi config utility for the ESP8266 based on NodeMCU
 ===
 
-Usage
+[Hamish Cunningham](https://hamish.gate.ac.uk/), [Gareth
+Coleman](http://l0l.org.uk/) and [The.Crowd.Works](https://the.crowd.works)
+
+## Get your Thing on t' Internet
+So you've got a shiney new ESP8266 all wired up and ready to go -- but how do
+you configure it to join an existing network?
+
+This library first scans for available access points. It then starts up an
+access point of its own to allow you to configure it. Join the network from
+your phone or other device, and then make a web request to the ESP. You'll be
+served a form on which you can select the network you want to join and pass
+over the network key (*beware!* this is currently over HTTP!). These
+credentials then get saved to file on the ESP, and the device restarts. This
+time it sees the config when it comes back up, and will join the network.
+
+Hey presto, your thing is on the net :-) And, because after the restart we
+don't need the code for serving the chooser form and so on, we only need a
+very small portion of precious ESP memory.
+
+## Usage
 - copy j.lua to the ESP
 - add this to init.lua: `j=require("j"); j.doinit()`
-- restart
+- restart the ESP
 - the ESP will now start up into access point mode
-- join the network and identify your IP, e.g. 198.168.1.2
-- load <ip prefix>.1 in your browser, e.g. `http://192.168.1.1`
+- the hard bit (pending replacement with captive portal config):
+  - join the network and identify your IP, e.g. `192.168.4.2`
+  - load `http://<ip prefix>.1` in your browser, e.g. `http://192.168.4.1`
 - you will get a form listing available wifi networks; choose one, fill in the
   pass key and submit
 - you'll get a message saying "restarting"; the ESP will restart in station
   mode, and join the network that you specified
 
-TODO
+## TODO
 - split the code for the two cases (access point vs. station) into separate
   files and get init.lua to only load the one currently required
 - captive portal code to redirect all requests to the server
-- minify the lua, and add a Makefile that minifies and uploads (or spiffies
-  and flashes)
+- [minify](https://github.com/stravant/LuaMinify) the lua, and add a Makefile
+  that minifies and uploads (or [spiffyfies](https://github.com/xlfe/spiffy)
+  and [flashes](https://github.com/themadinventor/esptool))
+- flash LEDs to distinguish the two modes
+- add a reset option (via GPIO) that deletes the config and restarts
+- if joining doesn't work after a couple of tries, delete the config and
+  restart
+- a better name for the access point we create
 
-Implementation notes
-- the first version hit the limit of code size on the ESP; it is important to
-  keep the code as small as possible
+## Implementation notes
+- the [first version](old/) hit the [limit of code
+  size](http://www.esp8266.com/viewtopic.php?f=18&t=1242) on the ESP; it is
+  important to keep the code as small as possible, and to avoid loading the
+  "choose an AP" code when we don't need to
+  - possibly there are methods to reduce heap consumption that might help,
+    [e.g. this
+    one](http://www.esp8266.com/viewtopic.php?f=24&t=1135&p=7273#p7273)
 - garbage collection doesn't seem to make an appreciable difference at present
   -- collecting available memory requires a restart
