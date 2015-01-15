@@ -1,10 +1,12 @@
 Scripts, notes and the odd fish for the ESP8266
 ===
 
+[Hamish Cunningham](https://hamish.gate.ac.uk/) and [Gareth Coleman](http://l0l.org.uk/)
+
 ## A small corner of The Commons
 
 ("Tragedy?" [That was bad
-science](http://climateandcapitalism.com/2008/08/25/debunking-the-tragedy-of-the-commons/).)
+science](http://climateandcapitalism.com/2008/08/25/debunking-the-tragedy-of-the-commons/)!)
 
 - A Lua port of code for the [TSL2561 I2C Luminosity](lux/) sensor.
 - A library for configuring the [ESP8266 over the air](joinme/) to join
