@@ -3,7 +3,7 @@
 j={}
 local cfile = "jconf.lua"
 local function getconf() 
-  status, results = pcall(dofile, cfile)
+  status, results = pcall(dofile, cfile) -- might just do return pcall(...)
   if status then return results else return nil end
 end
 local function conf2string(conf)
@@ -33,12 +33,13 @@ local function genform(aptbl) -- takes table of APs
   for ssid, _ in pairs(aptbl)
   do
     buf = buf .. '<input type="radio" name="ssid" value="' .. ssid .. '"' ..
-      checked .. '>' .. ssid .. '<br/>\n' checked = ""
+      checked .. '>' .. ssid .. '<br/>\n'
+    checked = ""
   end
   return string.gsub(wifiform, "_ITEMS_", buf)
 end
 local function sendchooser(aptbl)
-  f = genform(aptbl)
+  frm = genform(aptbl)
   wifi.setmode(wifi.SOFTAP)
   srv=net.createServer(net.TCP)
   -- TODO split these functions out
@@ -55,7 +56,7 @@ local function sendchooser(aptbl)
           conn:on("sent", function(_) node.restart() end)
         end
       else
-        conn:send( genform(aptbl) )
+        conn:send(frm)
       end
     end)
   end)
