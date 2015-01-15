@@ -1,6 +1,8 @@
 How much Lua code can we fit on the ESP?
 ===
 
+[Gareth Coleman](http://l0l.org.uk/) and [Hamish Cunningham](https://hamish.gate.ac.uk/)
+
 This isn't really a bug... more of a contribution to documentation.
 
 There is a hard limit on code size that NodeMCU can support. If we try to load
