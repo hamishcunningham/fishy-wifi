@@ -15,13 +15,6 @@ science](http://climateandcapitalism.com/2008/08/25/debunking-the-tragedy-of-the
 
 This is all [AGPL 3](LICENSE). Like it or lump it :-)
 
-## TODO
-
-- TODOs in j.lua
-- verify sleep and deepsleep modes and current consumption
-- what about smartwifi as a joining protocol? does it still not work?
-- try spiffy: https://github.com/xlfe/spiffy
-
 ## How to...
 
 Build open source toolchain:
