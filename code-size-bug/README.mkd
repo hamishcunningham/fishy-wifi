@@ -1,9 +1,13 @@
-There seems to be a hard limit on code size that
-NodeMCU can currently support. If we try to load a
-chunk that exceeds that size then the system restarts.
+How much Lua code can we fit on the ESP?
+===
 
-To replicate, copy the files sizebug100.lua and sizebug300.lua
-to the ESP. Then
+This isn't really a bug... more of a contribution to documentation.
+
+There is a hard limit on code size that NodeMCU can support. If we try to load
+a chunk that exceeds that size then the system restarts.
+
+To replicate, copy the files sizebug100.lua and sizebug300.lua to the ESP.
+Then
 
     sb = require("sizebug100")
 
@@ -15,8 +19,9 @@ This will trigger a reboot...
 
 Tested with:
 
-    hardware - ESP-01 module, Olinex ESP dev board
+    hardware -- ESP-01 module, Olinex ESP dev board
     
-    software - nodemcu_20150107.bin available github
+    software -- nodemcu_20150107.bin available github, and also the latest
+    checkins as of Jan 13th 2015
     
-    Tools used - ESPlorer build 206 on Ubuntu 14.04/Mint Debian
+    tools used -- ESPlorer build 206 on Ubuntu 14.04/Mint Debian
