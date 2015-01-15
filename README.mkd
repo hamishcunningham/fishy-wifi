@@ -16,6 +16,9 @@ science](http://climateandcapitalism.com/2008/08/25/debunking-the-tragedy-of-the
 
 This is all [AGPL 3](LICENSE). Like it or lump it :-)
 
+Want to see a thing of beauty? Have a peek at
+[NodeMCU](https://github.com/nodemcu/nodemcu-firmware).
+
 ## How to...
 
 Build open source toolchain:
