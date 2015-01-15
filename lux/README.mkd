@@ -1,4 +1,4 @@
-A Lua port for the [TSL2561 I2C Luminosity](lux/) sensor
+A Lua port for the TSL2561 I2C Luminosity sensor
 ===
 
 [Gareth Coleman](http://l0l.org.uk/)
