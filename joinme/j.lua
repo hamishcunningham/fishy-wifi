@@ -3,7 +3,7 @@
 j={}
 local cfile = "jconf.lua"
 local function getconf() 
-  status, results = pcall(dofile, cfile) -- might just do return pcall(...)
+  status, results = pcall(dofile, cfile) -- might just do return pcall(...) or {}
   if status then return results else return nil end
 end
 local function conf2string(conf)
