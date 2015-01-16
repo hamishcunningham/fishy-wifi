@@ -1,5 +1,8 @@
 # Makefile for JoinMe wifi utility
 
-MINIFY=../../LuaMinify/LuaMinify.sh
+MINIFYDIR=../../LuaMinify
+MINIFY=minify-lua.sh
+
 minify:
-	$(MINIFY) j.lua
+	[ -d $(MINIFYDIR) ] || { echo oops: no $(MINIFYDIR); exit 1; }
+	$(MINIFY) $(MINIFYDIR) j.lua
