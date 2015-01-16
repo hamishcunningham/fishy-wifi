@@ -38,10 +38,8 @@ local function genform(aptbl) -- takes table of APs
   return string.gsub(wifiform, "_ITEMS_", buf)
 end
 local function httplistener(conn, payload)
-  print("|", payload, "|") -- TODO debug
   if string.find(payload, "POST /c HTTP") then
     ssid, key = string.gmatch(payload, "ssid=(.*)&key=(.*)")()
-    print(ssid, key) -- TODO debug
     if ssid and key then
       writeconf({ ssid=ssid, key=key })
       conn:send("<html><body><h2>Done! Restarting...</h2></body></html>")
@@ -57,7 +55,7 @@ local function sendchooser(aptbl)
   srv=net.createServer(net.TCP)
   srv:listen(80, function(conn) conn:on("receive", httplistener) end)
 end
-function j.doinit() -- TODO may want to take a continuation param
+function j.doinit()
   wifi.setmode(wifi.STATION) -- we will either scan then swap mode, or join...
   conf = getconf()
   if conf then  -- we are configured
