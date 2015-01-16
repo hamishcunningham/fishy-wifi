@@ -60,6 +60,7 @@ generalise the flash driven continuations style?
     ...
     function joinme.joinme() -- the phase name
       doinit()
+      -- TODO how to encode the next phase?
       return conf
     end
     ...
