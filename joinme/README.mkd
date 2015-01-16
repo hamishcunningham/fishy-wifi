@@ -35,7 +35,7 @@ very small portion of precious ESP memory.
 
 ## TODO
 
-- generalise the flash driven continuations style?
+generalise the flash driven continuations style?
 
     -- init.lua
     f = require("freak")
