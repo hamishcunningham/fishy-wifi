@@ -37,27 +37,25 @@ local function genform(aptbl) -- takes table of APs
   end
   return string.gsub(wifiform, "_ITEMS_", buf)
 end
+local function httplistener(conn, payload)
+  print("|", payload, "|") -- TODO debug
+  if string.find(payload, "POST /c HTTP") then
+    ssid, key = string.gmatch(payload, "ssid=(.*)&key=(.*)")()
+    print(ssid, key) -- TODO debug
+    if ssid and key then
+      writeconf({ ssid=ssid, key=key })
+      conn:send("<html><body><h2>Done! Restarting...</h2></body></html>")
+      conn:on("sent", function(_) node.restart() end)
+    end
+  else
+    conn:send(frm)
+  end
+end
 local function sendchooser(aptbl)
   frm = genform(aptbl)
   wifi.setmode(wifi.SOFTAP)
   srv=net.createServer(net.TCP)
-  -- TODO split these functions out
-  srv:listen(80, function(conn)
-    conn:on("receive", function(conn, payload)
-      print("|", payload, "|") -- TODO debug
-      if string.find(payload, "POST /c HTTP") then
-        ssid, key = string.gmatch(payload, "ssid=(.*)&key=(.*)")()
-        print(ssid, key) -- TODO debug
-        if ssid and key then
-          writeconf({ ssid=ssid, key=key })
-          conn:send("<html><body><h2>Done! Restarting...</h2></body></html>")
-          conn:on("sent", function(_) node.restart() end)
-        end
-      else
-        conn:send(frm)
-      end
-    end)
-  end)
+  srv:listen(80, function(conn) conn:on("receive", httplistener) end)
 end
 function j.doinit() -- TODO may want to take a continuation param
   wifi.setmode(wifi.STATION) -- we will either scan then swap mode, or join...
