@@ -10,6 +10,6 @@ ESPPORT=/dev/ttyUSB0
 
 # flash the firmware to the ESP8266
 nodemcu:
-	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE) DEFINES=-DUSE_DNS
+	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE) UNIVERSAL_TARGET_DEFINES=-DUSE_DNS
 flashnodemcu:
 	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE) flash ESPPORT=$(ESPPORT)
