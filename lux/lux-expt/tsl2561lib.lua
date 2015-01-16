@@ -37,23 +37,23 @@ tl = {
 function tl.enable(dev_addr) -- enable the device
   i2cutils.write_reg(
     dev_addr,
-    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CONTROL),
-    TSL2561_CONTROL_POWERON
+    bit.bor(tl.TSL2561_COMMAND_BIT, tl.TSL2561_REGISTER_CONTROL),
+    tl.TSL2561_CONTROL_POWERON
   )
 end
 
 function tl.disable(dev_addr) -- disable the device
-  write_reg(
+  i2cutils.write_reg(
     dev_addr,
-    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CONTROL),
-    TSL2561_CONTROL_POWEROFF
+    bit.bor(tl.TSL2561_COMMAND_BIT, tl.TSL2561_REGISTER_CONTROL),
+    tl.TSL2561_CONTROL_POWEROFF
   )
 end
 
 function tl.settimegain(dev_addr, time, gain) -- set the integration time and gain together
-  write_reg(
+  i2cutils.write_reg(
     dev_addr,
-    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_TIMING),
+    bit.bor(tl.TSL2561_COMMAND_BIT, tl.TSL2561_REGISTER_TIMING),
     bit.bor(time, gain)
   )
 end
@@ -62,21 +62,21 @@ function tl.getFullLuminosity(dev_addr) -- Do the actual reading from the sensor
   tmr.delay(14000)
   ch0low = i2cutils.read_reg(
     dev_addr,
-    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CHAN0_LOW)
+    bit.bor(tl.TSL2561_COMMAND_BIT, tl.TSL2561_REGISTER_CHAN0_LOW)
   )
   ch0high = i2cutils.read_reg(
     dev_addr,
-    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CHAN0_HIGH)
+    bit.bor(tl.TSL2561_COMMAND_BIT, tl.TSL2561_REGISTER_CHAN0_HIGH)
   )
   ch0=string.byte(ch0low)+(string.byte(ch0high)*256)
 
   ch1low = i2cutils.read_reg(
     dev_addr,
-    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CHAN1_LOW)
+    bit.bor(tl.TSL2561_COMMAND_BIT, tl.TSL2561_REGISTER_CHAN1_LOW)
   )
   ch1high = i2cutils.read_reg(
     dev_addr,
-    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CHAN1_HIGH)
+    bit.bor(tl.TSL2561_COMMAND_BIT, tl.TSL2561_REGISTER_CHAN1_HIGH)
   )
   ch1=string.byte(ch1low)+(string.byte(ch1high)*256)
   return ch0, ch1

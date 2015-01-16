@@ -9,7 +9,7 @@ tl = require("tsl2561lib")
 i2cutils = require("i2cutils")
 
 -- this maps GPIO numbers to internal IO references
-local io_pin = {[0]=3,[2]=4,[4]=2,[5]=1,[12]=6,[13]=7,[14]=5},
+local io_pin = {[0]=3,[2]=4,[4]=2,[5]=1,[12]=6,[13]=7,[14]=5}
 local sda = io_pin[14] -- connect to pin GPIO14
 local scl = io_pin[12] -- connect to pin GPIO12
 local busid = 0 -- i2c bus id
