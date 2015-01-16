@@ -36,7 +36,6 @@ very small portion of precious ESP memory.
 ## TODO
 - split the code for the two cases (access point vs. station) into separate
   files and get init.lua to only load the one currently required
-- captive portal code to redirect all requests to the server
 - [minify](https://github.com/stravant/LuaMinify) the lua, and add a Makefile
   that minifies and uploads (or [spiffyfies](https://github.com/xlfe/spiffy)
   and [flashes](https://github.com/themadinventor/esptool))
@@ -45,6 +44,12 @@ very small portion of precious ESP memory.
 - if joining doesn't work after a couple of tries, delete the config and
   restart
 - a better name for the access point we create
+- captive portal code to redirect all requests to the server
+  - get softap to include a DNS server IP in its connection data
+  - listen on port 53; when anyone sends anything direct to the device IP
+    (192.168.4.1)
+  - for any HTTP GET send redirect to https://something.or.other/
+  - for any HTTPS GET send the configure form
 
 ## Implementation notes
 - the [first version](old/) hit the [limit of code
