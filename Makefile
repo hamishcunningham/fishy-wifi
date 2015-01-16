@@ -6,10 +6,10 @@ NODEMCUDIR=$(ESPDIR)/nodemcu-firmware
 XTENSABIN=$(ESPSDKDIR)/xtensa-lx106-elf/bin
 FIXPATH=PATH=${PATH}:$(XTENSABIN)
 # for the Pi: ESPPORT=/dev/ttyAMA0
-ESPPORT=/dev/usb0
+ESPPORT=/dev/ttyUSB0
 
 # flash the firmware to the ESP8266
 nodemcu:
-	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE)
+	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE) DEFINES=-DUSE_DNS
 flashnodemcu:
 	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE) flash ESPPORT=$(ESPPORT)
