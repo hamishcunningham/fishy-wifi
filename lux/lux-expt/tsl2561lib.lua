@@ -4,10 +4,10 @@
 -- This code is AGPL v3 by gareth@l0l.org.uk and Hamish Cunningham
 -- blah blah blah standard licence conditions apply blah blah blah
 
-i2c= require("i2cutils") -- get our helper functions loaded
+i2cutils = require("i2cutils") -- get our helper functions loaded
 
 -- the package table, and lots of constants
-tsl2561lib = {
+tl = {
   TSL2561_ADDR_FLOAT            = 0x39,
   TSL2561_COMMAND_BIT           = 0x80,   -- Must be 1
   TSL2561_CONTROL_POWERON       = 0x03,
@@ -34,29 +34,52 @@ tsl2561lib = {
 }
 
 -- add a few recursive definitions
-tl = tsl2561lib
 function tl.enable(dev_addr) -- enable the device
-  i2cutils.write_reg(dev_addr,bit.bor(TSL2561_COMMAND_BIT,TSL2561_REGISTER_CONTROL), TSL2561_CONTROL_POWERON)
+  i2cutils.write_reg(
+    dev_addr,
+    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CONTROL),
+    TSL2561_CONTROL_POWERON
+  )
 end
 
 function tl.disable(dev_addr) -- disable the device
-  write_reg(dev_addr,bit.bor(TSL2561_COMMAND_BIT,TSL2561_REGISTER_CONTROL), TSL2561_CONTROL_POWEROFF)
+  write_reg(
+    dev_addr,
+    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CONTROL),
+    TSL2561_CONTROL_POWEROFF
+  )
 end
 
 function tl.settimegain(dev_addr, time, gain) -- set the integration time and gain together
-  write_reg(dev_addr,bit.bor(TSL2561_COMMAND_BIT,TSL2561_REGISTER_TIMING), bit.bor(time,gain))
+  write_reg(
+    dev_addr,
+    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_TIMING),
+    bit.bor(time, gain)
+  )
 end
 
 function tl.getFullLuminosity(dev_addr) -- Do the actual reading from the sensor
   tmr.delay(14000)
-  ch0low = i2cutils.read_reg(dev_addr, bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CHAN0_LOW))
-  ch0high = i2cutils.read_reg(dev_addr,bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CHAN0_HIGH))
+  ch0low = i2cutils.read_reg(
+    dev_addr,
+    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CHAN0_LOW)
+  )
+  ch0high = i2cutils.read_reg(
+    dev_addr,
+    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CHAN0_HIGH)
+  )
   ch0=string.byte(ch0low)+(string.byte(ch0high)*256)
 
-  ch1low = i2cutils.read_reg(dev_addr, bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CHAN1_LOW))
-  ch1high = i2cutils.read_reg(dev_addr,bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CHAN1_HIGH))
+  ch1low = i2cutils.read_reg(
+    dev_addr,
+    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CHAN1_LOW)
+  )
+  ch1high = i2cutils.read_reg(
+    dev_addr,
+    bit.bor(TSL2561_COMMAND_BIT, TSL2561_REGISTER_CHAN1_HIGH)
+  )
   ch1=string.byte(ch1low)+(string.byte(ch1high)*256)
-  return ch0,ch1
+  return ch0, ch1
 end
 
 return tl
