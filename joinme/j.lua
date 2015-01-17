@@ -3,7 +3,7 @@
 j={}
 local cfile = "jconf.lua"
 local function getconf() 
-  status, results = pcall(dofile, cfile) -- might just do return pcall(...)
+  status, results = pcall(dofile, cfile) -- might just do return pcall(...) or {}
   if status then return results else return nil end
 end
 local function conf2string(conf)
@@ -50,7 +50,8 @@ local function httplistener(conn, payload)
   end
 end
 local function sendchooser(aptbl)
-  frm = genform(aptbl)
+  frm = genform(aptbl) -- TODO move to httplistener so gets updated scan
+                       -- or have a loop in doinit?
   wifi.setmode(wifi.SOFTAP)
   srv=net.createServer(net.TCP)
   srv:listen(80, function(conn) conn:on("receive", httplistener) end)
