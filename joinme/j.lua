@@ -38,6 +38,7 @@ local function genform(aptbl) -- takes table of APs
   return string.gsub(wifiform, "_ITEMS_", buf)
 end
 local function httplistener(conn, payload)
+  -- print("\n", payload, "\n")
   if string.find(payload, "POST /c HTTP") then
     ssid, key = string.gmatch(payload, "ssid=(.*)&key=(.*)")()
     if ssid and key then
