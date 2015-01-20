@@ -20,6 +20,11 @@ local function writeconf(conf)
   file.close()
   return true
 end
+
+-- oops: mixing two styles here; we should plump for one
+-- (i.e. keep all the data in the continuation? and callback here from 
+-- each phase, then do the restarts here too? could even measure heap
+-- before deciding: if(node.getheap()) <= 20k)...
 local function run(stepindex, continuation)
   while true do
     stepindex = stepindex + 1
