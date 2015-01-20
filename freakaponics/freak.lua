@@ -35,7 +35,7 @@ local function run(continuation, nexttask) -- main "loop"
 end
 function freak.begin(tasks, precons)
   continuation = { tasks=tasks, precons=precons }
-  continuation.taskdata = getconf()
+  _, continuation.taskdata = getconf()
   return run(continuation, continuation.taskdata.nexttask or 1)
 end
 return freak
