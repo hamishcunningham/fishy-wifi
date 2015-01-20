@@ -1,57 +1,41 @@
--- freak.lua
---[[ A control utility to facilitate complex tasks in tight spaces on the
-ESP8266 by allowing periodic restarts to reclaim memory. The task is split
-into a set of phases, each represented by a Lua package that implements a
-`run` function. Freak loops over these functions, passing (small amounts!) of
-data along the pipeline. This data and a record of which phase is due next is
-persisted to the filesystem during restarts. ]]
+-- freak.lua: task management utility
 freak = {}
 local cfile = "freakdata.lua"
-local minheap = 20000 -- if we've dropped below this after a phase, restart
+local minheap = 20000 -- if we've dropped below this after a task, restart
 local function getconf() return pcall(dofile, cfile) or {} end
-local function tbl2str(t)
+local function persist(t)
+  file.open(cfile, "w"); file.write("return "..t2str(t)); file.close()
+end
+local function t2str(t)
   buf = "{ "
   for k, v in pairs(t) do
-    buf == buf .. k "="
-    if type(v) = table then buf = buf .. tbl2str(v)
-    else buf = buf
-    end
-    buf .. ","
+    if type(v) == "table" then v = t2str(v) end
+    buf = buf .. string.format(' %s="%s",', k, v)
   end
   return buf .. " }\n"
 end
-local function persist(c)
-  f = file.open(cfile, "w")
-  if not f then return nil end
-  buf = "{"
-  for k, v in pairs(c) do buf = buf .. string.format(' %s="%s",', k, v) end
-  file.write("return " .. buf .. " }\n")
-  file.close()
-  return true
-end
-local function run(stepindex, continuation)
-  stepindex = stepindex + 1
-  if(stepindex > #continuation) then stepindex = 1 end
-  p = continuation[stepindex]
-  phasekey = p[1]
-  phasedata = p[2]
-  if type(phasekey) == "function" then
-    pcall(phasekey, continuation)
-  elseif type(phasekey) == "string" then
--- TODO check preconditions
-pcall(continuation.taskdata.phasekey, continuation)
-    phasechunk = require(phasekey)
-    pcall(phasechunk.run, continuation)
+local function run(continuation, nexttask) -- main "loop"
+  taskname = continuation.tasks[nexttask]
+  if type(taskname) == "number" then node.deepsleep(taskname * 1000)
+  else
+    preconfunc = continuation.precons.taskname -- check preconditions
+    if not preconfunc or pcall(preconfunc, continuation) then
+      taskchunk = require(taskname)
+      pcall(taskchunk.run, continuation)
+    end
   end
+  nexttask = nexttask + 1
+  if(nexttask > #continuation.tasks) then nexttask = 1 end -- start over
+  continuation.taskdata.nexttask = nexttask
   if node.getheap() < minheap then
-    continuation.nextphase = stepindex
-    persist(continuation)
+    persist(continuation.taskdata)
     node.restart() -- reset the chip and start over
   end
-  run(stepindex, continuation) -- run the next phase
+  return run(continuation, nexttask) -- run the next task (tail call)
 end
-function freak.run(continuation)
-  cdata = getconf()
-  return run(continuation.nextphase or 1, continuation)
+function freak.begin(tasks, precons)
+  continuation = { tasks=tasks, precons=precons }
+  continuation.taskdata = getconf()
+  return run(continuation, continuation.taskdata.nexttask or 1)
 end
 return freak
