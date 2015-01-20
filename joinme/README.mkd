@@ -35,39 +35,9 @@ very small portion of precious ESP memory.
 
 ## TODO
 
-generalise the flash driven continuations style?
-
-    -- init.lua
-    f = require("freak")
-    fconf = f.continue()
-    f.writeconf(fconf)
-    node.restart()
-
-    -- freak.lua
-    freak = {}
-    local cfile = "freakdata.lua"
-    local function getconf() return pcall(dofile, cfile) or {} end
-    function freak.continue()
-      fconf = getconf()
-      -- choose what code to load ...
-      phasename = fconf.phase
-      phase = require(phasename)
-      return phase()
-    end
-    return freak
-
-    -- joinme.lua
-    ...
-    function joinme.joinme() -- the phase name
-      doinit()
-      -- TODO how to encode the next phase?
-      return conf
-    end
-    ...
-
-
 - split the code for the two cases (access point vs. station) into separate
   files and get init.lua to only load the one currently required
+  - unnesc? delete the station case instead, and let nodemcu do autoreconnect?
 - flash LEDs to distinguish the two modes
 - add a reset option (via GPIO) that deletes the config and restarts
 - if joining doesn't work after a couple of tries, delete the config and
