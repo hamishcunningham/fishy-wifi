@@ -7,42 +7,51 @@ data along the pipeline. This data and a record of which phase is due next is
 persisted to the filesystem during restarts. ]]
 freak = {}
 local cfile = "freakdata.lua"
+local minheap = 20000 -- if we've dropped below this after a phase, restart
 local function getconf() return pcall(dofile, cfile) or {} end
-local function conf2string(conf)
-  buf = "{"
-  for k, v in pairs(conf) do buf = buf .. string.format(' %s="%s",', k, v) end
+local function tbl2str(t)
+  buf = "{ "
+  for k, v in pairs(t) do
+    buf == buf .. k "="
+    if type(v) = table then buf = buf .. tbl2str(v)
+    else buf = buf
+    end
+    buf .. ","
+  end
   return buf .. " }\n"
 end
-local function writeconf(conf)
+local function persist(c)
   f = file.open(cfile, "w")
   if not f then return nil end
-  file.write("return " .. conf2string(conf))
+  buf = "{"
+  for k, v in pairs(c) do buf = buf .. string.format(' %s="%s",', k, v) end
+  file.write("return " .. buf .. " }\n")
   file.close()
   return true
 end
-
--- oops: mixing two styles here; we should plump for one
--- (i.e. keep all the data in the continuation? and callback here from 
--- each phase, then do the restarts here too? could even measure heap
--- before deciding: if(node.getheap()) <= 20k)...
 local function run(stepindex, continuation)
-  while true do
-    stepindex = stepindex + 1
-    continuation.nextphase = stepindex
-    if(stepindex > #continuation) then stepindex = 1 end
-    for _, p in continuation do
-      phasekey = p[1]; phasedata = p[2]
-      if type(phasekey) == "function" then
-        pcall(phasekey, continuation)
-      elseif type(phasekey) == "string" then
-        phasechunk = require(phasekey)
-        pcall(phasechunk.run, continuation)
-      end
-    end
+  stepindex = stepindex + 1
+  if(stepindex > #continuation) then stepindex = 1 end
+  p = continuation[stepindex]
+  phasekey = p[1]
+  phasedata = p[2]
+  if type(phasekey) == "function" then
+    pcall(phasekey, continuation)
+  elseif type(phasekey) == "string" then
+-- TODO check preconditions
+pcall(continuation.taskdata.phasekey, continuation)
+    phasechunk = require(phasekey)
+    pcall(phasechunk.run, continuation)
   end
+  if node.getheap() < minheap then
+    continuation.nextphase = stepindex
+    persist(continuation)
+    node.restart() -- reset the chip and start over
+  end
+  run(stepindex, continuation) -- run the next phase
 end
 function freak.run(continuation)
   cdata = getconf()
-  return run(cdata.stepindex or 1, continuation, {})
+  return run(continuation.nextphase or 1, continuation)
 end
 return freak
