@@ -1,9 +1,9 @@
 -- joinme.lua: JoinMe wifi config utility
 joinme={}
-local wifiform = [=[ <html><body>
-<h2>Choose a wifi access point to join</h2><p><form method="POST" action="c">
+local wifiform = [=[<html><body>
+<h2>Choose a wifi access point to join</h2><p><form method="POST" action="chz">
 _ITEMS_<br/>Pass key: <input type="textarea" name="key"><br/><br/>
-<input type="submit" value="Submit"></form></p></body></html> ]=] --:
+<input type="submit" value="Submit"></form></p></body></html>]=]
 local function genform(aptbl) -- takes table of APs
   buf = ""; checked = " checked"
   for ssid, _ in pairs(aptbl) do
@@ -15,7 +15,7 @@ local function genform(aptbl) -- takes table of APs
 end
 local function httplistener(conn, payload)
   -- print("\n", payload, "\n")
-  if string.find(payload, "POST /c HTTP") then
+  if string.find(payload, "POST /chz HTTP") then
     ssid, key = string.gmatch(payload, "ssid=(.*)&key=(.*)")()
     if ssid and key then
       wifi.sta.config(ssid, key)
@@ -30,11 +30,8 @@ local function httplistener(conn, payload)
 end
 local function sendchooser(aptbl)
   frm = genform(aptbl)
-  srv=net.createServer(net.TCP)
+  srv = net.createServer(net.TCP)
   srv:listen(80, function(conn) conn:on("receive", httplistener) end)
 end
-function joinme.run(continuation)
-  wifi.setmode(wifi.STATIONAP)
-  wifi.sta.getap(sendchooser)
-end
+function joinme.run(continuation) wifi.sta.getap(sendchooser) end
 return joinme

@@ -1,4 +1,5 @@
 -- init.lua: top level entry point for the freakaponics sensor/actuator board
+wifi.setmode(wifi.STATIONAP)
 freak = require("freak")
 function needwifi(continuation)
   return not continuation.taskdata["joinme"] or
