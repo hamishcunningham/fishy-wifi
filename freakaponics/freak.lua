@@ -1,7 +1,7 @@
 -- freak.lua: task management utility
 freak = {}
 local cfile = "freakdata.lua"
-local minheap = 20000 -- if we've dropped below this after a task, restart
+local minheap = 15000 -- if we've dropped below this after a task, restart
 local function getconf() return pcall(dofile, cfile) or {} end
 local function persist(t)
   file.open(cfile, "w"); file.write("return "..t2str(t)); file.close()
