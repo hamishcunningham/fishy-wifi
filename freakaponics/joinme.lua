@@ -2,19 +2,25 @@
 -- usage: joinme=require("joinme"); joinme.run()
 
 joinme={}
+
+-- incoming
+function joinme.run(continuation)
+  for i,v in continuation do print("i: ", i, "; v: ", v) end
+end
+
 local cfile = "jconf.lua"
 local function getconf() 
   status, results = pcall(dofile, cfile) -- might just do return pcall(...) or {}
   if status then return results else return nil end
 end
-local function conf2string(conf)
+local function conf2string(conf) -- TODO moving to freak
   buf = "{"
   for k, v in pairs(conf) do
     buf = buf .. string.format(' %s = "%s",', k, v)
   end
   return buf .. " }\n"
 end
-local function writeconf(conf)
+local function writeconf(conf) -- TODO moving to freak
   f = file.open(cfile, "w")
   if not f then return nil end
   file.write("return " .. conf2string(conf))
@@ -45,7 +51,7 @@ local function httplistener(conn, payload)
     if ssid and key then
       writeconf({ ssid=ssid, key=key })
       conn:send("<html><body><h2>Done! Restarting...</h2></body></html>")
-      conn:on("sent", function(_) node.restart() end)
+      conn:on("sent", function(_) node.restart() end) -- TODO return control to freak
     end
   else
     conn:send(frm)
@@ -58,7 +64,7 @@ local function sendchooser(aptbl)
   srv=net.createServer(net.TCP)
   srv:listen(80, function(conn) conn:on("receive", httplistener) end)
 end
-function joinme.run()
+function joinme.run() -- TODO pass continuation data
   wifi.setmode(wifi.STATION) -- we will either scan then swap mode, or join...
   conf = getconf()
   if conf then  -- we are configured
