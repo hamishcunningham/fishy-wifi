@@ -18,7 +18,7 @@ local function run(continuation, nexttask) -- main "loop"
   taskname = continuation.tasks[nexttask]
   if type(taskname) == "number" then node.deepsleep(taskname * 1000)
   else
-    preconfunc = continuation.precons.taskname -- check preconditions
+    preconfunc = continuation.precons[taskname] -- check preconditions
     if not preconfunc or pcall(preconfunc, continuation) then
       taskchunk = require(taskname)
       pcall(taskchunk.run, continuation)
