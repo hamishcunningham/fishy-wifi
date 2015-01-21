@@ -1,5 +1,9 @@
 -- init.lua: top level entry point for the freakaponics sensor/actuator board
 
+-- TODO releasing modules: forgot package.loaded!
+-- p = nil
+-- package.loaded["p"] = nil
+
 wifi.setmode(wifi.STATIONAP) -- coding around nil result to first call issue
 function lstf(t) if t then for k,v in pairs(t) do print(k..": "..v) end end end
 wifi.sta.getap(lstf) -- consume nil result
