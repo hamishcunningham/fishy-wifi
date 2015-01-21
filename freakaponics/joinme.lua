@@ -29,6 +29,7 @@ local function httplistener(conn, payload)
   end
 end
 local function sendchooser(aptbl)
+  -- TODO deal with nils
   frm = genform(aptbl)
   srv = net.createServer(net.TCP)
   srv:listen(80, function(conn) conn:on("receive", httplistener) end)
