@@ -21,6 +21,7 @@ local function run(continuation, nexttask) -- main "loop"
   else
     preconfunc = continuation.precons[taskname] -- check preconditions
     if not preconfunc or pcall(preconfunc, continuation) then
+      print("freak: running task ", nexttask, ": ", taskname) -- DEBUG
       taskchunk = require(taskname)
       pcall(taskchunk.run, continuation)
     end

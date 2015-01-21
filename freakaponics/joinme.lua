@@ -5,6 +5,7 @@ local wifiform = [=[<html><body>
 _ITEMS_<br/>Pass key: <input type="textarea" name="key"><br/><br/>
 <input type="submit" value="Submit"></form></p></body></html>]=]
 local function genform(aptbl) -- takes table of APs
+  if not aptbl then return "" end
   buf = ""; checked = " checked"
   for ssid, _ in pairs(aptbl) do
     buf = buf .. '<input type="radio" name="ssid" value="' .. ssid .. '"' ..
@@ -22,7 +23,12 @@ local function httplistener(conn, payload)
       wifi.sta.connect()
       continuation.taskdata["joinme"] = { ssid=ssid, key=key }
       conn:send("<html><body><h2>Done! Joining...</h2></body></html>")
-      conn:on("sent", function(_) return end) -- TODO don't need anymore?
+-- TODO should we be calling back to freak here? instead of 
+-- letting flow of control drop through, which can result in
+-- another freak loop coming back in, and trying to create 
+-- another server...
+      conn:on("sent", function (_) srv:close() end)
+      conn:close()
     end
   else
     conn:send(frm)
