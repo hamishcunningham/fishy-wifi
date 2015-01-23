@@ -1,6 +1,7 @@
 # Makefile - toplevel build for Whiffy Fishy
 
 ESPDIR=${HOME}/esp8266-stuff
+ESPLORERDIR=${HOME}/esp8266-stuff/ESPlorer
 ESPSDKDIR=$(ESPDIR)/esp-open-sdk
 NODEMCUDIR=$(ESPDIR)/nodemcu-firmware
 XTENSABIN=$(ESPSDKDIR)/xtensa-lx106-elf/bin
@@ -15,3 +16,7 @@ nodemcu-with-dns:
 	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE) UNIVERSAL_TARGET_DEFINES=-DUSE_DNS
 flashnodemcu:
 	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE) flash ESPPORT=$(ESPPORT)
+
+# run ESPlorer
+esplorer:
+	cd $(ESPLORERDIR) && java -jar ./ESPlorer.jar
