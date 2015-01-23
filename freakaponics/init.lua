@@ -6,4 +6,4 @@ wifi.sta.getap(lstf) -- consume nil result
 
 freak = require("freak")
 tasks = { "joinme", "sense", "report", "act", 5000 }
-freak.begin(tasks) -- never returns but may trigger restarts
+-- freak.begin(tasks) -- never returns but may trigger restarts
