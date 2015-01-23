@@ -12,43 +12,38 @@ local function t2str(t)
   return buf .. " }\n"
 end
 local function persist(t)
-  file.open(cfile, "w"); file.write("return "..t2str(t)); file.close()
+  file.open(cfile, "w"); file.write("return " .. t2str(t)); file.close()
 end
---[[
-TODO call "run" continue
-put freak.continue into the continuation so phases can call back to it
-shift nexttask param into continuation
-call continuation "c"
-]]
-local function run(continuation, nexttask) -- main "loop"
-  taskname = continuation.tasks[nexttask]
+local function continue(ctn) -- main "loop"
+  nexttask = ctn.taskdata.nexttask
+  taskname = ctn.tasks[nexttask]
+  print("freak: running task ", nexttask, ": ", taskname) -- DEBUG
   if type(taskname) == "number" then _=0 -- node.deepsleep(taskname * 1000)
                                          -- TODO awaiting access to gpio16
   else
-    preconfunc = continuation.precons[taskname] -- check preconditions
-    if not preconfunc or pcall(preconfunc, continuation) then
-      print("freak: running task ", nexttask, ": ", taskname) -- DEBUG
+    if not ctn.taskname.skipme then
       taskchunk = require(taskname)
-      pcall(taskchunk.run, continuation)
+      pcall(taskchunk.run, ctn) -- run the task
+      taskchunk = nil
+      package.loaded[taskname] = nil
+      collectgarbage()          -- reclaim the task's memory
     end
   end
   nexttask = nexttask + 1
-  if(nexttask > #continuation.tasks) then nexttask = 1 end -- start over
-  continuation.taskdata.nexttask = nexttask
--- TODO
-taskchunk = nil
-package.loaded[taskname] = nil
-collectgarbage()
+  if(nexttask > #ctn.tasks) then nexttask = 1 end -- start over
+  ctn.taskdata.nexttask = nexttask
   if node.heap() < minheap then
-    persist(continuation.taskdata)
+    persist(ctn.taskdata)
     node.restart() -- reset the chip and start over
   end
--- TODO DEBUG  return run(continuation, nexttask) -- run the next task (tail call)
+  -- TODO return continue(ctn) -- run the next task (tail call)
+  print("not calling continue(ctn...)")
 end
-function freak.begin(tasks, precons)
-  continuation = { tasks=tasks, precons=precons }
+function freak.begin(tasks)
+  ctn = { tasks=tasks, freak=freak, }
   _, results = getconf()
-  continuation.taskdata = results or { }
-  return run(continuation, continuation.taskdata.nexttask or 1)
+  ctn.taskdata = results or { }
+  return continue(ctn, ctn.taskdata.nexttask or 1)
 end
+function freak.reset() file.remove(cfile); node.restart() end
 return freak
