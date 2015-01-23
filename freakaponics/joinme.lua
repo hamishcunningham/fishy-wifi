@@ -23,22 +23,22 @@ local function httplistener(conn, payload)
       wifi.sta.connect()
       continuation.taskdata["joinme"] = { ssid=ssid, key=key }
       conn:send("<html><body><h2>Done! Joining...</h2></body></html>")
--- TODO should we be calling back to freak here? instead of 
--- letting flow of control drop through, which can result in
--- another freak loop coming back in, and trying to create 
--- another server...
-      conn:on("sent", function (_) srv:close() end)
+      conn:on("sent", function (_) srv:close(); continuation.srv = nil end)
+-- TODO call back to freak.run here?
       conn:close()
     end
   else
     conn:send(frm)
   end
 end
-local function sendchooser(aptbl)
-  -- TODO deal with nils
+local function aplistener(aptbl)
   frm = genform(aptbl)
   srv = net.createServer(net.TCP)
+  continuation.srv = srv
   srv:listen(80, function(conn) conn:on("receive", httplistener) end)
 end
-function joinme.run(continuation) wifi.sta.getap(sendchooser) end
+function joinme.run(continuation)
+  if continuation.srv then return end
+  wifi.sta.getap(aplistener)
+end
 return joinme
