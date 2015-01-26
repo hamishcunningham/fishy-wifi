@@ -15,13 +15,12 @@ local function genform(aptbl) -- takes table of APs
   return string.gsub(wifiform, "_ITEMS_", buf)
 end
 local function finish() -- reclaim resources and hand back control
-  print("joinme.finish")
+  print("joinme.finish") -- DEBUG
   ctn.srv:close(); ctn.srv = nil -- kill the server
-  ctn.taskdata.nexttask = ctn.taskdata.nexttask + 1 -- increment task number
   ctn.freak.continue(ctn) -- give control back to the control freak
 end
 local function httplistener(conn, payload) -- serve HTTP requests
-  print("processing web request")
+  print("processing web request: ", payload:sub(1, 11)) -- DEBUG
   if string.find(payload, "POST /chz HTTP") then
     ssid, key = string.gmatch(payload, "ssid=(.*)&key=(.*)")()
     if ssid and key then -- TODO verify ssid and key more effectively

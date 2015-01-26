@@ -1,16 +1,12 @@
 -- freak.lua: task management utility
 freak = {}
 local cfile = "freakdata.lua"
-local minheap = 5000 -- if we've dropped below this after a task, restart
+local minheap = 4000 -- if we've dropped below this after a task, restart
 function freak.getconf() return pcall(dofile, cfile) or {} end
 local function t2str(t)
   buf = "{ "
   for k, v in pairs(t) do
-    if type(v) == "table" then 
-      v = t2str(v)
-    else
-      v = tostring(v)
-    end
+    if type(v) == "table" then v = t2str(v) else v = tostring(v) end
     buf = buf .. string.format(' %s="%s",', k, v)
   end
   return buf .. " }\n"
@@ -19,31 +15,34 @@ local function persist(t)
   file.open(cfile, "w"); file.write("return " .. t2str(t)); file.close()
 end
 function freak.continue(ctn) -- main "loop"
--- TODO delete previous task here; perhaps increment ctn.nexttask too
--- and keep currtask here instead
+  print("freak.contin: ctn.taskdata.nexttask=", ctn.taskdata.nexttask) -- DEBUG
+  if ctn.prevtask then -- reclaim the previous task's memory
+    package.loaded[ctn.prevtask] = nil
+    collectgarbage()
+    print("done garbage collection; heap = ", node.heap()) -- DEBUG
+  end
   if node.heap() < minheap then
-print("oops, heap is low, persisting td but not rebooting... ", node.heap())
---    persist(ctn.taskdata)
+    print("oops, heap is low... ", node.heap()) -- DEBUG
+    -- persist(ctn.taskdata)
     -- node.restart() -- reset the chip and start over
   end
-  nexttask = ctn.taskdata.nexttask
-  if(nexttask > #ctn.tasks) then -- start over
-    nexttask = 1
-    ctn.taskdata.nexttask = nexttask
-  end
-  taskname = ctn.tasks[nexttask]
+  currtask = ctn.taskdata.nexttask
+  if(currtask > #ctn.tasks) then currtask = 1 end -- start over
+
+  taskname = ctn.tasks[currtask]
+  ctn.taskdata.nexttask = currtask + 1 -- increment task number
+
   if type(taskname) == "number" then
-    print("sleep: ", taskname * 1000)
+    print("freak: sleeping ", taskname * 1000, ", task#=", currtask) -- DEBUG
+    ctn.prevtask = nil
     -- node.deepsleep(taskname * 1000) TODO awaiting access to gpio16
+    -- TODO recursive call to continue
   else
     if not ctn.taskdata.taskname or not ctn.taskdata.taskname.skipme then
-      print("freak: running task ", nexttask, ": ", taskname) -- DEBUG
+      print("freak: running task ", currtask, ": ", taskname) -- DEBUG
+      ctn.prevtask = taskname
       taskchunk = require(taskname)
       pcall(taskchunk.run, ctn) -- run the task
--- TODO problem here if the task doesn't return in the way joinme does!
-      taskchunk = nil
-      package.loaded[taskname] = nil
-      collectgarbage()          -- reclaim the task's memory
     end
   end
 end

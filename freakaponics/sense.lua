@@ -4,7 +4,6 @@ function sense.run(ctn)
   print("sense.run...")
   -- TODO do sensor stuff
 
-  ctn.taskdata.nexttask = ctn.taskdata.nexttask + 1 -- increment task number
   freak.continue(ctn) -- give control back to the control freak
 end
 return sense
