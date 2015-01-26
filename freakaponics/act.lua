@@ -1,7 +1,7 @@
 -- act.lua: fire up the actuators Scotty!
 act = {}
 function act.run(ctn)
-  for i,v in ctn do print("act... i: ", i, "; v: ", v) end
+  print("act.run...")
 
   -- TODO fiddle with actuators here...
 
