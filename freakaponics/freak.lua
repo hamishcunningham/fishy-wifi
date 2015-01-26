@@ -23,8 +23,8 @@ function freak.continue(ctn) -- main "loop"
   end
   if node.heap() < minheap then
     print("oops, heap is low... ", node.heap()) -- DEBUG
-    -- persist(ctn.taskdata)
-    -- node.restart() -- reset the chip and start over
+    -- TODO persist(ctn.taskdata)
+    -- TODO node.restart() -- reset the chip and start over
   end
   currtask = ctn.taskdata.nexttask
   if(currtask > #ctn.tasks) then currtask = 1 end -- start over
