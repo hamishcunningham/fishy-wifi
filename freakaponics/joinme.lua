@@ -24,7 +24,7 @@ local function httplistener(conn, payload) -- serve HTTP requests
   print("processing web request")
   if string.find(payload, "POST /chz HTTP") then
     ssid, key = string.gmatch(payload, "ssid=(.*)&key=(.*)")()
-    if ssid and key then
+    if ssid and key then -- TODO verify ssid and key more effectively
       wifi.sta.config(ssid, key)
       wifi.sta.connect()
       ctn.taskdata["joinme"] = { ssid=ssid, key=key, skipme=true }

@@ -19,6 +19,8 @@ local function persist(t)
   file.open(cfile, "w"); file.write("return " .. t2str(t)); file.close()
 end
 function freak.continue(ctn) -- main "loop"
+-- TODO delete previous task here; perhaps increment ctn.nexttask too
+-- and keep currtask here instead
   if node.heap() < minheap then
 print("oops, heap is low, persisting td but not rebooting... ", node.heap())
 --    persist(ctn.taskdata)
