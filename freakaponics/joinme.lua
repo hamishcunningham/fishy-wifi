@@ -14,13 +14,14 @@ local function genform(aptbl) -- takes table of APs
   end
   return string.gsub(wifiform, "_ITEMS_", buf)
 end
-local function finish(srv, conn) -- reclaim resources and hand back control
-  srv:close(); ctn.srv = nil; conn:close() -- kill the server
+local function finish() -- reclaim resources and hand back control
+  print("joinme.finish")
+  ctn.srv:close(); ctn.srv = nil -- kill the server
   ctn.taskdata.nexttask = ctn.taskdata.nexttask + 1 -- increment task number
-  freak.continue(ctn) -- give control back to the control freak
+  ctn.freak.continue(ctn) -- give control back to the control freak
 end
 local function httplistener(conn, payload) -- serve HTTP requests
-  -- print("\n", payload, "\n")
+  print("processing web request")
   if string.find(payload, "POST /chz HTTP") then
     ssid, key = string.gmatch(payload, "ssid=(.*)&key=(.*)")()
     if ssid and key then
@@ -28,7 +29,7 @@ local function httplistener(conn, payload) -- serve HTTP requests
       wifi.sta.connect()
       ctn.taskdata["joinme"] = { ssid=ssid, key=key, skipme=true }
       conn:send("<html><body><h2>Done! Joining...</h2></body></html>")
-      conn:on("sent", finish(srv, conn))
+      conn:on("sent", finish)
     end
   else
     conn:send(frm)
@@ -36,9 +37,8 @@ local function httplistener(conn, payload) -- serve HTTP requests
 end
 local function aplistener(aptbl) -- callback for available APs scanner
   frm = genform(aptbl)
-  srv = net.createServer(net.TCP)
-  ctn.srv = srv
-  srv:listen(80, function(conn) conn:on("receive", httplistener) end)
+  ctn.srv = net.createServer(net.TCP)
+  ctn.srv:listen(80, function(conn) conn:on("receive", httplistener) end)
 end
 function joinme.run(ctn) -- external entry point
   if ctn.srv then return end

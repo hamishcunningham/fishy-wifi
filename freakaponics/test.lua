@@ -36,14 +36,32 @@ function version() -- what version of NodeMCU is this?
   ver1, ver2, ver3 = node.info()
   return string.format("%d.%d.%d", ver1, ver2, ver3)
 end
-
--- snippets
-print(wifi.getmode())
-print(wifi.sta.getip())
+function t2str(t) return serialize(t, "") end
+function serialize (o)
+  buf = ""
+  if type(o) == "string" then
+    buf = buf .. string.format("%q, ", o)
+  elseif type(o) == "table" then
+    buf = buf .. "{\n"
+    for k, v in pairs(o) do
+      buf = buf .. k .. " = " .. serialize(v)
+    end
+    buf = buf .. " },\n"
+  else
+    buf = buf .. tostring(o) .. ", "
+  end
+  return buf
+end
 function prtbl(t) for k, v in pairs(t) do print(k, v) end end 
 function listap(t) for k,v in pairs(t) do print(k.." : "..v) end end
-wifi.sta.getap(listap)
-print(tmr.now())
-wifi.setmode(wifi.STATION)
-print(node.heap())
-print(node.info())
+
+-- snippets
+function snippets()
+  print(wifi.getmode())
+  print(wifi.sta.getip())
+  wifi.sta.getap(listap)
+  print(tmr.now())
+  wifi.setmode(wifi.STATION)
+  print(node.heap())
+  print(node.info())
+end
