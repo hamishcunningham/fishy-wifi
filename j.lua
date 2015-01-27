@@ -1,5 +1,4 @@
 -- j.lua: wifi config utility
-
 j={}
 local skip = "skipj.txt"        -- marker file
 local wifiform = [=[<html><body>
@@ -18,7 +17,7 @@ local function genform(aptbl)   -- takes table of APs
   return string.gsub(wifiform, "_ITEMS_", buf)
 end
 local function finish()         -- reclaim resources and hand back control
-  print("j.finish")             -- DEBUG
+  print("j.finish, heap=", node.heap()) -- DEBUG
   file.open(skip, "w")          -- remember not to do this next time through
   file.close()
   srvr:close()                  -- kill the server
@@ -40,9 +39,7 @@ end
 function j.aplistener(aptbl)    -- callback for available APs scanner
   print("j.aplistener")         -- DEBUG
   frm = genform(aptbl)
-  if not srvr then -- TODO why are we getting multiple calls?!
-    srvr = net.createServer(net.TCP)
-  end
+  if not srvr then srvr = net.createServer(net.TCP) end
   srvr:listen(80, function(conn) conn:on("receive", httplistener) end)
 end
 function j.reset() file.remove(skip) end
