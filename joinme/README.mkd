@@ -25,7 +25,7 @@ very small portion of precious ESP memory.
 - restart the ESP
 - the ESP will now start up into dual station and access point mode
 - the hard bit (pending replacement with captive portal config):
-  - join the `ESP\_...` network and identify your IP, e.g. `192.168.4.2`
+  - join the `ESP_...` network and identify your IP, e.g. `192.168.4.2`
   - load `http://<ip prefix>.1` in your browser, e.g. `http://192.168.4.1`
 - you will get a form listing available wifi networks; choose one, fill in the
   pass key and submit
