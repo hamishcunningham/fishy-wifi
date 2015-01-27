@@ -15,3 +15,4 @@ end -- wifi config
 print("wifi config finished, heap= ", node.heap()) -- DEBUG
 
 -- TODO read sensors and report on MQTT; fiddle with actuators
+-- (as a continuation called from j.finish or from the skip branch above)
