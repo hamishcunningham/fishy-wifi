@@ -13,6 +13,8 @@ science](http://climateandcapitalism.com/2008/08/25/debunking-the-tragedy-of-the
 - A library for configuring the [ESP8266 over the air](joinme/) to join
   existing wifi networks.
 - Code exhibiting [memory size limits on the ESP](size-bug/).
+- A (failed) attempt to abstract the control regime of joinme,
+  [Control Freak](freak/).
 
 This is all [AGPL 3](LICENSE). Like it or lump it :-)
 
