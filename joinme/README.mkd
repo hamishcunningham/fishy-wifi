@@ -43,6 +43,7 @@ very small portion of precious ESP memory.
     (192.168.4.1)
   - for any HTTP GET send redirect to https://something.or.other/
   - for any HTTPS GET send the configure form
+- why does j.aplistener get called twice?!
 - [minify](https://github.com/stravant/LuaMinify) the lua, and add a Makefile
   that minifies and uploads (or [spiffyfies](https://github.com/xlfe/spiffy)
   and [flashes](https://github.com/themadinventor/esptool))

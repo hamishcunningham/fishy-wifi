@@ -21,6 +21,7 @@ local function finish()         -- reclaim resources and hand back control
   file.open(skip, "w")          -- remember not to do this next time through
   file.close()
   srvr:close()                  -- kill the server
+  -- TODO probably should do a restart now
 end
 local function httplistener(conn, payload) -- serve HTTP requests
   print("processing web request: ", payload:sub(1, 11)) -- DEBUG
