@@ -21,12 +21,12 @@ local function finish()         -- reclaim resources and hand back control
   file.open(skip, "w")          -- remember not to do this next time through
   file.close()
   srvr:close()                  -- kill the server
-  -- TODO probably should do a restart now
+  tmr.alarm(0, 1000, 0, node.restart) -- wait a second then start over
 end
-local function httplistener(conn, payload) -- serve HTTP requests
-  print("processing web request: ", payload:sub(1, 11)) -- DEBUG
-  if string.find(payload, "POST /chz HTTP") then
-    ssid, key = string.gmatch(payload, "ssid=(.*)&key=(.*)")()
+local function httplistener(conn, req) -- serve HTTP requests
+  print("processing web request: ", req:sub(1, 11)) -- DEBUG
+  if string.find(req, "POST /chz HTTP") then
+    ssid, key = string.gmatch(req, "ssid=(.*)&key=(.*)")()
     if ssid and key then -- TODO verify ssid and key more effectively
       wifi.sta.config(ssid, key)
       wifi.sta.connect()

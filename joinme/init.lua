@@ -8,11 +8,10 @@ print("starting wifi setup, heap= ", node.heap()) -- DEBUG
 if file.open("skipj.txt") then  -- we're already configured
   print("skipj exists")         -- DEBUG
   file.close()
+  f=require("f")
+  f.run()
 else
   j=require("j")
   wifi.sta.getap(j.aplistener)  -- joinme entry point
 end -- wifi config
 print("wifi config finished, heap= ", node.heap()) -- DEBUG
-
--- TODO read sensors and report on MQTT; fiddle with actuators
--- (as a continuation called from j.finish or from the skip branch above)
