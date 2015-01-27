@@ -5,8 +5,7 @@ function lstf(t) if t then for k,_ in pairs(t) do print(k) end end end
 wifi.sta.getap(lstf)            -- consume nil result
 
 print("starting wifi setup, heap= ", node.heap()) -- DEBUG
-skipj = "skipj.txt"
-if file.open(skipj) then        -- we're already configured
+if file.open("skipj.txt") then  -- we're already configured
   print("skipj exists")         -- DEBUG
   file.close()
 else
