@@ -23,7 +23,7 @@ local function finish()         -- reclaim resources and hand back control
   srvr:close()                  -- kill the server
   tmr.alarm(0, 1000, 0, node.restart) -- wait a second then start over
 end
-local function httplistener(conn, req) -- serve HTTP requests
+local function httplstn(conn, req) -- serve HTTP requests
   print("processing web request: ", req:sub(1, 11)) -- DEBUG
   if string.find(req, "POST /chz HTTP") then
     ssid, key = string.gmatch(req, "ssid=(.*)&key=(.*)")()
@@ -37,11 +37,11 @@ local function httplistener(conn, req) -- serve HTTP requests
     conn:send(frm)
   end
 end
-function j.aplistener(aptbl)    -- callback for available APs scanner
-  print("j.aplistener")         -- DEBUG
+function j.aplstn(aptbl)        -- callback for available APs scanner
+  print("j.aplstn")             -- DEBUG
   frm = genform(aptbl)
   if not srvr then srvr = net.createServer(net.TCP) end
-  srvr:listen(80, function(conn) conn:on("receive", httplistener) end)
+  srvr:lstn0, function(conn) conn:on("receive", httplstn) end)
 end
 function j.reset() file.remove(skip) end
 return j

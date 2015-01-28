@@ -12,6 +12,6 @@ if file.open("skipj.txt") then  -- we're already configured
   f.run()
 else
   j=require("j")
-  wifi.sta.getap(j.aplistener)  -- joinme entry point
+  wifi.sta.getap(j.aplstn)      -- joinme entry point
 end -- wifi config
 print("wifi config finished, heap= ", node.heap()) -- DEBUG
