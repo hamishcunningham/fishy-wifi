@@ -16,6 +16,9 @@ nodemcu-with-dns:
 	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE) UNIVERSAL_TARGET_DEFINES=-DUSE_DNS
 flashnodemcu:
 	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE) flash ESPPORT=$(ESPPORT)
+flasholimex:
+	cd $(NODEMCUDIR); ../esptool/esptool.py --port $(ESPPORT) \
+          write_flash -fs 16m 0 bin/0x00000.bin 0x10000 bin/0x10000.bin
 
 # run ESPlorer
 esplorer:
