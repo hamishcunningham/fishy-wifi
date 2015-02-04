@@ -35,7 +35,7 @@ Want to see a thing of beauty? Have a peek at
     - `make nodemcu[-with-dns]`
   - flashing the firmware (inc. to several choices of board)
     - pull the relevant ESP pin low; cycle chip enable (or do a hard reset;
-      the Olimex board always seems to require a hard reset)
+      the Olimex board always seems to require a hard reset) -- see below
     - `make flashnodemcu` (for e.g. the ESP01 or other board with small flash)
     - `make flasholimex` (for e.g. the Olimex, 2MB flash)
     - disconnect the flashing pin and cycle chip enable (or hard reset) again
@@ -48,6 +48,14 @@ Want to see a thing of beauty? Have a peek at
   - open the `.lua` files in ESPlorer and save them to the ESP
   - restart the board and off you go ([details
     here](https://github.com/hamishcunningham/fishy-wifi/tree/master/joinme))
+
+If you're using a breadboard from me with a DIP switch, you can fiddle with
+the flashing pin and chip enable via that switch:
+
+[![Olimex breadboard with
+switch](https://pi.gate.ac.uk/images/esp/olimex-plus-dil-switch-500x375.jpg)](https://pi.gate.ac.uk/images/esp/olimex-plus-dil-switch.jpg)
+
+Flashing is enabled by setting switch 1 to on; chip enable is switch 5.
 
 ## How to...
 
