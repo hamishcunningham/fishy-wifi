@@ -34,8 +34,11 @@ Want to see a thing of beauty? Have a peek at
   - rebuilding the NodeMCU firmware (inc. with or without a DNS server)
     - `make nodemcu[-with-dns]`
   - flashing the firmware (inc. to several choices of board)
+    - pull the relevant ESP pin low; cycle chip enable (or do a hard reset;
+      the Olimex board always seems to require a hard reset)
     - `make flashnodemcu` (for e.g. the ESP01 or other board with small flash)
     - `make flasholimex` (for e.g. the Olimex, 2MB flash)
+    - disconnect the flashing pin and cycle chip enable (or hard reset) again
 - running the ESPlorer development tool
   - to pick up a set of useful code snippets, run `make seed-esplorer-prefs`
   - to run ESPlorer `make esplorer`
