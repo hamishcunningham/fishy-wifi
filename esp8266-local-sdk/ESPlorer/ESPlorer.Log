@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE log SYSTEM "logger.dtd">
+<log>
+<record>
+  <date>2015-02-04T19:37:07</date>
+  <millis>1423078627231</millis>
+  <sequence>0</sequence>
+  <logger>ESPlorer.ESPlorer</logger>
+  <level>INFO</level>
+  <class>ESPlorer.ESPlorer</class>
+  <method>log</method>
+  <thread>12</thread>
+  <message>Load saved settings...</message>
+</record>
+<record>
+  <date>2015-02-04T19:37:07</date>
+  <millis>1423078627427</millis>
+  <sequence>1</sequence>
+  <logger>ESPlorer.ESPlorer</logger>
+  <level>INFO</level>
+  <class>ESPlorer.ESPlorer</class>
+  <method>log</method>
+  <thread>12</thread>
+  <message>Set new color theme: Success.</message>
+</record>
+<record>
+  <date>2015-02-04T19:37:07</date>
+  <millis>1423078627430</millis>
+  <sequence>2</sequence>
+  <logger>ESPlorer.ESPlorer</logger>
+  <level>INFO</level>
+  <class>ESPlorer.ESPlorer</class>
+  <method>log</method>
+  <thread>12</thread>
+  <message>Load saved settings: DONE.</message>
+</record>
+<record>
+  <date>2015-02-04T19:37:07</date>
+  <millis>1423078627432</millis>
+  <sequence>3</sequence>
+  <logger>ESPlorer.ESPlorer</logger>
+  <level>INFO</level>
+  <class>ESPlorer.ESPlorer</class>
+  <method>log</method>
+  <thread>12</thread>
+  <message>Snippets (LUA): loading...</message>
+</record>
+<record>
+  <date>2015-02-04T19:37:07</date>
+  <millis>1423078627434</millis>
+  <sequence>4</sequence>
+  <logger>ESPlorer.ESPlorer</logger>
+  <level>INFO</level>
+  <class>ESPlorer.ESPlorer</class>
+  <method>log</method>
+  <thread>12</thread>
+  <message>Snippets (LUA) load: Success.</message>
+</record>
+<record>
+  <date>2015-02-04T19:37:08</date>
+  <millis>1423078628494</millis>
+  <sequence>5</sequence>
+  <logger>ESPlorer.ESPlorer</logger>
+  <level>INFO</level>
+  <class>ESPlorer.ESPlorer</class>
+  <method>log</method>
+  <thread>12</thread>
+  <message>Scan system...</message>
+</record>
+<record>
+  <date>2015-02-04T19:37:08</date>
+  <millis>1423078628769</millis>
+  <sequence>6</sequence>
+  <logger>ESPlorer.ESPlorer</logger>
+  <level>INFO</level>
+  <class>ESPlorer.ESPlorer</class>
+  <method>log</method>
+  <thread>12</thread>
+  <message>found /dev/ttyS0</message>
+</record>
+<record>
+  <date>2015-02-04T19:37:08</date>
+  <millis>1423078628770</millis>
+  <sequence>7</sequence>
+  <logger>ESPlorer.ESPlorer</logger>
+  <level>INFO</level>
+  <class>ESPlorer.ESPlorer</class>
+  <method>log</method>
+  <thread>12</thread>
+  <message>found last saved serial port /dev/ttyUSB0</message>
+</record>
+<record>
+  <date>2015-02-04T19:37:08</date>
+  <millis>1423078628773</millis>
+  <sequence>8</sequence>
+  <logger>ESPlorer.ESPlorer</logger>
+  <level>INFO</level>
+  <class>ESPlorer.ESPlorer</class>
+  <method>log</method>
+  <thread>12</thread>
+  <message>Scan done.</message>
+</record>

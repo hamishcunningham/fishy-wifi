@@ -21,24 +21,45 @@ This is all [AGPL 3](LICENSE). Like it or lump it :-)
 Want to see a thing of beauty? Have a peek at
 [NodeMCU](https://github.com/nodemcu/nodemcu-firmware).
 
+## Developing on the ESP8266 with NodeMCU
+
+- check out this tree (`fishy-wifi`) and `nodemcu-firmware` in the same place
+  - `git clone https://github.com/nodemcu/nodemcu-firmware.git`
+  - `git clone https://github.com/hamishcunningham/fishy-wifi.git`
+- the Makefile assumes you've either checked out and rebuilt the open source
+  SDK (see below), or -- if you're on 64 bit Linux -- you're using the local
+  copy in `./esp8266-local-sdk`
+- there are targets for
+  - rebuilding the NodeMCU firmware (inc. with or without a DNS server)
+    - `make nodemcu[-with-dns]`
+  - flashing the firmware (inc. to several choices of board)
+    - `make flashnodemcu` (for e.g. the ESP01 or other board with small flash)
+    - `make flasholimex` (for e.g. the Olimex, 2MB flash)
+- running the ESPlorer development tool
+  - to pick up a set of useful code snippets, run `make seed-esplorer-prefs`
+  - to run ESPlorer `make esplorer`
+  - then do a scan, port open, etc.
+- uploading Lua code and experimenting
+  - TODO
+
 ## How to...
 
 Build open source toolchain:
 
 - instructions from
   http://nathan.chantrell.net/20141230/wifi-mqtt-display-with-the-esp8266/
-- sudo apt-get install make unrar autoconf automake libtool gcc g++ gperf flex
-  bison texinfo gawk ncurses-dev libexpat-dev python sed
-- git clone https://github.com/pfalcon/esp-open-sdk
-- cd esp-open-sdk
-- make STANDALONE=n
+- `sudo apt-get install make unrar autoconf automake libtool gcc g++ gperf flex
+  bison texinfo gawk ncurses-dev libexpat-dev python sed`
+- `git clone https://github.com/pfalcon/esp-open-sdk`
+- `cd esp-open-sdk`
+- `make STANDALONE=n`
   - Xtensa toolchain is built, to use it:
-  - export PATH=.../esp-open-sdk/xtensa-lx106-elf/bin:$PATH
+  - `export PATH=.../esp-open-sdk/xtensa-lx106-elf/bin:$PATH`
   - TODO is this nesc?
     - Espressif ESP8266 SDK is installed. Toolchain contains only Open Source
       components To link external proprietary libraries add:
-    - xtensa-lx106-elf-gcc -I/home/hamish/esp-open-sdk/sdk/include
-      -L/home/hamish/esp-open-sdk/sdk/lib
+    - `xtensa-lx106-elf-gcc -I/home/hamish/esp-open-sdk/sdk/include`
+      -L/home/hamish/esp-open-sdk/sdk/lib`
 
 Rebuild NodeMCU:
 
