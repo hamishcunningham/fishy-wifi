@@ -41,7 +41,10 @@ Want to see a thing of beauty? Have a peek at
   - to run ESPlorer `make esplorer`
   - then do a scan, port open, etc.
 - uploading Lua code and experimenting
-  - TODO
+  - have a poke around in e.g. the JoinMe code (below)
+  - open the `.lua` files in ESPlorer and save them to the ESP
+  - restart the board and off you go ([details
+    here](https://github.com/hamishcunningham/fishy-wifi/tree/master/joinme))
 
 ## How to...
 
