@@ -10,6 +10,11 @@ FIXPATH=PATH=${PATH}:$(XTENSABIN)
 # for the Pi: ESPPORT=/dev/ttyAMA0
 ESPPORT=/dev/ttyUSB0
 
+# an innocuous default target
+help:
+	@echo targets: nodemcu, nodemcu-with-dns, flashnodemcu, flasholimex, \
+          esplorer, ...
+
 # rebuild and flash the firmware to the ESP8266
 nodemcu:
 	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE)
