@@ -21,6 +21,7 @@ This is all [AGPL 3](LICENSE). Like it or lump it :-)
 Want to see a thing of beauty? Have a peek at
 [NodeMCU](https://github.com/nodemcu/nodemcu-firmware).
 
+<a name="#develop"/>
 ## Developing on the ESP8266 with NodeMCU
 
 - check out this tree (`fishy-wifi`) and `nodemcu-firmware` in the same place
