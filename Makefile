@@ -1,6 +1,7 @@
 # Makefile - toplevel build for Whiffy Fishy
 
-ESPDIR=${HOME}/esp8266-stuff
+STUFFDIR=${HOME}/esp8266-stuff
+ESPDIR=$(shell [ -d $(STUFFDIR) ] && echo $(STUFFDIR) || echo ./esp8266-stuff)
 ESPLORERDIR=${HOME}/esp8266-stuff/ESPlorer
 ESPSDKDIR=$(ESPDIR)/esp-open-sdk
 NODEMCUDIR=$(ESPDIR)/nodemcu-firmware
