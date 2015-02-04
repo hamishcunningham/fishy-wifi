@@ -1,6 +1,6 @@
 python
 import sys
-sys.path.insert(0, '/home/hamish/esp-open-sdk/xtensa-lx106-elf/share/gcc-4.8.2/python')
+sys.path.insert(0, '/home/hamish/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/share/gcc-4.8.2/python')
 from libstdcxx.v6.printers import register_libstdcxx_printers
 register_libstdcxx_printers (None)
 end

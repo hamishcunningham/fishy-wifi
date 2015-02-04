@@ -38,4 +38,4 @@ dlopen=''
 dlpreopen=''
 
 # Directory that this library needs to be installed in:
-libdir='/home/hamish/esp-open-sdk/xtensa-lx106-elf/xtensa-lx106-elf/lib'
+libdir='/home/hamish/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/xtensa-lx106-elf/lib'
