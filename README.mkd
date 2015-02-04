@@ -48,6 +48,8 @@ Want to see a thing of beauty? Have a peek at
 
 ## How to...
 
+(**Note**: some of these are superseded by the above...)
+
 Build open source toolchain:
 
 - instructions from
