@@ -4,6 +4,7 @@
 -- blah blah blah standard licence conditions apply blah blah blah
 
 bl = {}
+
 bl.getvolts = function()
      local samples=100
      local result=0

@@ -59,7 +59,6 @@ function tl.settimegain(dev_addr, time, gain) -- set the integration time and ga
 end
 
 function tl.getFullLuminosity(dev_addr) -- Do the actual reading from the sensor
-  tmr.delay(14000)
   ch0low = i2cutils.read_reg(
     dev_addr,
     bit.bor(tl.TSL2561_COMMAND_BIT, tl.TSL2561_REGISTER_CHAN0_LOW)
