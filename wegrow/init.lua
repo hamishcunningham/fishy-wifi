@@ -33,5 +33,5 @@ function run()
   node.dsleep(sleeptime * 1000000)
 end
 
-print("panic now if you're in that sort of mood") -- DEBUG
+print("delete init.lua now if you need to!") -- DEBUG
 tmr.alarm(0, 1500, 0, run)              -- panic space!
