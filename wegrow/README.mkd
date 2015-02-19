@@ -6,6 +6,7 @@ Coleman](http://l0l.org.uk/) and [The.Crowd.Works](https://the.crowd.works)
 
 ## TODO
 
+- better control structure in init.lua
 - finish soil moisture sensor
 - add a reset button option via GPIO that deletes the skip file and restarts
 - HTTPS

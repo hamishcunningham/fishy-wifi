@@ -1,4 +1,4 @@
--- j.lua: wifi config utility
+-- j.lua: _joinme_ wifi config utility
 j={}
 local skip = "skipj.txt"        -- marker file
 local wifiform = [=[<html><body>

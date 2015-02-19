@@ -8,8 +8,9 @@ print("starting wifi setup, heap= ", node.heap()) -- DEBUG
 if file.open("skipj.txt") then  -- we're already configured
   print("skipj exists")         -- DEBUG
   file.close()
-  f=require("f")
-tmr.alarm(0, 2000, 0, f.run)
+  bat=require("bat")
+  print("battery level: ", bat.volts()) -- DEBUG
+-- TODO tmr.alarm(0, 2000, 0, f.run)
 -- f.run()
 else
   j=require("j")
