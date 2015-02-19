@@ -11,6 +11,7 @@ ESPSDKDIR=$(ESPDIR)/esp-open-sdk
 ESPTOOLDIR=$(ESPDIR)/esptool
 NODEMCUDIR=$(ESPDIR)/nodemcu-firmware
 XTENSABIN=$(ESPSDKDIR)/xtensa-lx106-elf/bin
+MQTTSPYDIR=$(ESPDIR)/mqtt-spy
 FIXPATH=PATH=${PATH}:$(XTENSABIN)
 
 # which serial port?
@@ -21,7 +22,7 @@ ESPPORT=/dev/ttyUSB0
 help:
 	@echo using SDK in $(ESPDIR)
 	@echo make targets: nodemcu, nodemcu-with-dns, flashnodemcu, \
-          flasholimex, esplorer, ...
+          flasholimex, esplorer, mqtt-spy...
 
 # rebuild and flash the firmware to the ESP8266
 nodemcu:
@@ -41,3 +42,7 @@ seed-esplorer-prefs:
 	PREFSDIR=${HOME}/.java/.userPrefs/com/; \
 	[ -d $$PREFSDIR ] || mkdir -p $$PREFSDIR; cd $$PREFSDIR; \
         tar xvzf $(ESPDIR)/esplorer-snippets.tgz
+
+# run mqtt-spy (note: install mosquitto broker first!)
+mqtt-spy:
+	cd $(MQTTSPYDIR) && java -jar mqtt-spy-0.1.7-jar-with-dependencies.jar
