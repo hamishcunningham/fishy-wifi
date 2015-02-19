@@ -13,30 +13,70 @@ science](http://climateandcapitalism.com/2008/08/25/debunking-the-tragedy-of-the
 - A library for configuring the [ESP8266 over the air](joinme/) to join
   existing wifi networks.
 - Code exhibiting [memory size limits on the ESP](size-bug/).
+- A (failed) attempt to abstract the control regime of joinme,
+  [Control Freak](freak/).
 
 This is all [AGPL 3](LICENSE). Like it or lump it :-)
 
 Want to see a thing of beauty? Have a peek at
 [NodeMCU](https://github.com/nodemcu/nodemcu-firmware).
 
+<a name="#develop"/>
+## Developing on the ESP8266 with NodeMCU
+
+- check out this tree (`fishy-wifi`) and `nodemcu-firmware` in the same place
+  - `git clone https://github.com/nodemcu/nodemcu-firmware.git`
+  - `git clone https://github.com/hamishcunningham/fishy-wifi.git`
+- the Makefile assumes you've either checked out and rebuilt the open source
+  SDK (see below), or -- if you're on 64 bit Linux -- you're using the local
+  copy in `./esp8266-local-sdk`
+- there are targets for
+  - rebuilding the NodeMCU firmware (inc. with or without a DNS server)
+    - `make nodemcu[-with-dns]`
+  - flashing the firmware (inc. to several choices of board)
+    - pull the relevant ESP pin low; cycle chip enable (or do a hard reset;
+      the Olimex board always seems to require a hard reset) -- see below
+    - `make flashnodemcu` (for e.g. the ESP01 or other board with small flash)
+    - `make flasholimex` (for e.g. the Olimex, 2MB flash)
+    - disconnect the flashing pin and cycle chip enable (or hard reset) again
+- running the ESPlorer development tool
+  - to pick up a set of useful code snippets, run `make seed-esplorer-prefs`
+  - to run ESPlorer `make esplorer`
+  - then do a scan, port open, etc.
+- uploading Lua code and experimenting
+  - have a poke around in e.g. the JoinMe code (below)
+  - open the `.lua` files in ESPlorer and save them to the ESP
+  - restart the board and off you go ([details
+    here](https://github.com/hamishcunningham/fishy-wifi/tree/master/joinme))
+
+If you're using a breadboard from me with a DIP switch, you can fiddle with
+the flashing pin and chip enable via that switch:
+
+[![Olimex breadboard with
+switch](https://pi.gate.ac.uk/images/esp/olimex-plus-dil-switch-500x375.jpg)](https://pi.gate.ac.uk/images/esp/olimex-plus-dil-switch.jpg)
+
+Flashing is enabled by setting switch 1 to on; chip enable is switch 5.
+
 ## How to...
+
+(**Note**: some of these are superseded by the above...)
 
 Build open source toolchain:
 
 - instructions from
   http://nathan.chantrell.net/20141230/wifi-mqtt-display-with-the-esp8266/
-- sudo apt-get install make unrar autoconf automake libtool gcc g++ gperf flex
-  bison texinfo gawk ncurses-dev libexpat-dev python sed
-- git clone https://github.com/pfalcon/esp-open-sdk
-- cd esp-open-sdk
-- make STANDALONE=n
+- `sudo apt-get install make unrar autoconf automake libtool gcc g++ gperf flex
+  bison texinfo gawk ncurses-dev libexpat-dev python sed`
+- `git clone https://github.com/pfalcon/esp-open-sdk`
+- `cd esp-open-sdk`
+- `make STANDALONE=n`
   - Xtensa toolchain is built, to use it:
-  - export PATH=.../esp-open-sdk/xtensa-lx106-elf/bin:$PATH
+  - `export PATH=.../esp-open-sdk/xtensa-lx106-elf/bin:$PATH`
   - TODO is this nesc?
     - Espressif ESP8266 SDK is installed. Toolchain contains only Open Source
       components To link external proprietary libraries add:
-    - xtensa-lx106-elf-gcc -I/home/hamish/esp-open-sdk/sdk/include
-      -L/home/hamish/esp-open-sdk/sdk/lib
+    - `xtensa-lx106-elf-gcc -I/home/hamish/esp-open-sdk/sdk/include`
+      -L/home/hamish/esp-open-sdk/sdk/lib`
 
 Rebuild NodeMCU:
 
@@ -46,8 +86,12 @@ Rebuild NodeMCU:
 Flash the firmware to the ESP8266:
 
     cd app
-    PATH=${PATH}:${HOME}/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/bin make flash
-      ESPPORT=/dev/ttyAMA0
+    make flashnodemcu
+
+or, for the Olimex board:
+
+    cd .../esp8266-stuff; git clone git@github.com:themadinventor/esptool.git
+    make flasholimex
  
 Older methods:
 
@@ -81,6 +125,14 @@ Wiring the ESP01 breadboard:
 - black gnd
 - white tx
 
+Wiring the Olimex board:
+
+- gpio 1 & 3 are rxt and txt
+- need gpio 15 low and cp\_en high
+- to flash hold gpio0 low -- sometimes I think it doesn't float high so might
+  try using 4.7k resistor to connect it to high?
+- to get normal mode after flashing perhaps most useful
+
 Luatool filetransfer thingy:
 
     git clone https://github.com/4refr0nt/luatool.git
@@ -90,12 +142,13 @@ Luatool filetransfer thingy:
 
 - ESP8266 BB: http://www.esp8266.com/
 - Wiki: https://github.com/esp8266/esp8266-wiki/wiki/
-- NodeMCU: http://nodemcu.com/index_en.html
+- NodeMCU: http://nodemcu.com/index\_en.html
 - File API:
   https://raw.githubusercontent.com/nodemcu/nodemcu-firmware/master/app/modules/file.c
 - Why not worth bothering with ad hoc Javascript PK encryption (do HTTPS
   instead): http://matasano.com/articles/javascript-cryptography/
 - Chip datasheet:
-  https://nurdspace.nl/images/e/e0/ESP8266_Specifications_English.pdf
+  https://nurdspace.nl/images/e/e0/ESP8266\_Specifications\_English.pdf
 - Nurdspace notes: https://nurdspace.nl/ESP8266
 - Espressif BB: http://bbs.espressif.com/
+- Olimex: https://www.olimex.com/Products/IoT/MOD-WIFI-ESP8266-DEV/

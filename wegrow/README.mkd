@@ -1,0 +1,18 @@
+WeGrow
+===
+
+[Hamish Cunningham](https://hamish.gate.ac.uk/), [Gareth
+Coleman](http://l0l.org.uk/) and [The.Crowd.Works](https://the.crowd.works)
+
+## TODO
+
+- better control structure in init.lua
+- finish soil moisture sensor
+- add a reset button option via GPIO that deletes the skip file and restarts
+- HTTPS
+- captive portal code to redirect all requests to the server
+  - get softap to include a DNS server IP in its connection data
+  - listen on port 53; when anyone sends anything direct to the device IP
+    (192.168.4.1)
+  - for any HTTP GET send redirect to https://something.or.other/
+  - for any HTTPS GET send the configure form
