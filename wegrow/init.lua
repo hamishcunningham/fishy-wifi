@@ -7,7 +7,7 @@ function run()
     file.close()
   else
     j=require("j")
-    wifi.sta.getap(j.aplstn)            -- joinme entry point
+    return wifi.sta.getap(j.aplstn)            -- joinme entry point
   end
   print("wifi config finished, heap= ", node.heap()) -- DEBUG
 

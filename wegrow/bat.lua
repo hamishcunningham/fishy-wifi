@@ -13,7 +13,7 @@ end
 
 local function mpub(v)
   m = mqtt.Client("ESP8266", 120, "user", "password")
-
+  print(wifi.sta.getip())
   -- register going offline event
   m:on("offline", function(con) print ("offline event") end) -- DEBUG
 
@@ -25,6 +25,6 @@ local function mpub(v)
 end
 
 bat.run = function() 
-  return mpub(volts())
+  return tmr.alarm(1, 500, 0, mpub(volts()))
 end
 return bat
