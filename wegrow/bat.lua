@@ -10,5 +10,21 @@ local function volts()
   print("battery level: ", voltage)     -- DEBUG
   return voltage
 end
-bat.run = function() return volts() end
+
+local function mpub(v)
+  m = mqtt.Client("ESP8266", 120, "user", "password")
+
+  -- register going offline event
+  m:on("offline", function(con) print ("offline event") end) -- DEBUG
+
+  m:connect("10.0.0.5", 1883, 0, function(conn)
+    print("connected to broker")
+    m:publish("batterylevel", v,0,0, function(conn) print("sent") end)
+  end)
+  return v
+end
+
+bat.run = function() 
+  return mpub(volts())
+end
 return bat

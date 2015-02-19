@@ -12,7 +12,8 @@ bl.getvolts = function()
      for i=1,samples do
           result=result+adc.read(0)
      end
-     voltage=string.format("%.2f",result/samples*0.0056)
+     --voltage=string.format("%2",result/samples*0.0056)
+     voltage=result/samples*0.0056
      return voltage
 end
 
