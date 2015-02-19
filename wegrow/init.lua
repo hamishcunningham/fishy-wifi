@@ -23,7 +23,7 @@ function run()
   s = require(stepname)
   s.run()
 
-  print("incrementing step number")     -- DEBUG
+  print("incrementing step number from ", step) -- DEBUG
   if step == #steps then step = 0 end
   file.open(stepf, "w")
   file.write(step + 1)
