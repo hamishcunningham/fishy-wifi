@@ -2,4 +2,5 @@
 freakdata.lua
 skipj.txt
 min
-ESPlorer.Log*
+*.Log
+*.log

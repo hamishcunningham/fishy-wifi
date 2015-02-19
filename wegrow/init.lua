@@ -7,7 +7,7 @@ function run()
     file.close()
   else
     j=require("j")
-    return wifi.sta.getap(j.aplstn)            -- joinme entry point
+    return wifi.sta.getap(j.aplstn)     -- joinme entry point
   end
   print("wifi config finished, heap= ", node.heap()) -- DEBUG
 
@@ -33,5 +33,5 @@ function run()
   node.dsleep(sleeptime * 1000000)
 end
 
-print("panic now if you're in that sort of mood") -- DEBUG
+print("delete init.lua now if you need to!") -- DEBUG
 tmr.alarm(0, 1500, 0, run)              -- panic space!
