@@ -9,7 +9,8 @@ if file.open("skipj.txt") then  -- we're already configured
   print("skipj exists")         -- DEBUG
   file.close()
   f=require("f")
-  f.run()
+tmr.alarm(0, 2000, 0, f.run)
+-- f.run()
 else
   j=require("j")
   wifi.sta.getap(j.aplstn)      -- joinme entry point

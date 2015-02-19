@@ -5,9 +5,9 @@ function f.run()
   -- TODO read sensors and report on MQTT; fiddle with actuators
   print("f.run...")             -- DEBUG
 
-  -- TODO experimental capacitative charge reading (not working?)
+--[[
   pin=1
-  pause=1600
+  pause=16000
   readings={}
   sum=0
   for i=1,1000 do
@@ -19,12 +19,13 @@ function f.run()
     c=0
     gpio.mode(pin, gpio.INPUT)
     while gpio.read(pin) == gpio.LOW do
+      tmr.wdclr()
       c = c + 1
     end
     sum = sum + c
   end
   print("cap reading: ", sum/1000)
-
+]]
   return nil
 end
 return f
