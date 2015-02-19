@@ -2,5 +2,6 @@
 freakdata.lua
 skipj.txt
 min
-*.Log
+ESPlorer.Log*
+mqtt-spy.messages
 *.log
