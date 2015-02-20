@@ -48,6 +48,7 @@ Want to see a thing of beauty? Have a peek at
   - open the `.lua` files in ESPlorer and save them to the ESP
   - restart the board and off you go ([details
     here](https://github.com/hamishcunningham/fishy-wifi/tree/master/joinme))
+- running the MQTT Spy tool: `make mqtt-spy`
 
 If you're using a breadboard from me with a DIP switch, you can fiddle with
 the flashing pin and chip enable via that switch:
