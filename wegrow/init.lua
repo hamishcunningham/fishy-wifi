@@ -1,5 +1,14 @@
 -- init.lua: top level entry point for the WeGrow sensor/actuator board
 
+function testmqtt()
+  m = mqtt.Client("ESP8266", 120, "user", "password")
+  function pub() 
+    m:publish("testing", node.heap(),0,0, function(conn) print("m sent") end)
+  end
+  m:on("offline", function(con) print ("gone offline") end)
+  m:connect("10.0.0.9", 1883, 0, function(conn) print("got broker") pub() end)
+end
+
 function run()
   print("starting wifi setup, heap= ", node.heap()) -- DEBUG
   if file.open("skipj.txt") then        -- we're already configured
@@ -34,4 +43,5 @@ function run()
 end
 
 print("delete init.lua now if you need to!") -- DEBUG
-tmr.alarm(0, 1500, 0, run)              -- panic space!
+-- tmr.alarm(0, 1500, 0, run)              -- panic space!
+tmr.alarm(0, 1500, 0, testmqtt)

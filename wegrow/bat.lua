@@ -12,21 +12,15 @@ local function volts()
 end
 
 local function mpub(v)
-  m = mqtt.Client("ESP8266", 120, "user", "password")
   print("v=", v, "; ip=", wifi.sta.getip())
-  -- register going offline event
-  m:on("offline", function(con) print ("offline event") end) -- DEBUG
 
-  m:connect("10.0.0.9", 1883, 0, function(conn)
-    print("connected to broker")
-    m:publish("batterylevel", v,0,0, function(conn) print("sent") end)
-  end)
+
   return v
 end
 
 bat.run = function()
   tmr.delay(500000)
   mpub(volts())
-  tmr.delay(500000)
+  tmr.delay(1000000)
 end
 return bat

@@ -37,6 +37,7 @@ flasholimex:
 flashold:
 	./esp8266-local-sdk/esptool/esptool.py --port $(ESPPORT) write_flash \
           -fs 16m 0 ../nodemcu-firmware/pre_build/0.9.5/nodemcu_20150127.bin 
+# TODO  blank.bin to 0x7E000
 
 # run ESPlorer
 esplorer:
