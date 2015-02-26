@@ -1,7 +1,20 @@
 -- wegrow.lua: top level entry point for the WeGrow sensor/actuator board
+datafile="memory.lua"                   -- persistence
 w={}
 local steps = { "bat", "soil", "talk" } -- processing sequence
 local sleeptime = 3   -- deepsleep duration after each step (in seconds)
+function w.store(k, v)
+  file.open(datafile, "a")
+  file.write(k .. "=" .. '"' .. v .. '", ')
+  file.close()
+end
+function w.recall()
+  if not file.open(datafile, "r") then return nil end
+  _, t = pcall(loadstring("return {" .. (file.read() or "") .. "}"))
+  file.close()
+  return t
+end
+function w.forget() file.open(datafile, "w") file.close() end
 function w.run()
   print("starting wifi setup, heap= ", node.heap()) -- DEBUG
   if file.open("skipj.txt") then        -- we're already configured

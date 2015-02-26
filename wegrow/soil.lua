@@ -2,7 +2,7 @@
 soil={}
 function soil.run()
   print("soil.run...")             -- DEBUG
-  store("soil", 345345)
+  w.store("soil", 345345)
   return nil
 end
 return soil

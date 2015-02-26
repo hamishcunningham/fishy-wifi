@@ -12,7 +12,7 @@ local function volts()
 end
 bat.run = function()
   v = volts()
-  store("volts", v)
+  w.store("volts", v)
   return v
 end
 return bat
