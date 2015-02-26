@@ -10,17 +10,9 @@ local function volts()
   print("battery level: ", voltage)     -- DEBUG
   return voltage
 end
-
-local function mpub(v)
-  print("v=", v, "; ip=", wifi.sta.getip())
-
-
-  return v
-end
-
 bat.run = function()
-  tmr.delay(500000)
-  mpub(volts())
-  tmr.delay(1000000)
+  v = volts()
+  store("volts", v)
+  return v
 end
 return bat

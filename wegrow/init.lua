@@ -1,47 +1,16 @@
--- init.lua: top level entry point for the WeGrow sensor/actuator board
-
-function testmqtt()
-  m = mqtt.Client("ESP8266", 120, "user", "password")
-  function pub() 
-    m:publish("testing", node.heap(),0,0, function(conn) print("m sent") end)
-  end
-  m:on("offline", function(con) print ("gone offline") end)
-  m:connect("10.0.0.9", 1883, 0, function(conn) print("got broker") pub() end)
-end
-
-function run()
-  print("starting wifi setup, heap= ", node.heap()) -- DEBUG
-  if file.open("skipj.txt") then        -- we're already configured
-    print("skipj exists")               -- DEBUG
-    file.close()
-  else
-    j=require("j")
-    return wifi.sta.getap(j.aplstn)     -- joinme entry point
-  end
-  print("wifi config finished, heap= ", node.heap()) -- DEBUG
-
-  print("setting up stepper...")        -- DEBUG
-  steps = { "bat", "soil" }
-  sleeptime = 3 -- in seconds
-  step=1
-  stepf="step.txt"
-  if file.open(stepf, "r") then step = 0 + file.read(); file.close() end
-  stepname = steps[step]
-
-  print("taking a step: ", stepname)    -- DEBUG
-  s = require(stepname)
-  s.run()
-
-  print("incrementing step number from ", step) -- DEBUG
-  if step == #steps then step = 0 end
-  file.open(stepf, "w")
-  file.write(step + 1)
+-- init.lua: call the top level entry point for the WeGrow board
+datafile="memory.lua" -- persistence globals (used by all steps)
+function store(k, v)
+  file.open(datafile, "a")
+  file.write(k .. "=" .. '"' .. v .. '", ')
   file.close()
-
-  print("sleeping for ", sleeptime, " secs...")
-  node.dsleep(sleeptime * 1000000)
 end
-
+function recall()
+  if not file.open(datafile, "r") then return nil end
+  _, t = pcall(loadstring("return {" .. (file.read() or "") .. "}"))
+  file.close()
+  return t
+end
+function forget() file.open(datafile, "w") file.close() end
 print("delete init.lua now if you need to!") -- DEBUG
--- tmr.alarm(0, 1500, 0, run)              -- panic space!
-tmr.alarm(0, 1500, 0, testmqtt)
+tmr.alarm(0, 1500, 0, require("wegrow").run) -- panic space!
