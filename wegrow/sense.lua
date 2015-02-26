@@ -1,8 +1,8 @@
--- soil.lua -- soil moisture sensor
-soil={}
-function soil.run()
-  print("soil.run...")             -- DEBUG
-  w.store("soil", 345345)
+-- sense.lua -- sensor work
+sense={}
+function sense.run()
+  print("sense.run...")             -- DEBUG
+  w.store("sense", 345345)
   return nil
 end
-return soil
+return sense

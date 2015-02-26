@@ -1,21 +1,16 @@
 -- wegrow.lua: top level entry point for the WeGrow sensor/actuator board
-datafile="memory.lua"                   -- persistence
 w={}
-local steps = { "bat", "soil", "talk" } -- processing sequence
-local sleeptime = 3   -- deepsleep duration after each step (in seconds)
-function w.store(k, v)
-  file.open(datafile, "a")
+local steps = { "bat", "sense", "talk" } -- processing sequence
+local sleeptime = 3     -- deepsleep duration after each step (in seconds)
+local stepf="step.txt"  -- persistence file for the next step index
+w.datafile="memory.lua" -- general key/value persistence file
+function w.store(k, v)  -- remember a key/value pair
+  file.open(w.datafile, "a")
   file.write(k .. "=" .. '"' .. v .. '", ')
   file.close()
 end
-function w.recall()
-  if not file.open(datafile, "r") then return nil end
-  _, t = pcall(loadstring("return {" .. (file.read() or "") .. "}"))
-  file.close()
-  return t
-end
-function w.forget() file.open(datafile, "w") file.close() end
 function w.run()
+  -- joinme is not a step coz we don't want to sleep if already got wifi config
   print("starting wifi setup, heap= ", node.heap()) -- DEBUG
   if file.open("skipj.txt") then        -- we're already configured
     print("skipj exists")               -- DEBUG
@@ -26,8 +21,7 @@ function w.run()
   end
   print("wifi config finished, heap= ", node.heap()) -- DEBUG
 
-  step=1
-  stepf="step.txt"
+  step=1 -- index into the list of steps; 1 by default, or set from file
   if file.open(stepf, "r") then step = 0 + file.read(); file.close() end
   stepname = steps[step]
   print("taking a step: ", stepname)    -- DEBUG
@@ -38,7 +32,7 @@ function w.run()
   file.write(step + 1)
   file.close()
 
-  print("sleeping for ", sleeptime, " secs...")
+  print("sleeping for ", sleeptime, " secs...") -- DEBUG
   node.dsleep(sleeptime * 1000000)
 end
 return w
