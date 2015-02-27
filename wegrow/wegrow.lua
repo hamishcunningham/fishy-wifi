@@ -25,8 +25,8 @@ function w.run()
   if file.open(stepf, "r") then step = 0 + file.read(); file.close() end
   stepname = steps[step]
   print("taking a step: ", stepname)    -- DEBUG
-  s = require(stepname)
-  s.run()
+  require(stepname).run()
+
   if step == #steps then step = 0 end
   file.open(stepf, "w")
   file.write(step + 1)
