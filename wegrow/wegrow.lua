@@ -11,6 +11,7 @@ function w.store(k, v)  -- remember a key/value pair   TODO can be local
 end
 function w.run()
   -- joinme is not a step coz we don't want to sleep if already got wifi config
+  -- TODO make joinme a step, and add sleep=false to rtn, tested at end below
   print("starting wifi setup, heap= ", node.heap()) -- DEBUG
   if file.open("skipj.txt") then        -- we're already configured
     print("skipj exists")               -- DEBUG
@@ -21,6 +22,7 @@ function w.run()
   end
   print("wifi config finished, heap= ", node.heap()) -- DEBUG
 
+  -- TODO setup timer to go to deep sleep, in case a step doesn't return
   step=1 -- index into the list of steps; 1 by default, or set from file
   if file.open(stepf, "r") then step = 0 + file.read(); file.close() end
   stepname = steps[step]
