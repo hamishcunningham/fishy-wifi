@@ -4,7 +4,7 @@ local steps = { "bat", "sense", "talk" } -- processing sequence
 local sleeptime = 3     -- deepsleep duration after each step (in seconds)
 local stepf="step.txt"  -- persistence file for the next step index
 w.datafile="memory.lua" -- general key/value persistence file
-function w.store(k, v)  -- remember a key/value pair   TODO can be local
+local function store(k, v)  -- remember a key/value pair
   file.open(w.datafile, "a")
   file.write(k .. "=" .. '"' .. v .. '", ')
   file.close()
@@ -27,8 +27,8 @@ function w.run()
   if file.open(stepf, "r") then step = 0 + file.read(); file.close() end
   stepname = steps[step]
   print("taking a step: ", stepname)    -- DEBUG
-  -- TODO for k,v in require(stepname).run() do store(k, v) end
-  require(stepname).run()
+  stepresults = require(stepname).run()
+  for k,v in pairs(stepresults) do store(k, v) end
 
   if step == #steps then step = 0 end
   file.open(stepf, "w")

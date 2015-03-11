@@ -12,9 +12,5 @@ local function volts()
   print("battery level: ", string.format("%.2f", voltage))      -- DEBUG
   return voltage
 end
-bat.run = function() -- TODO return { "volts" = volts() } end
-  v = volts()
-  w.store("volts", v)
-  return v
-end
+bat.run = function() return { volts = volts() } end
 return bat

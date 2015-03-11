@@ -14,6 +14,6 @@ function talk.run()
   print("talk: t=")                             -- DEBUG
   prtbl(t)                                      -- DEBUG
   forget() -- this step sequence is over; clear the key/value file
-  return nil -- TODO return {}
+  return {}
 end
 return talk
