@@ -16,3 +16,15 @@ Coleman](http://l0l.org.uk/) and [The.Crowd.Works](https://the.crowd.works)
     (192.168.4.1)
   - for any HTTP GET send redirect to https://something.or.other/
   - for any HTTPS GET send the configure form
+
+
+tmr.alarm(0, 1000, 1, function()
+  ipaddr = wifi.sta.getip()
+  if ipaddr == nil then
+    print("waiting for IP")     -- DEBUG
+  else
+    print("got IP: ", ipaddr)   -- DEBUG
+    tmr.stop(0)
+    ...()
+  end
+end)
