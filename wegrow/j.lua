@@ -29,7 +29,6 @@ local function httplstn(conn, req) -- serve HTTP requests
     ssid, key = string.gmatch(req, "ssid=(.*)&key=(.*)")()
     if ssid and key then -- TODO verify ssid and key more effectively
       wifi.sta.config(ssid, key)
---      w.store("wifi", ssid .. ":" .. key) -- TODO return this instead
       wifi.sta.connect()
       conn:send("<html><body><h2>Done! Joining...</h2></body></html>")
       conn:on("sent", finish)
@@ -43,6 +42,7 @@ function j.aplstn(aptbl)        -- callback for available APs scanner
   frm = genform(aptbl)
   if not srvr then srvr = net.createServer(net.TCP) end
   srvr:listen(80, function(conn) conn:on("receive", httplstn) end)
+  return {}
 end
 function j.reset() file.remove(skip) end
 return j

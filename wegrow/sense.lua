@@ -2,7 +2,7 @@
 sense={}
 -- local pinreceive = 1
 local pinsend = 6
-function sense.run() 
+function sense.xrun() 
   print("sense.run()...") -- DEBUG
   gpio.mode(pinsend, gpio.OUTPUT) 
   -- gpio.mode(pinreceive, gpio.INPUT, gpio.FLOAT)
@@ -21,11 +21,11 @@ function sense.run()
     i = i + 1
     val = adc.read(0)
     if max < val then max = val end
-    -- print("adc.read 3...", adc.read(0)) -- DEBUG
+    print("val...", val) -- DEBUG
     gpio.write(pinsend, gpio.HIGH)
  --   tmr.delay(10)
     gpio.write(pinsend, gpio.LOW)
-     print("now= ", tmr.now(), " timeout= ", timeout) -- DEBUG
+   --  print("now= ", tmr.now(), " timeout= ", timeout) -- DEBUG
   --  tmr.delay(10)
     tmr.wdclr()
   end
@@ -33,8 +33,11 @@ function sense.run()
   print("done the loop") -- DEBUG
   elapsed = tmr.now() - start
 
-  moistness = elapsed
-
-  return { sense = 345345, moistness = moistness, } 
+  moisture = elapsed
+  return { sense = 345345, moisture = moisture, } 
+end
+function sense.run()
+  moisture = 1000
+  return { sense = 345345, moisture = moisture, } 
 end
 return sense
