@@ -14,6 +14,12 @@ function talk.run()
   print("talk: t=")                             -- DEBUG
   prtbl(t)                                      -- DEBUG
   forget() -- this step sequence is over; clear the key/value file
+  conn=net.createConnection(net.TCP,0) 
+  conn:on("receive", function(conn, pl) print("response: ",pl) end)
+  conn:on("connection",function(conn, payload)
+    print('foo')
+    conn:send("POST /?foo=foo HTTP/1.1\r\nHost: saltmarsh.webarch.net\r\n".."Connection: close\r\nAccept: */*\r\n\r\n")
+  end)
   return {}
 end
 return talk
