@@ -67,7 +67,7 @@ Build open source toolchain:
 - instructions from
   http://nathan.chantrell.net/20141230/wifi-mqtt-display-with-the-esp8266/
 - `sudo apt-get install make unrar autoconf automake libtool gcc g++ gperf flex
-  bison texinfo gawk ncurses-dev libexpat-dev python sed`
+  bison texinfo gawk ncurses-dev libexpat-dev python python-serial sed`
 - `git clone https://github.com/pfalcon/esp-open-sdk`
 - `cd esp-open-sdk`
 - `make STANDALONE=n`
@@ -91,7 +91,6 @@ Flash the firmware to the ESP8266:
 
 or, for the Olimex board:
 
-    cd .../esp8266-stuff; git clone git@github.com:themadinventor/esptool.git
     make flasholimex
  
 Older methods:
