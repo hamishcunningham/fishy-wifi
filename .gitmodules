@@ -1,0 +1,3 @@
+[submodule "nodemcu-firmware"]
+	path = nodemcu-firmware
+	url = git@github.com:nodemcu/nodemcu-firmware.git
