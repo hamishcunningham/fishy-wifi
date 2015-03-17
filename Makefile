@@ -7,7 +7,7 @@ ESPDIR=$(shell [ -d $(STUFFDIR) ] && \
 
 # SDK and dev tool paths
 ESPLORERDIR=${ESPDIR}/ESPlorer
-ESPSDKDIR=$(ESPDIR)/esp-open-sdk
+ESPSDKDIR=$(ESPDIR)/esp-open-sdk-compiler
 ESPTOOLDIR=$(ESPDIR)/esptool
 NODEMCUDIR=$(ESPDIR)/nodemcu-firmware
 XTENSABIN=$(ESPSDKDIR)/xtensa-lx106-elf/bin
