@@ -24,19 +24,25 @@ help:
 	@echo make targets: nodemcu, nodemcu-with-dns, flashnodemcu, \
           flasholimex, esplorer, mqtt-spy...
 
-# rebuild and flash the firmware to the ESP8266
+# rebuild nodemcu
 nodemcu:
 	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE)
 nodemcu-with-dns:
 	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE) UNIVERSAL_TARGET_DEFINES=-DUSE_DNS
+
+# copy a binary build of the firmware to our local tree
+copy-nodemcu-bin:
+	echo cp -r $(NODEMCUDIR)/bin $(ESPDIR)/nodemcu-bin
+
+# flash the firmware to the ESP8266
 flashnodemcu:
 	cd $(NODEMCUDIR); $(FIXPATH) $(MAKE) flash ESPPORT=$(ESPPORT)
 flasholimex:
 	cd $(NODEMCUDIR); $(ESPTOOLDIR)/esptool.py --port $(ESPPORT) \
-          write_flash -fs 16m 0 bin/0x00000.bin 0x10000 bin/0x10000.bin
+          write_flash -fs 16m 0 $(ESPTDIR)/0x00000.bin 0x10000 $(ESPDIR)/0x10000.bin
 flasholimexlatest: 
 	cd $(NODEMCUDIR); $(ESPTOOLDIR)/esptool.py --port $(ESPPORT) \
-	  write_flash -fs 16m 0 ../nodemcu-firmware/pre_build/latest/nodemcu_latest.bin
+	  write_flash -fs 16m 0 pre_build/latest/nodemcu_latest.bin
 # TODO         0x7E000 bin/blank.bin
 flash0127:
 	./esp8266-local-sdk/esptool/esptool.py --port $(ESPPORT) write_flash \
