@@ -1,3 +1,6 @@
-[submodule "nodemcu-firmware"]
-	path = nodemcu-firmware
+[submodule "esp8266-local-sdk/esptool"]
+	path = esp8266-local-sdk/esptool
+	url = git@github.com:themadinventor/esptool.git
+[submodule "esp8266-local-sdk/nodemcu-firmware"]
+	path = esp8266-local-sdk/nodemcu-firmware
 	url = git@github.com:nodemcu/nodemcu-firmware.git
