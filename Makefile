@@ -40,6 +40,9 @@ flashnodemcu:
 flasholimex:
 	cd $(NODEMCUDIR); $(ESPTOOLDIR)/esptool.py --port $(ESPPORT) \
           write_flash -fs 16m 0 $(ESPTDIR)/0x00000.bin 0x10000 $(ESPDIR)/0x10000.bin
+flasholimexcustom:
+	cd $(NODEMCUDIR); $(ESPTOOLDIR)/esptool.py --port $(ESPPORT) \
+          write_flash -fs 16m 0 $(ESPDIR)/nodemcu-bin/0x00000.bin 0x10000 $(ESPDIR)/nodemcu-bin/0x10000.bin
 flasholimexlatest: 
 	cd $(NODEMCUDIR); $(ESPTOOLDIR)/esptool.py --port $(ESPPORT) \
 	  write_flash -fs 16m 0 pre_build/latest/nodemcu_latest.bin
