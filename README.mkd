@@ -2,7 +2,7 @@ Scripts, notes and the odd fish for the ESP8266
 ===
 
 [Hamish Cunningham](https://hamish.gate.ac.uk/), [Gareth
-Coleman](http://l0l.org.uk/) and [The.Crowd.Works](https://the.crowd.works)
+Coleman](http://l0l.org.uk/), [Naomi Rosenberg](http://l0l.org.uk/) and [The.Crowd.Works](https://the.crowd.works)
 
 ## A small corner of The Commons
 
@@ -24,9 +24,8 @@ Want to see a thing of beauty? Have a peek at
 <a name="#develop"/>
 ## Developing on the ESP8266 with NodeMCU
 
-- check out this tree (`fishy-wifi`) and `nodemcu-firmware` in the same place
-  - `git clone https://github.com/nodemcu/nodemcu-firmware.git`
-  - `git clone https://github.com/hamishcunningham/fishy-wifi.git`
+- check out this tree including its submodules (third-party dependencies) 
+  - `git clone --recursive https://github.com/hamishcunningham/fishy-wifi.git`
 - the Makefile assumes you've either checked out and rebuilt the open source
   SDK (see below), or -- if you're on 64 bit Linux -- you're using the local
   copy in `./esp8266-local-sdk`
@@ -68,21 +67,20 @@ Build open source toolchain:
   http://nathan.chantrell.net/20141230/wifi-mqtt-display-with-the-esp8266/
 - `sudo apt-get install make unrar autoconf automake libtool gcc g++ gperf flex
   bison texinfo gawk ncurses-dev libexpat-dev python python-serial sed`
-- `git clone https://github.com/pfalcon/esp-open-sdk`
 - `cd esp-open-sdk`
 - `make STANDALONE=n`
   - Xtensa toolchain is built, to use it:
-  - `export PATH=.../esp-open-sdk/xtensa-lx106-elf/bin:$PATH`
+  - `export PATH=${HOME}/fishy-wifi/esp8266-local-sdk/esp-open-sdk/xtensa-lx106-elf/bin:$PATH`
   - TODO is this nesc?
     - Espressif ESP8266 SDK is installed. Toolchain contains only Open Source
       components To link external proprietary libraries add:
-    - `xtensa-lx106-elf-gcc -I/home/hamish/esp-open-sdk/sdk/include`
-      -L/home/hamish/esp-open-sdk/sdk/lib`
+    - `xtensa-lx106-elf-gcc -I${HOME}/fishy-wifi/esp8266-local-sdk/esp-open-sdk/sdk/include`
+      -L${HOME}/fishy-wifi/esp8266-local-sdk/esp-open-sdk/sdk/lib`
 
 Rebuild NodeMCU:
 
     cd nodemcu-firmware
-    PATH=${PATH}:${HOME}/esp8266-stuff/esp-open-sdk/xtensa-lx106-elf/bin make
+    PATH=${PATH}:${HOME}/fishy-wifi/esp8266-local-sdk/esp-open-sdk/xtensa-lx106-elf/bin make
 
 Flash the firmware to the ESP8266:
 
@@ -135,8 +133,7 @@ Wiring the Olimex board:
 
 Luatool filetransfer thingy:
 
-    git clone https://github.com/4refr0nt/luatool.git
-    ../luatool/luatool/luatool.py -p /dev/ttyAMA0 -f init.lua -t init.lua -v
+    ${HOME}/fishy-wifi/esp8266-local-sdk/luatool/luatool/luatool.py -p /dev/ttyAMA0 -f init.lua -t init.lua -v
 
 ## Resources
 

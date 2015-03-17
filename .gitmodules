@@ -4,3 +4,9 @@
 [submodule "esp8266-local-sdk/nodemcu-firmware"]
 	path = esp8266-local-sdk/nodemcu-firmware
 	url = git@github.com:nodemcu/nodemcu-firmware.git
+[submodule "esp8266-local-sdk/esp-open-sdk"]
+	path = esp8266-local-sdk/esp-open-sdk
+	url = git@github.com:pfalcon/esp-open-sdk
+[submodule "esp8266-local-sdk/luatool"]
+	path = esp8266-local-sdk/luatool
+	url = git@github.com:4refr0nt/luatool.git
