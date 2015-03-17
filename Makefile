@@ -32,7 +32,7 @@ nodemcu-with-dns:
 
 # copy a binary build of the firmware to our local tree
 copy-nodemcu-bin:
-	echo cp -r $(NODEMCUDIR)/bin $(ESPDIR)/nodemcu-bin
+	cp -r $(NODEMCUDIR)/bin $(ESPDIR)/nodemcu-bin
 
 # flash the firmware to the ESP8266
 flashnodemcu:
