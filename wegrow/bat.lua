@@ -12,5 +12,8 @@ local function volts()
   print("battery level: ", string.format("%.2f", voltage))      -- DEBUG
   return voltage
 end
-bat.run = function() return { volts = volts() }, true end -- don't sleep after
+bat.run = function(done)
+  done({volts=volts()}, true) -- don't sleep
+end
+
 return bat

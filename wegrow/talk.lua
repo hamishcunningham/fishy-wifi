@@ -8,7 +8,7 @@ local function recall()
   return t
 end
 local function forget() file.open(w.datafile, "w") file.close() end
-function talk.run()
+function talk.run(done)
   print("talk.run...")                          -- DEBUG
   t = recall() -- load all persisted key/value pairs from file
   print("talk: t=")                             -- DEBUG
@@ -16,10 +16,10 @@ function talk.run()
   forget() -- this step sequence is over; clear the key/value file
   conn=net.createConnection(net.TCP,0) 
   conn:on("receive", function(conn, pl) print("response: ",pl) end)
-  conn:on("connection",function(conn, payload)
-    print('foo')
-    conn:send("POST /?foo=foo HTTP/1.1\r\nHost: saltmarsh.webarch.net\r\n".."Connection: close\r\nAccept: */*\r\n\r\n")
-  end)
-  return {}
+  conn:on("connection", function() print("Connected") end)
+  conn:on("sent", function() print("Sent") done({}, false)  end)
+  conn:connect(80, "saltmarsh.webarch.net");
+  conn:send("POST /?foo=foo HTTP/1.1\r\nHost: saltmarsh.webarch.net\r\n".."Connection: close\r\nAccept: */*\r\n\r\n")
+   
 end
 return talk

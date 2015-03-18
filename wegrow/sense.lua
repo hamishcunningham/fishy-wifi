@@ -36,8 +36,8 @@ function sense.xrun()
   moisture = elapsed
   return { sense = 345345, moisture = moisture, } 
 end
-function sense.run()
+function sense.run(done)
   moisture = 1000
-  return { sense = 345345, moisture = moisture, } 
+  done ({ sense = 345345, moisture = moisture}, false) 
 end
 return sense
