@@ -7,14 +7,11 @@ wconf.run = function(done)
   if file.open("skipj.txt") then        -- we're already configured
     print("skipj exists")               -- DEBUG
     file.close()
-    return done ({}, true, false)               -- don't sleep; run next step
+    return w.done ({}, true, false)               -- don't sleep; run next step
   end
-  print(node.heap());
   j=require("j");
   print(node.heap());
-  j=nil;
-  print(node.heap());
-  --wifi.sta.getap(j.aplstn) -- no need for "done" - handles own restart
+  wifi.sta.getap(j.aplstn) -- no need for "done" - handles own restart
 end
 return wconf
  

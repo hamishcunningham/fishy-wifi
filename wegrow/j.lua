@@ -1,6 +1,6 @@
 -- j.lua: _joinme_ wifi config utility
 j={}
-local frm
+local frm;
 local skip = "skipj.txt"        -- marker file
 
 local function genform(aptbl)   -- takes table of APs
@@ -43,7 +43,9 @@ function j.aplstn(aptbl)        -- callback for available APs scanner
   print("j.aplstn") 
   frm = genform(aptbl)
   if not srvr then srvr = net.createServer(net.TCP) end
-  srvr:listen(80, function(conn) conn:on("receive", httplstn) end)
+  srvr:listen(80, function(conn) 
+    conn:on("receive", httplstn)
+  end)
 end
 
 return j

@@ -37,6 +37,7 @@ function sense.xrun()
   return { sense = 345345, moisture = moisture, } 
 end
 function sense.run(done)
+  print("sense.run()...") -- DEBUG
   moisture = 1000
   done ({ sense = 345345, moisture = moisture}, false) 
 end
