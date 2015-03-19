@@ -13,7 +13,7 @@ local function forget()
 end
 local function pub(k, v)
   if not k then
-    return w.done({}, false, false) -- no data left so go to next step
+    return w.done({}, false) -- no data left so go to next step
   end
   m:publish(k,v,0,0, function() -- pub, wait, pub next - otherwise complains
     pub(next(t, k))
