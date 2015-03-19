@@ -15,7 +15,8 @@ local function pub(k, v)
   if not k then
     return w.done({}, false) -- no data left so go to next step
   end
-  m:publish(k,v,0,0, function() -- pub, wait, pub next - otherwise complains
+  m:publish(k,v,0,0, function() -- wait for pub to finish before pub next - otherwise complains
+    print("published ", k, v)
     pub(next(t, k))
   end)  
 end
