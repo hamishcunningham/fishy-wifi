@@ -12,26 +12,26 @@ local function store(k, v)  -- remember a key/value pair
   file.write(k .. "=" .. '"' .. v .. '", ')
   file.close()
 end
-function w.run()
-  -- TODO setup timer to go to deep sleep, in case a step doesn't return?
-  step=1 -- index into the list of steps; 1 by default, or set from file
-  if file.open(stepf, "r") then step = 0 + file.read(); file.close() end
-  stepname = steps[step]
-  print("taking a step: ", stepname)                    -- DEBUG
-  stepresults, stayawake, wait = require(stepname).run()
-  print("stayawake: ", stayawake, " wait: ", wait)      -- DEBUG
+function w.done(stepresults, stayawake, wait)
+   print("stayawake: ", stayawake, " wait: ", wait)      -- DEBUG
   for k,v in pairs(stepresults) do store(k, v) end
-
   if step == #steps then step = 0 end
   file.open(stepf, "w")
   file.write(step + 1)
   file.close()
-
   if not stayawake then
     print("sleeping for ", sleeptime, " secs...")       -- DEBUG
     node.dsleep(sleeptime * 1000000)
   elseif not wait then
     w.run()
   end
+end
+function w.run()
+  -- TODO setup timer to go to deep sleep, in case a step doesn't return?
+  step=1 -- index into the list of steps; 1 by default, or set from file
+  if file.open(stepf, "r") then step = 0 + file.read(); file.close() end
+  stepname = steps[step]
+  print("taking a step: ", stepname)                    -- DEBUG
+  require(stepname).run()
 end
 return w

@@ -7,10 +7,9 @@ wconf.run = function()
   if file.open("skipj.txt") then        -- we're already configured
     print("skipj exists")               -- DEBUG
     file.close()
-    return {}, true -- no need to sleep (stayawake=true), but don't wait
+    w.done( {}, true, false) -- no need to sleep (stayawake=true), but don't wait
   else
     wifi.sta.getap(require("j").aplstn) -- joinme entry point
-    return {}, true, true               -- no sleep, *do* wait
   end
 end
 return wconf

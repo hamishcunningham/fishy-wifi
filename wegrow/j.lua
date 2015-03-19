@@ -42,7 +42,6 @@ function j.aplstn(aptbl)        -- callback for available APs scanner
   frm = genform(aptbl)
   if not srvr then srvr = net.createServer(net.TCP) end
   srvr:listen(80, function(conn) conn:on("receive", httplstn) end)
-  return {}
 end
 function j.reset() file.remove(skip) end
 return j
