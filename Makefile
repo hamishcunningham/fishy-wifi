@@ -49,14 +49,14 @@ flasholimexlatest:
 	  write_flash -fs 16m 0 pre_build/latest/nodemcu_latest.bin
 # TODO         0x7E000 bin/blank.bin
 flash0127:
-	./esp8266-local-sdk/esptool/esptool.py --port $(ESPPORT) write_flash \
-          -fs 16m 0 ../nodemcu-firmware/pre_build/0.9.5/nodemcu_20150127.bin
+	$(ESPTOOLDIR)/esptool.py --port $(ESPPORT) write_flash \
+          -fs 16m 0 $(NODEMCUDIR)/pre_build/0.9.5/nodemcu_20150127.bin
 flash0212:
-	./esp8266-local-sdk/esptool/esptool.py --port $(ESPPORT) write_flash \
-          -fs 16m 0 ../nodemcu-firmware/pre_build/0.9.5/nodemcu_20150212.bin 
+	$(ESPTOOLDIR)/esptool.py --port $(ESPPORT) write_flash \
+          -fs 16m 0 $(NODEMCUDIR)/pre_build/0.9.5/nodemcu_20150212.bin 
 flash0123:
-	./esp8266-local-sdk/esptool/esptool.py --port $(ESPPORT) write_flash \
-          -fs 16m 0 ../nodemcu-firmware/pre_build/0.9.5/nodemcu_20150123.bin 
+	$(ESPTOOLDIR)/esptool.py --port $(ESPPORT) write_flash \
+          -fs 16m 0 $(NODEMCUDIR)/pre_build/0.9.5/nodemcu_20150123.bin 
 
 # run ESPlorer
 esplorer:
