@@ -38,6 +38,6 @@ function sense.xrun()
 end
 function sense.run()
   moisture = 1000
-  return { sense = 345345, moisture = moisture, } 
+  w.done({ sense = 345345, moisture = moisture, }, false) 
 end
 return sense
