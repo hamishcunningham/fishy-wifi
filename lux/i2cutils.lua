@@ -1,11 +1,14 @@
 -- This code provides some basic helper functions dealing with i2c devices
 -- Much of this code was inspired by Santos and others on esp8266.com
+-- Adapted by Aeprox@github for use in ESPlogger
 
-i2cutils={}
+local moduleName = "i2cutils"
+local M = {}
+_G[moduleName] = M
 
 --  read a single byte from register
-function i2cutils.read_reg(dev_addr, reg_addr)
-  id = 0
+function M.read_reg(dev_addr, reg_addr)
+  local id = 0
   i2c.start(id)
   i2c.address(id, dev_addr, i2c.TRANSMITTER)
   i2c.write(id,reg_addr)
@@ -18,8 +21,8 @@ function i2cutils.read_reg(dev_addr, reg_addr)
   return c
 end
 
-function i2cutils.write_reg(dev_addr, reg_addr, reg_val)
-  id = 0
+function M.write_reg(dev_addr, reg_addr, reg_val)
+  local id = 0
   i2c.start(id)
   i2c.address(id, dev_addr, i2c.TRANSMITTER)
   i2c.write(id, reg_addr)
@@ -29,9 +32,9 @@ function i2cutils.write_reg(dev_addr, reg_addr, reg_val)
 end
 
 -- initialize i2c with our id and pins in slow mode :-)
-function i2cutils.initialise(dev_addr, init_reg_addr, sda, scl)
-  id = 0
+function M.initialise(dev_addr, init_reg_addr, sda, scl)
+  local id = 0
   i2c.setup(id, sda, scl, i2c.SLOW)
 end
 
-return i2cutils
+return M
