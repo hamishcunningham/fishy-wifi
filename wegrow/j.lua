@@ -21,8 +21,7 @@ local function finish()         -- reclaim resources and hand back control
   file.open(skip, "w")          -- remember not to do this next time through
   file.close()
   srvr:close()                  -- kill the server
-  print(wifi.setmode(wifi.STATION))
-  node.restart()
+  tmr.alarm(0, 1000, 0, node.restart) -- wait a second then start over
 end
 local function httplstn(conn, req) -- serve HTTP requests
   print("processing web request: ", req:sub(1, 11)) -- DEBUG
@@ -38,15 +37,12 @@ local function httplstn(conn, req) -- serve HTTP requests
     conn:send(frm)
   end
 end
-local function aplstn(aptbl)        -- callback for available APs scanner
+function j.aplstn(aptbl)        -- callback for available APs scanner
   print("j.aplstn")             -- DEBUG
-  print(wifi.setmode(wifi.STATIONAP))
   frm = genform(aptbl)
   if not srvr then srvr = net.createServer(net.TCP) end
   srvr:listen(80, function(conn) conn:on("receive", httplstn) end)
-end
-function j.run()
-  wifi.sta.getap(aplstn)
+  return {}
 end
 function j.reset() file.remove(skip) end
 return j
