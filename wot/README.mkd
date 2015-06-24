@@ -1,0 +1,4 @@
+Web of Things W3C Interest Group
+
+- wiki: http://www.w3.org/WoT/IG/wiki/Main_Page
+- IRC: http://irc.w3.org/?channels=wot-di
