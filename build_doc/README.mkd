@@ -1,0 +1,3 @@
+this is the physical build documentation for an aquaponics system.
+
+schedule.mkd is our working plan for the build process proper.
