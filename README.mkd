@@ -2,24 +2,32 @@ Scripts, notes and the odd fish for the ESP8266
 ===
 
 [Hamish Cunningham](https://hamish.gate.ac.uk/), [Gareth
-Coleman](http://l0l.org.uk/), [Naomi Rosenberg](http://l0l.org.uk/) and [The.Crowd.Works](https://the.crowd.works)
+Coleman](http://l0l.org.uk/), and [Crowds.Work](https://www.crowds.work)
 
 ## A small corner of The Commons
 
 ("Tragedy?" [That was bad
 science](http://climateandcapitalism.com/2008/08/25/debunking-the-tragedy-of-the-commons/)!)
 
+**Note**: the Lua code uses
+[NodeMCU](https://github.com/nodemcu/nodemcu-firmware). This is a great
+firmware for the ESP8266, but sometimes struggles with the resource
+constraints of the device. It is also quite a lot of work to port existing
+Arduino code for the sensors etc. that we're using over to Lua. So the new
+stuff now uses the [ESP Arduino IDE](https://github.com/esp8266/Arduino)
+([forum](http://www.esp8266.com/viewforum.php?f=33)).
+
 - A Lua port of code for the [TSL2561 I2C Luminosity](lux/) sensor.
 - A library for configuring the [ESP8266 over the air](joinme/) to join
-  existing wifi networks.
+  existing wifi networks (and later version [WeGrow](wegrow/).
 - Code exhibiting [memory size limits on the ESP](size-bug/).
-- A (failed) attempt to abstract the control regime of joinme,
-  [Control Freak](freak/).
+- A (failed) attempt to abstract the control regime of joinme, [Control
+  Freak](freak/).
+- Arduino-style libraries and sketches for an ESP-based sensor/actuator board:
+  [ARDESP](ardesp/).
 
 This is all [AGPL 3](LICENSE). Like it or lump it :-)
 
-Want to see a thing of beauty? Have a peek at
-[NodeMCU](https://github.com/nodemcu/nodemcu-firmware).
 
 <a name="#develop"/>
 ## Developing on the ESP8266 with NodeMCU
