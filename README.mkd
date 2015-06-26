@@ -6,7 +6,7 @@ Coleman](http://l0l.org.uk/), and [Crowds.Work](https://www.crowds.work)
 
 ## A small corner of The Commons
 
-("Tragedy?" [That was bad
+("Tragedy?!" [That was bad
 science](http://climateandcapitalism.com/2008/08/25/debunking-the-tragedy-of-the-commons/)!)
 
 **Note**: the Lua code uses
