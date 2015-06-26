@@ -1,11 +1,13 @@
-this is the physical build schedule for the aquaponics system.
+this is the hardware build schedule for the aquaponics system.
 
-Start
+components needed:
+usb to serial adaptor (for programming)
+Arduino environment with esp board installed (for programming)
 
-cut open the water tanks
+Olimex esp8266 development board
 
-wash them
+DS18B20 temperature sensor
+4.7K resistor
 
-plumb them in
+TSL2561 lux sensor breakout board - adafruit
 
-grow things
