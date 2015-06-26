@@ -6,8 +6,13 @@ Arduino environment with esp board installed (for programming)
 
 Olimex esp8266 development board
 
-DS18B20 temperature sensor
-4.7K resistor
+2x waterproof DS18B20 temperature sensor
+2x 4.7K resistor
 
 TSL2561 lux sensor breakout board - adafruit
 
+5x Water level switch
+5x 10k resistor
+
+pH sensing circuit
+pH probe
