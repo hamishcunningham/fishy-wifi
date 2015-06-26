@@ -1,3 +1,7 @@
 ARDuino meets ESP...
 
+Procedure for installing Arduino environment to use ESP8266 chip:
+
+Install latest Arduino environment from arduino.cc
+
 
