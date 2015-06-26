@@ -1,3 +1,8 @@
 this is the physical build documentation for an aquaponics system.
 
 schedule.mkd is our working plan for the build process proper.
+
+An example image:
+[![](images/nitrogen-cycle-150x132.jpg)](images/nitrogen-cycle.jpg)
+<!-- from:
+https://commons.wikimedia.org/wiki/File:Aquaponics_Nitrogen_Cycle.jpg -->
