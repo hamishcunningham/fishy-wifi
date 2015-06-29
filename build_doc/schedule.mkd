@@ -1,18 +1,25 @@
-this is the hardware build schedule for the aquaponics system.
+Eyes-and-ears Sensor Board: Build Schedule
 
-components needed:
-usb to serial adaptor (for programming)
-Arduino environment with esp board installed (for programming)
+Elements:
+- sensors
+  - water temperature
+  - air temperature and humidity (on board)
+  - photo-active radiation (or at least light; on board)
+  - water levels (5)
+- actuator: 433MHz transmitter
 
-Olimex esp8266 development board
+BoM:
+- 2x waterproof DS18B20 temperature sensor
+- 2x 4.7K resistor
+- TSL2561 lux sensor breakout board - adafruit
+- water sensing (or ultrasonics with HC-SR04?)
+  - 5x Water level switch
+  - 5x 10k resistor
+- pH sensing (£12!)
+  - pH sensing circuit
+  - pH probe
 
-2x waterproof DS18B20 temperature sensor
-2x 4.7K resistor
-
-TSL2561 lux sensor breakout board - adafruit
-
-5x Water level switch
-5x 10k resistor
-
-pH sensing circuit
-pH probe
+Development environment:
+- USB to serial adaptor (for programming)
+- Arduino environment with ESP board installed (for programming)
+- Olimex ESP8266 development board
