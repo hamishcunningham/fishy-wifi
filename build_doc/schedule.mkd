@@ -10,15 +10,20 @@ Elements:
 - actuator: 433MHz transmitter
 
 BoM:
-- 2x waterproof DS18B20 temperature sensor
-- 2x 4.7K resistor
+- waterproof DS18B20 temperature sensor
+- 4.7K resistor for DS18B20
+- DHT22 humidity and air temperature sensor
 - TSL2561 lux sensor breakout board - adafruit
 - water sensing (or ultrasonics with HC-SR04?)
   - 5x Water level switch
   - 5x 10k resistor
 - pH sensing (£12!)
-  - pH sensing circuit
-  - pH probe
+  - pH sensing circuit - see https://github.com/SparkysWidgets/IsoIonHW for ideal circuit - could use proven one instead https://github.com/SparkysWidgets/MinipHHW
+  - pH probe (£7 individual price)
+- 433 MHz transmitter module
+- ESP-12 module
+- custom PCB made by us ;-)
+
 
 Development environment:
 - USB to serial adaptor (for programming)
