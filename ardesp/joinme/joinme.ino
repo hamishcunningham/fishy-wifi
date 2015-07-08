@@ -6,6 +6,11 @@
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 
+// TODO
+// wifi config form
+// sensor data report, and actuator set form
+// fix the DNS server, http://www.esp8266.com/viewtopic.php?p=21169
+
 const byte DNS_PORT = 53;
 IPAddress apIP(192, 168, 1, 1);
 DNSServer dnsServer;
@@ -27,7 +32,7 @@ void setup() {
   dnsServer.start(DNS_PORT, "*", apIP);
 
   // reply code, no error
-//  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+  // dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
 
   // reply to all requests with same HTML
   webServer.onNotFound([]() {
