@@ -103,7 +103,7 @@ void loop() {
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
   
-const char* ssid     = "esp8266";
+const char* ssid     = "FishyWifi";
 boolean LEDstate[] = {LOW, false, LOW};
 
 const char* html = "<html><head><title>Success</title><style>.bt{display:block;width:250px;height:100px;padding:10px;margin:10px;"
