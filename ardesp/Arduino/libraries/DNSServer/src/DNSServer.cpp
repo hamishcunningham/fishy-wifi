@@ -125,6 +125,8 @@ void DNSServer::replyWithIP()
   _udp.write((uint8_t)0);   // 0x0001  answer is type A query (host address)
   _udp.write((uint8_t)1);
 
+  _udp.write((uint8_t)0);   //0x0001 answer is class IN (internet address)
+  _udp.write((uint8_t)1);
 
   _udp.write((unsigned char*)&_ttl, 4);
   // Length of RData is 4 bytes (because, in this case, RData is IPv4)
