@@ -110,10 +110,22 @@ void DNSServer::replyWithIP()
 {
   _dnsHeader->QR = DNS_QR_RESPONSE;
   _dnsHeader->ANCount = _dnsHeader->QDCount;
-  _dnsHeader->QDCount = 0;
+//_dnsHeader->QDCount = 0;
+  _dnsHeader->RA = 1;                                      //added
+
+  Serial.println(_dnsHeader->ANCount);
+  Serial.println(_dnsHeader->QDCount);
 
   _udp.beginPacket(_udp.remoteIP(), _udp.remotePort());
   _udp.write(_buffer, _currentPacketSize);
+
+
+  _udp.write((uint8_t)192); //  answer name is a pointer
+  _udp.write((uint8_t)12);  // pointer to offset at 0x00c
+  _udp.write((uint8_t)0);   // 0x0001  answer is type A query (host address)
+  _udp.write((uint8_t)1);
+
+
   _udp.write((unsigned char*)&_ttl, 4);
   // Length of RData is 4 bytes (because, in this case, RData is IPv4)
   _udp.write((uint8_t)0);
@@ -132,3 +144,35 @@ void DNSServer::replyWithCustomCode()
   _udp.write(_buffer, sizeof(DNSHeader));
   _udp.endPacket();
 }
+
+/* new code, from
+https://github.com/esp8266/Arduino/pull/396
+
+void DNSServer::replyWithIP()
+{
+  _dnsHeader->QR = DNS_QR_RESPONSE;
+  _dnsHeader->ANCount = _dnsHeader->QDCount;
+//  _dnsHeader->QDCount = 0;
+  _dnsHeader->RA = 1;                                      //added
+
+  _udp.beginPacket(_udp.remoteIP(), _udp.remotePort());
+  _udp.write(_buffer, _currentPacketSize);
+
+  _udp.write((uint8_t)192);     //  answer name is a pointer
+   _udp.write((uint8_t)12);      // pointer to offset at 0x00c
+
+      _udp.write((uint8_t)0);   // 0x0001  answer is type A query (host address)
+  _udp.write((uint8_t)1);
+
+    _udp.write((uint8_t)0);   //0x0001 answer is class IN (internet address)
+  _udp.write((uint8_t)1);
+
+  _udp.write((unsigned char*)&_ttl, 4);
+
+    // Length of RData is 4 bytes (because, in this case, RData is IPv4)
+ _udp.write((uint8_t)0);
+  _udp.write((uint8_t)4);
+  _udp.write(_resolvedIP, sizeof(_resolvedIP));
+  _udp.endPacket();
+}
+*/
