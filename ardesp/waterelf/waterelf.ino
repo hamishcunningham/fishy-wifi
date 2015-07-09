@@ -5,36 +5,62 @@
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
   
-const char* ssid = "WaterWifi";
-const char* html = "<html><head><title>Success</title><style>.bt{display:block;width:250px;height:100px;padding:10px;margin:10px;"
-                    "text-align:center;border-radius:5px;color:white;font-weight:bold;font-size:70px;text-decoration:none;} "
-                    "body{background:#000;} .r{background:#933;} .g{background:#363;} .y{background:#EE0;height:100px;"
-                    "width:100px;border-radius:50px;} .b{background:#000;height:100px;width:100px;border-radius:50px;} "
-                    ".a{font-size:35px;} td{vertical-align:middle;}</style>"
-                    "</head><body><table><tr><td><div class='TGT0'></div></td><td><a class='bt g' href='/L0?v=1'>ON</a></td>"
-                    "<td><a class='bt r' href='/L0?v=0'>OFF</a></td></tr><tr><td><div class='TGT2'></div></td><td>"
-                    "<a class='bt g' href='/L2?v=1'>ON</a></td><td><a class='bt r' href='/L2?v=0'>OFF</a></td></tr>"
-                    "<tr><td>&nbsp;</td><td><a class='bt g a' href='/ALL?v=1'><br/>ALL ON</a></td><td>"
-                    "<a class='bt r a' href='/ALL?v=0'><br/>ALL OFF</a></td></tr></body></html>";
+const char* ssid = "WaterElf";
+const char* html =
+  "<html><head><title>WaterElf</title><style>.bt{display:block;width:250px;height:100px;padding:10px;margin:10px;"
+  "text-align:center;border-radius:5px;color:white;font-weight:bold;font-size:70px;text-decoration:none;} "
+  "body{background:#000;} .r{background:#933;} .g{background:#363;} .y{background:#EE0;height:100px;"
+  "width:100px;border-radius:50px;} .b{background:#000;height:100px;width:100px;border-radius:50px;} "
+  ".a{font-size:35px;} td{vertical-align:middle;}</style>"
+  "</head><body><table><tr><td><div class='TGT0'></div></td><td><a class='bt g' href='/L0?v=1'>ON</a></td>"
+  "<td><a class='bt r' href='/L0?v=0'>OFF</a></td></tr><tr><td><div class='TGT2'></div></td><td>"
+  "<a class='bt g' href='/L2?v=1'>ON</a></td><td><a class='bt r' href='/L2?v=0'>OFF</a></td></tr>"
+  "<tr><td>&nbsp;</td><td><a class='bt g a' href='/ALL?v=1'><br/>ALL ON</a></td><td>"
+  "<a class='bt r a' href='/ALL?v=0'><br/>ALL OFF</a></td></tr></body></html>";
+
+const char* apChoice = 
+  "<h2>Choose a wifi access point to join</h2><p><form method="POST" action="chz">a "
+  "_ITEMS_<br/>Pass key: <input type="textarea" name="key"><br/><br/>a "
+  "<input type="submit" value="Submit"></form></p></body></html>]=]"
+
 const byte DNS_PORT = 53;
 IPAddress apIP(192, 168, 1, 1);
 IPAddress netMsk(255, 255, 255, 0);
 DNSServer dnsServer;
 ESP8266WebServer server(80);
 
+String genAPForm() {
+  return new String("");
+/*
+  if not aptbl then return "<html><body>No AP data :-(</body></html>" end
+  buf = ""; checked = " checked"
+  for ssid, _ in pairs(aptbl) do
+    buf = buf .. '<input type="radio" name="ssid" value="' .. ssid .. '"' ..
+      checked .. '>' .. ssid .. '<br/>\n'
+    checked = ""
+  end
+  return string.gsub(wifiform, "_ITEMS_", buf)
+*/
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.setDebugOutput(true);
+
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP(ssid);
+
   Serial.print("SSID: ");
   Serial.println(ssid);
   Serial.print("IP address: ");
   Serial.println(WiFi.softAPIP());
+
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
-  Serial.println("USP Server started");
+
+  Serial.println("DNS Server started");
+
   server.on("/", handle_root);
   server.on("/generate_204", handle_root); // Android support
   server.on("/L0", handle_L0);
@@ -42,6 +68,7 @@ void setup() {
   server.on("/ALL", handle_ALL);
   server.onNotFound(handleNotFound);
   server.begin();
+
   Serial.println("HTTP server started");
 }
 
