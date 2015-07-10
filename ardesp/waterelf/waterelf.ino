@@ -96,20 +96,13 @@ void setup() {
 void loop() {
   dnsServer.processNextRequest();
   server.handleClient();
-  dnsServer.processNextRequest();
-  server.handleClient();
-  dnsServer.processNextRequest();
-  server.handleClient();
-  dnsServer.processNextRequest();
-  server.handleClient();
-  dnsServer.processNextRequest();
-  server.handleClient();
+  delay(5000);
 
   int m = monitorCursor;
   updateSensorData(monitorData);
   Serial.print("monitorData[monitorCursor].celsius:" );
   Serial.println(monitorData[m].celsius);
-  delay(10000);
+  delay(5000);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -136,7 +129,7 @@ void handle_data() {
   String toSend = pageTop;
   toSend += ": Sensor Data";
   toSend += pageTop2;
-  int m = monitorCursor;
+  int m = monitorCursor - 1;
   const int DATA_ENTRIES = 30;
   int n = m - DATA_ENTRIES;
   toSend += "<pre>\n";
