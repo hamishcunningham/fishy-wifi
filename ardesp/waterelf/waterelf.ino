@@ -1,18 +1,22 @@
-/* waterelf.ino */
-
+/////////////////////////////////////////////////////////////////////////////
+// waterelf.ino
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
+#include <OneWire.h>
 
+/////////////////////////////////////////////////////////////////////////////
+// wifi management stuff
 const byte DNS_PORT = 53;
 IPAddress apIP(192, 168, 1, 1);
 IPAddress netMsk(255, 255, 255, 0);
 DNSServer dnsServer;
 ESP8266WebServer server(80);
-
 const char* ssid = "WaterElf";
 
+/////////////////////////////////////////////////////////////////////////////
+// page generation stuff
 const char* pageTop =
   "<html><head><title>WaterElf Aquaponics Helper";
 const char* pageTop2 = "</title>\n"
@@ -34,6 +38,25 @@ const char* pageFooter =
   "\n<p><a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;"
   "<a href='https://www.fish4tea.net/'>Fish4Tea</a></p></body></html>";
 
+/////////////////////////////////////////////////////////////////////////////
+// data monitoring stuff
+const int MONITOR_POINTS = 1024;
+struct monitor_t {
+  unsigned long timestamp;
+  float celsius;
+  float fahrenheit;
+};
+monitor_t monitorData[MONITOR_POINTS];
+int monitorCursor = 0;
+void updateSensorData(monitor_t *monitorData);
+void getTemperature(float* celsius, float* fahrenheit);
+
+/////////////////////////////////////////////////////////////////////////////
+// temperature sensor stuff
+OneWire ds(2); // on pin 2 (a 4.7K resistor is necessary)
+
+/////////////////////////////////////////////////////////////////////////////
+// init and main loop ///////////////////////////////////////////////////////
 void setup() {
   Serial.begin(115200);
   // Serial.setDebugOutput(true);
@@ -63,15 +86,21 @@ void setup() {
   server.on("/wifistatus", handle_wifistatus);
   server.on("/chz", handle_chz);
   server.begin();
-
   Serial.println("HTTP server started");
 }
 
 void loop() {
   dnsServer.processNextRequest();
   server.handleClient();
+
+  updateSensorData(monitorData);
+  Serial.print("monitorData[monitorCursor].celsius:" );
+  Serial.println(monitorData[monitorCursor].celsius);
+  delay(1000);
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// wifi management stuff ////////////////////////////////////////////////////
 void handleNotFound() {
   Serial.print("\t\t\t\t URI Not Found: ");
   Serial.println(server.uri());
@@ -212,4 +241,121 @@ void handle_chz() {
   toSend += pageFooter;
   server.send(200, "text/html", toSend);
   delay(100);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// sensor stuff /////////////////////////////////////////////////////////////
+void updateSensorData(monitor_t *monitorData) {
+  if(++monitorCursor >= MONITOR_POINTS)
+    monitorCursor = 0;
+  Serial.print("monitorCursor = ");
+  Serial.println(monitorCursor);
+
+  monitor_t* now = &monitorData[monitorCursor];
+  now->timestamp = millis();
+  getTemperature(&now->celsius, &now->fahrenheit);
+}
+
+void getTemperature(float* celsius, float* fahrenheit) {
+  byte i;
+  byte present = 0;
+  byte type_s;
+  byte data[12];
+  byte addr[8];
+  float _celsius = *celsius;
+  float _fahrenheit = *fahrenheit;
+
+  if ( !ds.search(addr)) {
+    Serial.println("No more addresses.");
+    Serial.println();
+    ds.reset_search();
+    delay(250);
+    return;
+  }
+
+  Serial.print("ROM =");
+  for( i = 0; i < 8; i++) {
+    Serial.write(' ');
+    Serial.print(addr[i], HEX);
+  }
+
+  if (OneWire::crc8(addr, 7) != addr[7]) {
+      Serial.println("CRC is not valid!");
+      return;
+  }
+  Serial.println();
+
+  // the first ROM byte indicates which chip
+  switch (addr[0]) {
+    case 0x10:
+      Serial.println("  Chip = DS18S20");  // or old DS1820
+      type_s = 1;
+      break;
+    case 0x28:
+      Serial.println("  Chip = DS18B20");
+      type_s = 0;
+      break;
+    case 0x22:
+      Serial.println("  Chip = DS1822");
+      type_s = 0;
+      break;
+    default:
+      Serial.println("Device is not a DS18x20 family device.");
+      return;
+  }
+
+  ds.reset();
+  ds.select(addr);
+  ds.write(0x44, 1);        // start conversion, with parasite power on at the end
+
+  delay(1000);     // maybe 750ms is enough, maybe not
+  // we might do a ds.depower() here, but the reset will take care of it.
+
+  present = ds.reset();
+  ds.select(addr);
+  ds.write(0xBE);         // Read Scratchpad
+
+  Serial.print("  Data = ");
+  Serial.print(present, HEX);
+  Serial.print(" ");
+  for ( i = 0; i < 9; i++) {           // we need 9 bytes
+    data[i] = ds.read();
+    Serial.print(data[i], HEX);
+    Serial.print(" ");
+  }
+  Serial.print(" CRC=");
+  Serial.print(OneWire::crc8(data, 8), HEX);
+  Serial.println();
+
+  // Convert the data to actual temperature
+  // because the result is a 16 bit signed integer, it should
+  // be stored to an "int16_t" type, which is always 16 bits
+  // even when compiled on a 32 bit processor.
+  int16_t raw = (data[1] << 8) | data[0];
+  if (type_s) {
+    raw = raw << 3; // 9 bit resolution default
+    if (data[7] == 0x10) {
+      // "count remain" gives full 12 bit resolution
+      raw = (raw & 0xFFF0) + 12 - data[6];
+    }
+  } else {
+    byte cfg = (data[4] & 0x60);
+    // at lower res, the low bits are undefined, so let's zero them
+    if (cfg == 0x00) raw = raw & ~7;  // 9 bit resolution, 93.75 ms
+    else if (cfg == 0x20) raw = raw & ~3; // 10 bit res, 187.5 ms
+    else if (cfg == 0x40) raw = raw & ~1; // 11 bit res, 375 ms
+    //// default is 12 bit resolution, 750 ms conversion time
+  }
+  _celsius = (float)raw / 16.0;
+  _fahrenheit = _celsius * 1.8 + 32.0;
+  Serial.print("  Temperature = ");
+  Serial.print(_celsius);
+  Serial.print(" Celsius, ");
+  Serial.print(_fahrenheit);
+  Serial.println(" Fahrenheit");
+
+  *celsius = _celsius;
+  *fahrenheit = _fahrenheit;
+
+  return;
 }
