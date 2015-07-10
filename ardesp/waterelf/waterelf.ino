@@ -32,7 +32,7 @@ const char* pageDefault =
   "</ul></p>"
   "<h2>Monitor</h2>"
   "<p><ul>"
-  "<li>TODO data goes here...</li>"
+  "<li><a href='/data'>sensor data</a></li>"
   "</ul></p>\n";
 const char* pageFooter =
   "\n<p><a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;"
@@ -50,6 +50,7 @@ monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
 void updateSensorData(monitor_t *monitorData);
 void getTemperature(float* celsius, float* fahrenheit);
+void printMonitorEntry(monitor_t m, String* buf);
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff
@@ -85,6 +86,7 @@ void setup() {
   server.on("/wifi", handle_wifi);
   server.on("/wifistatus", handle_wifistatus);
   server.on("/chz", handle_chz);
+  server.on("/data", handle_data);
   server.begin();
   Serial.println("HTTP server started");
 }
@@ -92,11 +94,19 @@ void setup() {
 void loop() {
   dnsServer.processNextRequest();
   server.handleClient();
+  dnsServer.processNextRequest();
+  server.handleClient();
+  dnsServer.processNextRequest();
+  server.handleClient();
+  dnsServer.processNextRequest();
+  server.handleClient();
+  dnsServer.processNextRequest();
+  server.handleClient();
 
   updateSensorData(monitorData);
   Serial.print("monitorData[monitorCursor].celsius:" );
   Serial.println(monitorData[monitorCursor].celsius);
-  delay(1000);
+  delay(10000);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -113,6 +123,25 @@ void handle_root() {
   String toSend = pageTop;
   toSend += pageTop2;
   toSend += pageDefault;
+  toSend += pageFooter;
+  server.send(200, "text/html", toSend);
+  delay(100);
+}
+
+void handle_data() {
+  Serial.println("serving page at /data");
+  String toSend = pageTop;
+  toSend += ": Sensor Data";
+  toSend += pageTop2;
+  int m = monitorCursor;
+  const int DATA_ENTRIES = 30;
+  int n = m - DATA_ENTRIES;
+  toSend += "<pre>\n";
+  for(int i = m; i >= n && i >= 0; i--) {
+    printMonitorEntry(monitorData[i], &toSend);
+    toSend += "\n";
+  }
+  toSend += "</pre>\n";
   toSend += pageFooter;
   server.send(200, "text/html", toSend);
   delay(100);
@@ -246,14 +275,24 @@ void handle_chz() {
 /////////////////////////////////////////////////////////////////////////////
 // sensor stuff /////////////////////////////////////////////////////////////
 void updateSensorData(monitor_t *monitorData) {
-  if(++monitorCursor >= MONITOR_POINTS)
-    monitorCursor = 0;
   Serial.print("monitorCursor = ");
   Serial.println(monitorCursor);
 
   monitor_t* now = &monitorData[monitorCursor];
+  if(++monitorCursor >= MONITOR_POINTS)
+    monitorCursor = 0;
+
   now->timestamp = millis();
   getTemperature(&now->celsius, &now->fahrenheit);
+}
+
+void printMonitorEntry(monitor_t m, String* buf) {
+  buf->concat("timestamp: ");
+  buf->concat(m.timestamp);
+  buf->concat(", celsius: ");
+  buf->concat(m.celsius);
+  buf->concat(", fahrenheit: ");
+  buf->concat(m.fahrenheit);
 }
 
 void getTemperature(float* celsius, float* fahrenheit) {
@@ -265,12 +304,12 @@ void getTemperature(float* celsius, float* fahrenheit) {
   float _celsius = *celsius;
   float _fahrenheit = *fahrenheit;
 
-  if ( !ds.search(addr)) {
+  while ( !ds.search(addr)) {
     Serial.println("No more addresses.");
     Serial.println();
     ds.reset_search();
     delay(250);
-    return;
+    // return;
   }
 
   Serial.print("ROM =");
