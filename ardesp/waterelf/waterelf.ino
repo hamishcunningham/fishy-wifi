@@ -62,6 +62,8 @@ void setup() {
   Serial.begin(115200);
   // Serial.setDebugOutput(true);
 
+  monitorCursor = 0;
+
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP(ssid);
@@ -103,9 +105,10 @@ void loop() {
   dnsServer.processNextRequest();
   server.handleClient();
 
+  int m = monitorCursor;
   updateSensorData(monitorData);
   Serial.print("monitorData[monitorCursor].celsius:" );
-  Serial.println(monitorData[monitorCursor].celsius);
+  Serial.println(monitorData[m].celsius);
   delay(10000);
 }
 
@@ -279,11 +282,11 @@ void updateSensorData(monitor_t *monitorData) {
   Serial.println(monitorCursor);
 
   monitor_t* now = &monitorData[monitorCursor];
-  if(++monitorCursor >= MONITOR_POINTS)
-    monitorCursor = 0;
-
   now->timestamp = millis();
   getTemperature(&now->celsius, &now->fahrenheit);
+
+  if(++monitorCursor > MONITOR_POINTS)
+    monitorCursor = 0;
 }
 
 void printMonitorEntry(monitor_t m, String* buf) {
