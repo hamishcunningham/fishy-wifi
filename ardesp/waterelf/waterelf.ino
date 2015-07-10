@@ -4,7 +4,11 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
-  
+
+// TODO refactor to create header from title
+// char* header() {
+//
+// }
 const char* ssid = "WaterElf";
 const char* html =
   "<html><head><title>WaterElf Aquaponics Helper</title>"
@@ -21,7 +25,6 @@ const char* html =
   "<li>data goes here...</li>"
   "</ul></p>"
   "</body></html>";
-
 const char* apChoice = 
   "<html><head><title>WaterElf Aquaponics Helper: Wifi Config</title>"
   "<style>body{background:#FFF;color: #000;font-family: sans-serif;}</style>"
@@ -29,6 +32,14 @@ const char* apChoice =
   "<h2>Choose a wifi access point to join</h2><p><form method='POST' action='chz'> "
   "_ITEMS_<br/>Pass key: <input type='textarea' name='key'><br/><br/> "
   "<input type='submit' value='Submit'></form></p></body></html>";
+const char* wstatus = 
+  "<html><head><title>WaterElf Aquaponics Helper: Wifi Status</title>"
+  "<style>body{background:#FFF;color: #000;font-family: sans-serif;}</style>"
+  "</head><body>"
+  "<h2>Wifi Status</h2><p><ul>";
+const char* footer =
+  "<p><a href='/'>WaterElf Home</a></p>"
+  "<p><a href='https://www.fish4tea.net/'>Fish4Tea</a></p></body></html>";
 
 const byte DNS_PORT = 53;
 IPAddress apIP(192, 168, 1, 1);
@@ -59,8 +70,11 @@ void setup() {
   server.on("/L0", handle_L0);
   server.on("/L2", handle_L2);
   server.on("/ALL", handle_ALL);
-  server.on("/wifi", handle_wifi);
   server.onNotFound(handleNotFound);
+
+  server.on("/wifi", handle_wifi);
+  server.on("/wifistatus", handle_wifistatus);
+  server.on("/chz", handle_chz);
   server.begin();
 
   Serial.println("HTTP server started");
@@ -100,6 +114,8 @@ String genAPForm() {
       "<style>body{background:#FFF;color: #000;font-family: sans-serif;}</style>"
       "</head><body><p>No AP data :-(<br/>"
       "<a href='/'>Back</a><br/><a href='/wifi'>Try again</a></p>"
+      "<p><a href='/'>WaterElf Home</a> "
+      "<a href='https://www.fish4tea.net/'>Fish4Tea</a></p></body></html>"
       "</body></html>";
   } else {
     Serial.print(n);
@@ -134,6 +150,65 @@ String genAPForm() {
 void handle_wifi() {
   Serial.println("serving page at /wifi");
   String toSend = genAPForm();
+  server.send(200, "text/html", toSend);
+  delay(100);
+}
+
+void handle_wifistatus() {
+  Serial.println("serving page at /wifistatus");
+  String toSend = wstatus;
+  toSend += "<li>SSID: ";
+  toSend += WiFi.SSID();
+  toSend += "</li>";
+  toSend += "<li>Status: ";
+  switch(WiFi.status()) {
+    case WL_IDLE_STATUS:
+      toSend += "WL_IDLE_STATUS</li>"; break;
+    case WL_NO_SSID_AVAIL:
+      toSend += "WL_NO_SSID_AVAIL</li>"; break;
+    case WL_SCAN_COMPLETED:
+      toSend += "WL_SCAN_COMPLETED</li>"; break;
+    case WL_CONNECTED:
+      toSend += "WL_CONNECTED</li>"; break;
+    case WL_CONNECT_FAILED:
+      toSend += "WL_CONNECT_FAILED</li>"; break;
+    case WL_CONNECTION_LOST:
+      toSend += "WL_CONNECTION_LOST</li>"; break;
+    case WL_DISCONNECTED:
+      toSend += "WL_DISCONNECTED</li>"; break;
+    default:
+       toSend += "unknown</li>";
+  }
+  toSend += "</ul></p>";
+  toSend += footer;
+  server.send(200, "text/html", toSend);
+  delay(100);
+}
+
+void handle_chz() {
+  Serial.println("serving page at /chz");
+  String toSend = "<html><body><h2>Done! Joining...</h2></body></html>";
+  String ssid = "";
+  String key = "";
+
+  for ( uint8_t i = 0; i < server.args(); i++ ) {
+    Serial.println(" " + server.argName(i) + ": " + server.arg(i) + "\n");
+    if(server.argName(i) == "ssid")
+      ssid = server.arg(i);
+    else if(server.argName(i) == "key")
+      key = server.arg(i);
+  }
+
+  if(ssid == "") {
+    toSend = "<html><body><h2>Ooops, no SSID...?</h2></body></html>";
+  } else {
+    char ssidchars[sizeof(ssid)];
+    char keychars[sizeof(key)];
+    ssid.toCharArray(ssidchars, sizeof(ssid));
+    key.toCharArray(keychars, sizeof(key));
+    WiFi.begin(ssidchars, keychars);
+  }
+
   server.send(200, "text/html", toSend);
   delay(100);
 }
