@@ -7,21 +7,25 @@
   
 const char* ssid = "WaterElf";
 const char* html =
-  "<html><head><title>WaterElf</title><style>.bt{display:block;width:250px;height:100px;padding:10px;margin:10px;"
-  "text-align:center;border-radius:5px;color:white;font-weight:bold;font-size:70px;text-decoration:none;} "
-  "body{background:#000;} .r{background:#933;} .g{background:#363;} .y{background:#EE0;height:100px;"
-  "width:100px;border-radius:50px;} .b{background:#000;height:100px;width:100px;border-radius:50px;} "
-  ".a{font-size:35px;} td{vertical-align:middle;}</style>"
-  "</head><body><table><tr><td><div class='TGT0'></div></td><td><a class='bt g' href='/L0?v=1'>ON</a></td>"
-  "<td><a class='bt r' href='/L0?v=0'>OFF</a></td></tr><tr><td><div class='TGT2'></div></td><td>"
-  "<a class='bt g' href='/L2?v=1'>ON</a></td><td><a class='bt r' href='/L2?v=0'>OFF</a></td></tr>"
-  "<tr><td>&nbsp;</td><td><a class='bt g a' href='/ALL?v=1'><br/>ALL ON</a></td><td>"
-  "<a class='bt r a' href='/ALL?v=0'><br/>ALL OFF</a></td></tr></body></html>";
+  "<html><head><title>WaterElf Aquaponics Helper</title>"
+  "<style>body{background:#FFF;color: #000;font-family: sans-serif;}</style>"
+  "</head><body>"
+  "<h2>Welcome to WaterElf</h2>"
+  "<h2>Control</h2>"
+  "<p><ul>"
+  "<li><a href='/wifi'>join a wifi network</a></li>"
+  "<li>actuator links go here...</li>"
+  "</ul></p>"
+  "<h2>Monitor</h2>"
+  "<p><ul>"
+  "<li>data goes here...</li>"
+  "</ul></p>"
+  "</body></html>";
 
 const char* apChoice = 
-  "<h2>Choose a wifi access point to join</h2><p><form method="POST" action="chz">a "
-  "_ITEMS_<br/>Pass key: <input type="textarea" name="key"><br/><br/>a "
-  "<input type="submit" value="Submit"></form></p></body></html>]=]"
+  "<h2>Choose a wifi access point to join</h2><p><form method='POST' action='chz'>a "
+  "_ITEMS_<br/>Pass key: <input type='textarea' name='key'><br/><br/>a "
+  "<input type='submit' value='Submit'></form></p></body></html>]=]";
 
 const byte DNS_PORT = 53;
 IPAddress apIP(192, 168, 1, 1);
@@ -29,7 +33,7 @@ IPAddress netMsk(255, 255, 255, 0);
 DNSServer dnsServer;
 ESP8266WebServer server(80);
 
-String genAPForm() {
+String* genAPForm() {
   return new String("");
 /*
   if not aptbl then return "<html><body>No AP data :-(</body></html>" end

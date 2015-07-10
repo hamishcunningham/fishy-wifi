@@ -106,6 +106,8 @@ String DNSServer::getDomainNameWithoutWwwPrefix()
   }
 }
 
+// modified from
+// http://www.esp8266.com/viewtopic.php?f=32&t=3618&sid=9698904ce8ba48cedafe6c2a9500132d&start=40#p21907
 void DNSServer::replyWithIP()
 {
   _dnsHeader->QR = DNS_QR_RESPONSE;
@@ -113,12 +115,8 @@ void DNSServer::replyWithIP()
 //_dnsHeader->QDCount = 0;
   _dnsHeader->RA = 1;                                      //added
 
-  Serial.println(_dnsHeader->ANCount);
-  Serial.println(_dnsHeader->QDCount);
-
   _udp.beginPacket(_udp.remoteIP(), _udp.remotePort());
   _udp.write(_buffer, _currentPacketSize);
-
 
   _udp.write((uint8_t)192); //  answer name is a pointer
   _udp.write((uint8_t)12);  // pointer to offset at 0x00c
