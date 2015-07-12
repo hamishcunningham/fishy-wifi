@@ -40,7 +40,7 @@ const char* pageFooter =
 
 /////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff
-const int MONITOR_POINTS = 60;
+const int MONITOR_POINTS = 60; // number of data points to store
 struct monitor_t {
   unsigned long timestamp;
   float celsius;
@@ -49,6 +49,7 @@ struct monitor_t {
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
 int monitorSize = 0;
+const int DATA_ENTRIES = 30; // size of /data report; must be <= MONITOR_POINTS
 void updateSensorData(monitor_t *monitorData);
 void getTemperature(float* celsius, float* fahrenheit);
 void printMonitorEntry(monitor_t m, String* buf);
@@ -99,15 +100,15 @@ void loop() {
 
   int m = monitorCursor;
   updateSensorData(monitorData);
-  Serial.print("monitorData[monitorCursor].celsius:" );
-  Serial.println(monitorData[m].celsius);
+  // Serial.print("monitorData[monitorCursor].celsius:" );
+  // Serial.println(monitorData[m].celsius);
   delay(100);
 }
 
 /////////////////////////////////////////////////////////////////////////////
 // wifi management stuff ////////////////////////////////////////////////////
 void handleNotFound() {
-  Serial.print("\t\t\t\t URI Not Found: ");
+  Serial.print("URI Not Found: ");
   Serial.println(server.uri());
   // TODO send redirect to /? or just use handle_root?
   server.send(200, "text/plain", "URI Not Found");
@@ -123,6 +124,8 @@ void handle_root() {
   delay(100);
 }
 
+// TODO handle_actuator form
+
 void handle_data() {
   Serial.println("serving page at /data");
   String toSend = pageTop;
@@ -130,13 +133,12 @@ void handle_data() {
   toSend += pageTop2;
   toSend += "<pre>\n";
 
-  Serial.print("monitorCursor="); Serial.println(monitorCursor);
-  Serial.print("monitorSize=");   Serial.println(monitorSize);
-  const int DATA_ENTRIES = 30;
+  Serial.print("monitorCursor="); Serial.print(monitorCursor);
+  Serial.print(" monitorSize=");  Serial.println(monitorSize);
   int mSize = monitorSize;
   for(
-    int i = monitorCursor - 1, j = 0;
-    j <= DATA_ENTRIES && j <= MONITOR_POINTS;
+    int i = monitorCursor - 1, j = 1;
+    j <= DATA_ENTRIES && j <= monitorSize;
     i--, j++
   ) {
     Serial.print("printMonitorEntry(monitorData["); Serial.print(i); 
@@ -281,8 +283,8 @@ void handle_chz() {
 /////////////////////////////////////////////////////////////////////////////
 // sensor stuff /////////////////////////////////////////////////////////////
 void updateSensorData(monitor_t *monitorData) {
-  Serial.print("monitorCursor = "); Serial.println(monitorCursor);
-  Serial.print("monitorSize = ");   Serial.println(monitorSize);
+  // Serial.print("monitorCursor = "); Serial.print(monitorCursor);
+  // Serial.print(" monitorSize = ");  Serial.println(monitorSize);
 
   monitor_t* now = &monitorData[monitorCursor];
   if(monitorSize < MONITOR_POINTS)
@@ -314,34 +316,32 @@ void getTemperature(float* celsius, float* fahrenheit) {
   Serial.println("getTemperature()...");
 
   while(!ds.search(addr)) {
-    Serial.println("no more addresses; resetting...");
-    Serial.println();
+    Serial.println("  no more addresses; resetting...");
     ds.reset_search();
     delay(250);
   }
 
   if(OneWire::crc8(addr, 7) != addr[7]) {
-      Serial.println("CRC is not valid!");
+      Serial.println("  CRC is not valid!");
       return;
   }
-  Serial.println();
 
   // the first ROM byte indicates which chip
   switch(addr[0]) {
     case 0x10:
-      Serial.println("  chip = DS18S20");  // or old DS1820
+      Serial.print("  chip=DS18S20");  // or old DS1820
       type_s = 1;
       break;
     case 0x28:
-      Serial.println("  chip = DS18B20");
+      Serial.println("  chip=DS18B20");
       type_s = 0;
       break;
     case 0x22:
-      Serial.println("  chip = DS1822");
+      Serial.println("  chip=DS1822");
       type_s = 0;
       break;
     default:
-      Serial.println("device is not a DS18x20 family device.");
+      Serial.println("  device is not a DS18x20 family device :-(");
       return;
   }
 
@@ -356,7 +356,7 @@ void getTemperature(float* celsius, float* fahrenheit) {
   ds.select(addr);
   ds.write(0xBE);       // read scratchpad
 
-  Serial.print("  Data = ");
+  Serial.print(" ; data=");
   Serial.print(present, HEX);
   Serial.print(" ");
   for(i = 0; i < 9; i++) { // we need 9 bytes
