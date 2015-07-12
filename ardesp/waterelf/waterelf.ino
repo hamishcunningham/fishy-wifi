@@ -96,11 +96,23 @@ void setup() {
 void loop() {
   // TODO print resource usage data
 
+// TODO better resource manageme: perhaps
+/*
+  int ticks = 0;
+  const int MONITOR_FREQUENCY = 100; // once every 100 ticks
+  ...
+  if(++ticks % MONITOR_FREQUENCY == 0) {
+    updateSensorData(monitorData);
+    delay(100);
+  }
+
+*/
+
   dnsServer.processNextRequest();
   server.handleClient();
   delay(100);
 
-  int m = monitorCursor;
+  //int m = monitorCursor;
   updateSensorData(monitorData);
   // Serial.print("monitorData[monitorCursor].celsius:" );
   // Serial.println(monitorData[m].celsius);
