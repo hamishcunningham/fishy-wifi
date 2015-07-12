@@ -94,6 +94,8 @@ void setup() {
 }
 
 void loop() {
+  // TODO print resource usage data
+
   dnsServer.processNextRequest();
   server.handleClient();
   delay(100);
