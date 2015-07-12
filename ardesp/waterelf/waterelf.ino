@@ -260,6 +260,9 @@ void handle_wifistatus() {
   // - document the net joining process, and how to surf to IP
   //   address after initial join
 
+// TODO requires new IDE
+  if(WiFi.hostname("waterelf4A09")) Serial.println("set hostname succeeded");
+
   toSend += pageFooter;
   server.send(200, "text/html", toSend);
   delay(100);
