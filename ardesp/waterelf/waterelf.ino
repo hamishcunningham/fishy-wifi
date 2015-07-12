@@ -255,6 +255,11 @@ void handle_wifistatus() {
   }
   toSend += "</ul></p>";
 
+  // TODO 
+  // - IP address
+  // - document the net joining process, and how to surf to IP
+  //   address after initial join
+
   toSend += pageFooter;
   server.send(200, "text/html", toSend);
   delay(100);
