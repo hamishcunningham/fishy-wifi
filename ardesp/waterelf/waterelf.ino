@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
-// waterelf.ino
+// waterelf.ino /////////////////////////////////////////////////////////////
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
@@ -7,16 +7,23 @@
 #include <OneWire.h>
 
 /////////////////////////////////////////////////////////////////////////////
-// wifi management stuff
+// resource management stuff ////////////////////////////////////////////////
+byte loopCounter = 0;
+const byte TICK_WIFI_DEBUG = 0;
+const byte TICK_HEAP_DEBUG = 0;
+const byte TICK_MONITOR = 100;
+
+/////////////////////////////////////////////////////////////////////////////
+// wifi management stuff ////////////////////////////////////////////////////
 const byte DNS_PORT = 53;
 IPAddress apIP(192, 168, 1, 1);
 IPAddress netMsk(255, 255, 255, 0);
 DNSServer dnsServer;
-ESP8266WebServer server(80);
+ESP8266WebServer webServer(80);
 const char* ssid = "WaterElf";
 
 /////////////////////////////////////////////////////////////////////////////
-// page generation stuff
+// page generation stuff ////////////////////////////////////////////////////
 const char* pageTop =
   "<html><head><title>WaterElf Aquaponics Helper";
 const char* pageTop2 = "</title>\n"
@@ -24,15 +31,21 @@ const char* pageTop2 = "</title>\n"
   "</head><body>\n";
 const char* pageDefault =
   "<h2>Welcome to WaterElf</h2>\n"
-  "<h2>Control</h2>"
-  "<p><ul>"
-  "<li><a href='/wifi'>join a wifi network</a></li>"
-  "<li><a href='/wifistatus'>wifi status</a></li>"
-  "<li>TODO actuator links go here...</li>"
-  "</ul></p>"
-  "<h2>Monitor</h2>"
-  "<p><ul>"
-  "<li><a href='/data'>sensor data</a></li>"
+  "<h2>Control</h2>\n"
+  "<p><ul>\n"
+  "<li><a href='/wifi'>Join a wifi network</a></li>\n"
+  "<li><a href='/wifistatus'>Wifi status</a></li>\n"
+  "<li>\n"
+    "<form method='POST' action='actuate'>\n"
+    "Actuator: "
+    "on <input type='radio' name='state' value='on' checked>\n"
+    "off <input type='radio' name='state' value='off'>\n"
+    "<input type='submit' value='Submit'></form></p>\n"
+  "</li>\n"
+  "</ul></p>\n"
+  "<h2>Monitor</h2>\n"
+  "<p><ul>\n"
+  "<li><a href='/data'>Sensor data</a></li>\n"
   "</ul></p>\n";
 const char* pageFooter =
   "\n<p><a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;"
@@ -54,96 +67,95 @@ void updateSensorData(monitor_t *monitorData);
 void printMonitorEntry(monitor_t m, String* buf);
 
 /////////////////////////////////////////////////////////////////////////////
-// temperature sensor stuff
+// temperature sensor stuff /////////////////////////////////////////////////
 OneWire ds(2); // DS1820 on pin 2 (a 4.7K resistor is necessary)
 void getTemperature(float* celsius, float* fahrenheit);
 
 /////////////////////////////////////////////////////////////////////////////
-// misc utils
+// misc utils ///////////////////////////////////////////////////////////////
 int ledState = LOW;     
 void ledOn();
 void ledOff();
 String ip2str(IPAddress address);
 
 /////////////////////////////////////////////////////////////////////////////
-// init and main loop ///////////////////////////////////////////////////////
+// setup ////////////////////////////////////////////////////////////////////
 void setup() {
   Serial.begin(115200);
   // Serial.setDebugOutput(true);
   if(false) // TODO this interferes with the serial line it seems :-(
     pinMode(BUILTIN_LED, OUTPUT);
 
+  // TODO don't do this if wifi config'd and connected
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP(ssid);
 
   Serial.print("SSID: ");
-  Serial.println(ssid);
-  Serial.print("IP address(es): local=");
+  Serial.print(ssid);
+  Serial.print("; IP address(es): local=");
   Serial.print(WiFi.localIP());
   Serial.print("; AP=");
   Serial.println(WiFi.softAPIP());
 
+  // TODO don't do this if wifi config'd and connected
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
 
-  Serial.println("DNS Server started");
+  Serial.println("DNS server started");
 
-  server.on("/", handle_root);
-  server.on("/generate_204", handle_root); // Android support
-  server.on("/L0", handle_root);
-  server.on("/L2", handle_root);
-  server.on("/ALL", handle_root);
-  server.onNotFound(handleNotFound);
+  webServer.on("/", handle_root);
+  webServer.on("/generate_204", handle_root); // Android support
+  webServer.on("/L0", handle_root);
+  webServer.on("/L2", handle_root);
+  webServer.on("/ALL", handle_root);
+  webServer.onNotFound(handleNotFound);
 
-  server.on("/wifi", handle_wifi);
-  server.on("/wifistatus", handle_wifistatus);
-  server.on("/chz", handle_chz);
-  server.on("/data", handle_data);
-  server.begin();
+  webServer.on("/wifi", handle_wifi);
+  webServer.on("/wifistatus", handle_wifistatus);
+  webServer.on("/chz", handle_chz);
+  webServer.on("/data", handle_data);
+  webServer.begin();
   Serial.println("HTTP server started");
 
 // TODO
-//  if(WiFi.hostname("waterelf00001"))
-//    Serial.println("set hostname succeeded");
+  if(WiFi.hostname("waterelf"))
+    Serial.println("set hostname succeeded");
+  else
+    Serial.println("set hostname failed");
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// looooooooooooooooooooop //////////////////////////////////////////////////
 void loop() {
-  Serial.print("free heap=");
-  Serial.println(ESP.getFreeHeap());
+  dnsServer.processNextRequest(); // TODO don't do this if wifi config'd and connected
+  webServer.handleClient();
+  delay(100);
 
-// TODO better resource manageme: perhaps
-/*
-  int ticks = 0;
-  const int MONITOR_FREQUENCY = 100; // once every 100 ticks
-  ...
-  if(++ticks % MONITOR_FREQUENCY == 0) {
+  if(loopCounter == TICK_MONITOR) {
+    // ledOn();
     updateSensorData(monitorData);
     delay(100);
+    // ledOff();
+  } 
+  if(loopCounter == TICK_WIFI_DEBUG) {
+    Serial.print("SSID: "); Serial.print(ssid);
+    Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
+    Serial.print("; AP="); Serial.println(WiFi.softAPIP());
   }
-
-*/
-
-  dnsServer.processNextRequest();
-  server.handleClient();
-  delay(100);
-
-  //int m = monitorCursor;
-  ledOn();
-  updateSensorData(monitorData);
-  // Serial.print("monitorData[monitorCursor].celsius:" );
-  // Serial.println(monitorData[m].celsius);
-  delay(100);
-  ledOff();
+  if(loopCounter == TICK_HEAP_DEBUG) {
+    Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
+  }
+  loopCounter++;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 // wifi management stuff ////////////////////////////////////////////////////
 void handleNotFound() {
   Serial.print("URI Not Found: ");
-  Serial.println(server.uri());
+  Serial.println(webServer.uri());
   // TODO send redirect to /? or just use handle_root?
-  server.send(200, "text/plain", "URI Not Found");
+  webServer.send(200, "text/plain", "URI Not Found");
 }
 
 void handle_root() {
@@ -152,7 +164,7 @@ void handle_root() {
   toSend += pageTop2;
   toSend += pageDefault;
   toSend += pageFooter;
-  server.send(200, "text/html", toSend);
+  webServer.send(200, "text/html", toSend);
   delay(100);
 }
 
@@ -165,16 +177,16 @@ void handle_data() {
   toSend += pageTop2;
   toSend += "<pre>\n";
 
-  Serial.print("monitorCursor="); Serial.print(monitorCursor);
-  Serial.print(" monitorSize=");  Serial.println(monitorSize);
+  // Serial.print("monitorCursor="); Serial.print(monitorCursor);
+  // Serial.print(" monitorSize=");  Serial.println(monitorSize);
   int mSize = monitorSize;
   for(
     int i = monitorCursor - 1, j = 1;
     j <= DATA_ENTRIES && j <= monitorSize;
     i--, j++
   ) {
-    Serial.print("printMonitorEntry(monitorData["); Serial.print(i); 
-    Serial.println("], &toSend)");
+    // Serial.print("printMonitorEntry(monitorData["); Serial.print(i); 
+    // Serial.println("], &toSend)");
     printMonitorEntry(monitorData[i], &toSend);
     toSend += "\n";
     if(i == 0)
@@ -183,7 +195,7 @@ void handle_data() {
 
   toSend += "</pre>\n";
   toSend += pageFooter;
-  server.send(200, "text/html", toSend);
+  webServer.send(200, "text/html", toSend);
   delay(100);
 }
 
@@ -196,7 +208,7 @@ String genAPForm() {
   const char *checked = " checked";
 
   int n = WiFi.scanNetworks();
-  Serial.println("scan done");
+  Serial.print("scan done: ");
   if(n == 0) {
     Serial.println("no networks found");
     f += "No wifi access points found :-( ";
@@ -228,7 +240,6 @@ String genAPForm() {
     f += "<br/>Pass key: <input type='textarea' name='key'><br/><br/> ";
     f += "<input type='submit' value='Submit'></form></p>";
   }
-  Serial.println("");
 
   f += pageFooter;
   return f;
@@ -237,7 +248,7 @@ String genAPForm() {
 void handle_wifi() {
   Serial.println("serving page at /wifi");
   String toSend = genAPForm();
-  server.send(200, "text/html", toSend);
+  webServer.send(200, "text/html", toSend);
   delay(100);
 }
 
@@ -280,7 +291,7 @@ void handle_wifistatus() {
   toSend += "</ul></p>";
 
   toSend += pageFooter;
-  server.send(200, "text/html", toSend);
+  webServer.send(200, "text/html", toSend);
   delay(100);
 }
 
@@ -292,12 +303,12 @@ void handle_chz() {
   String ssid = "";
   String key = "";
 
-  for(uint8_t i = 0; i < server.args(); i++ ) {
-    Serial.println(" " + server.argName(i) + ": " + server.arg(i) + "\n");
-    if(server.argName(i) == "ssid")
-      ssid = server.arg(i);
-    else if(server.argName(i) == "key")
-      key = server.arg(i);
+  for(uint8_t i = 0; i < webServer.args(); i++ ) {
+    // Serial.println(" " + webServer.argName(i) + ": " + webServer.arg(i));
+    if(webServer.argName(i) == "ssid")
+      ssid = webServer.arg(i);
+    else if(webServer.argName(i) == "key")
+      key = webServer.arg(i);
   }
 
   if(ssid == "") {
@@ -314,7 +325,7 @@ void handle_chz() {
   }
 
   toSend += pageFooter;
-  server.send(200, "text/html", toSend);
+  webServer.send(200, "text/html", toSend);
   delay(100);
 }
 
@@ -354,7 +365,7 @@ void getTemperature(float* celsius, float* fahrenheit) {
   Serial.println("getTemperature()...");
 
   while(!ds.search(addr)) {
-    Serial.println("  no more addresses; resetting...");
+    Serial.print("  no addresses; resetting. ");
     ds.reset_search();
     delay(250);
   }
@@ -371,15 +382,15 @@ void getTemperature(float* celsius, float* fahrenheit) {
       type_s = 1;
       break;
     case 0x28:
-      Serial.println("  chip=DS18B20");
+      Serial.print("  chip=DS18B20");
       type_s = 0;
       break;
     case 0x22:
-      Serial.println("  chip=DS1822");
+      Serial.print("  chip=DS1822");
       type_s = 0;
       break;
     default:
-      Serial.println("  device is not a DS18x20 family device :-(");
+      Serial.print("  device is not a DS18x20 family device :-(");
       return;
   }
 
@@ -394,7 +405,7 @@ void getTemperature(float* celsius, float* fahrenheit) {
   ds.select(addr);
   ds.write(0xBE);       // read scratchpad
 
-  Serial.print(" ; data=");
+  Serial.print("; data=");
   Serial.print(present, HEX);
   Serial.print(" ");
   for(i = 0; i < 9; i++) { // we need 9 bytes
@@ -402,9 +413,8 @@ void getTemperature(float* celsius, float* fahrenheit) {
     Serial.print(data[i], HEX);
     Serial.print(" ");
   }
-  Serial.print(" CRC=");
+  Serial.print("; CRC=");
   Serial.print(OneWire::crc8(data, 8), HEX);
-  Serial.println();
 
   // convert the data to actual temperature
   // because the result is a 16 bit signed integer, it should
@@ -427,11 +437,11 @@ void getTemperature(float* celsius, float* fahrenheit) {
   }
   _celsius = (float) raw / 16.0;
   _fahrenheit = _celsius * 1.8 + 32.0;
-  Serial.print("  temperature = ");
+  Serial.print(";  temp: ");
   Serial.print(_celsius);
-  Serial.print(" celsius, ");
+  Serial.print(" C, ");
   Serial.print(_fahrenheit);
-  Serial.println(" fahrenheit");
+  Serial.println(" F");
 
   *celsius = _celsius;
   *fahrenheit = _fahrenheit;
