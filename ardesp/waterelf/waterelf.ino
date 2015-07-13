@@ -115,10 +115,12 @@ void setup() {
   webServer.on("/wifistatus", handle_wifistatus);
   webServer.on("/chz", handle_chz);
   webServer.on("/data", handle_data);
+  webServer.on("/actuate", handle_actuate);
   webServer.begin();
   Serial.println("HTTP server started");
 
-// TODO
+  // TODO if this keeps failing move it into loop? or need to pick up config
+  // from ESP ROM somehow, and do WiFi.begin?
   if(WiFi.hostname("waterelf"))
     Serial.println("set hostname succeeded");
   else
@@ -167,8 +169,6 @@ void handle_root() {
   webServer.send(200, "text/html", toSend);
   delay(100);
 }
-
-// TODO handle_actuator form
 
 void handle_data() {
   Serial.println("serving page at /data");
@@ -322,8 +322,41 @@ void handle_chz() {
     ssid.toCharArray(ssidchars, sizeof(ssid));
     key.toCharArray(keychars, sizeof(key));
     WiFi.begin(ssidchars, keychars);
+
+    // TODO causes reset in /wifistatus
+    /*
+    if(WiFi.hostname("waterelf"))
+      Serial.println("set hostname succeeded");
+    else
+      Serial.println("set hostname failed");
+    */
   }
 
+  toSend += pageFooter;
+  webServer.send(200, "text/html", toSend);
+  delay(100);
+}
+
+void handle_actuate() {
+  Serial.println("serving page at /actuate");
+  String toSend = pageTop;
+  toSend += ": setting actuator";
+  toSend += pageTop2;
+
+  boolean newState = false;
+  for(uint8_t i = 0; i < webServer.args(); i++ ) {
+    if(webServer.argName(i) == "state") {
+      if(webServer.arg(i) == "on")
+        newState = true;
+    }
+  }
+
+  // TODO trigger the 433 transmitter
+
+  toSend += "<h2>Actuator triggered</h2>\n";
+  toSend += "<p>(New state is ";
+  toSend += (newState) ? "on" : "off";
+  toSend += ".)</p>\n";
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
   delay(100);
@@ -371,26 +404,26 @@ void getTemperature(float* celsius, float* fahrenheit) {
   }
 
   if(OneWire::crc8(addr, 7) != addr[7]) {
-      Serial.println("  CRC is not valid!");
+      Serial.print("CRC is not valid!");
       return;
   }
 
   // the first ROM byte indicates which chip
   switch(addr[0]) {
     case 0x10:
-      Serial.print("  chip=DS18S20");  // or old DS1820
+      Serial.print("chip=DS18S20");  // or old DS1820
       type_s = 1;
       break;
     case 0x28:
-      Serial.print("  chip=DS18B20");
+      Serial.print("chip=DS18B20");
       type_s = 0;
       break;
     case 0x22:
-      Serial.print("  chip=DS1822");
+      Serial.print("chip=DS1822");
       type_s = 0;
       break;
     default:
-      Serial.print("  device is not a DS18x20 family device :-(");
+      Serial.print("device is not a DS18x20 family device :-(");
       return;
   }
 
@@ -437,7 +470,7 @@ void getTemperature(float* celsius, float* fahrenheit) {
   }
   _celsius = (float) raw / 16.0;
   _fahrenheit = _celsius * 1.8 + 32.0;
-  Serial.print(";  temp: ");
+  Serial.print("; temp: ");
   Serial.print(_celsius);
   Serial.print(" C, ");
   Serial.print(_fahrenheit);
