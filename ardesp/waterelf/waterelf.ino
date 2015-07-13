@@ -340,7 +340,7 @@ void handle_chz() {
 void handle_actuate() {
   Serial.println("serving page at /actuate");
   String toSend = pageTop;
-  toSend += ": setting actuator";
+  toSend += ": Setting Actuator";
   toSend += pageTop2;
 
   boolean newState = false;
