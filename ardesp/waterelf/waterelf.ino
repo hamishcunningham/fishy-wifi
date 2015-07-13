@@ -51,18 +51,27 @@ int monitorCursor = 0;
 int monitorSize = 0;
 const int DATA_ENTRIES = 30; // size of /data report; must be <= MONITOR_POINTS
 void updateSensorData(monitor_t *monitorData);
-void getTemperature(float* celsius, float* fahrenheit);
 void printMonitorEntry(monitor_t m, String* buf);
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff
-OneWire ds(2); // on pin 2 (a 4.7K resistor is necessary)
+OneWire ds(2); // DS1820 on pin 2 (a 4.7K resistor is necessary)
+void getTemperature(float* celsius, float* fahrenheit);
+
+/////////////////////////////////////////////////////////////////////////////
+// misc utils
+int ledState = LOW;     
+void ledOn();
+void ledOff();
+String ip2str(IPAddress address);
 
 /////////////////////////////////////////////////////////////////////////////
 // init and main loop ///////////////////////////////////////////////////////
 void setup() {
   Serial.begin(115200);
   // Serial.setDebugOutput(true);
+  if(false) // TODO this interferes with the serial line it seems :-(
+    pinMode(BUILTIN_LED, OUTPUT);
 
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
@@ -70,7 +79,9 @@ void setup() {
 
   Serial.print("SSID: ");
   Serial.println(ssid);
-  Serial.print("IP address: ");
+  Serial.print("IP address(es): local=");
+  Serial.print(WiFi.localIP());
+  Serial.print("; AP=");
   Serial.println(WiFi.softAPIP());
 
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
@@ -91,10 +102,15 @@ void setup() {
   server.on("/data", handle_data);
   server.begin();
   Serial.println("HTTP server started");
+
+// TODO
+//  if(WiFi.hostname("waterelf00001"))
+//    Serial.println("set hostname succeeded");
 }
 
 void loop() {
-  // TODO print resource usage data
+  Serial.print("free heap=");
+  Serial.println(ESP.getFreeHeap());
 
 // TODO better resource manageme: perhaps
 /*
@@ -113,10 +129,12 @@ void loop() {
   delay(100);
 
   //int m = monitorCursor;
+  ledOn();
   updateSensorData(monitorData);
   // Serial.print("monitorData[monitorCursor].celsius:" );
   // Serial.println(monitorData[m].celsius);
   delay(100);
+  ledOff();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -229,12 +247,12 @@ void handle_wifistatus() {
   String toSend = pageTop;
   toSend += ": Wifi Status";
   toSend += pageTop2;
-  toSend += "<h2>Wifi Status</h2><p><ul>";
+  toSend += "\n<h2>Wifi Status</h2><p><ul>\n";
 
-  toSend += "<li>SSID: ";
+  toSend += "\n<li>SSID: ";
   toSend += WiFi.SSID();
   toSend += "</li>";
-  toSend += "<li>Status: ";
+  toSend += "\n<li>Status: ";
   switch(WiFi.status()) {
     case WL_IDLE_STATUS:
       toSend += "WL_IDLE_STATUS</li>"; break;
@@ -253,15 +271,13 @@ void handle_wifistatus() {
     default:
        toSend += "unknown</li>";
   }
+
+  toSend += "\n<li>Local IP: ";   toSend += ip2str(WiFi.localIP());
+  toSend += "</li>\n";
+  toSend += "\n<li>Soft AP IP: "; toSend += ip2str(WiFi.softAPIP());
+  toSend += "</li>\n";
+
   toSend += "</ul></p>";
-
-  // TODO 
-  // - IP address
-  // - document the net joining process, and how to surf to IP
-  //   address after initial join
-
-// TODO requires new IDE
-  if(WiFi.hostname("waterelf4A09")) Serial.println("set hostname succeeded");
 
   toSend += pageFooter;
   server.send(200, "text/html", toSend);
@@ -420,4 +436,24 @@ void getTemperature(float* celsius, float* fahrenheit) {
   *celsius = _celsius;
   *fahrenheit = _fahrenheit;
   return;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// misc utils ///////////////////////////////////////////////////////////////
+void ledOn() {
+  if(ledState == LOW) {
+    ledState = HIGH;
+    digitalWrite(BUILTIN_LED, ledState);
+  }
+}
+void ledOff() {
+  if(ledState == HIGH) {
+    ledState = LOW;
+    digitalWrite(BUILTIN_LED, ledState);
+  }
+}
+String ip2str(IPAddress address) {
+  return
+    String(address[0]) + "." + String(address[1]) + "." + 
+    String(address[2]) + "." + String(address[3]);
 }

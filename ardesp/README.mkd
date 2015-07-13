@@ -1,10 +1,17 @@
 ARDuino meets ESP...
 
-Procedure for installing Arduino environment to use ESP8266 chip: (from https://github.com/esp8266/Arduino)
+Procedure for installing Arduino environment to use ESP8266 chip: (from
+https://github.com/esp8266/Arduino)
 
-Install Arduino 1.6.4 from the Arduino website.
-Start Arduino and open Preferences window.
-Enter http://arduino.esp8266.com/package_esp8266com_index.json into Additional Board Manager URLs field. You can add multiple URLs, separating them with commas.
-Open Boards Manager from Tools > Board menu and install esp8266 platform (and don't forget to select your ESP8266 board from Tools > Board menu after installation).
+- Install Arduino 1.6.4 or later from the Arduino website.
+- Start Arduino and open Preferences window.
+- Enter http://arduino.esp8266.com/package_esp8266com_index.json into
+  Additional Board Manager URLs field. You can add multiple URLs, separating
+  them with commas.
+  - Or, for the latest version, use a locally built version or the staging
+    release -- see http://www.esp8266.com/viewtopic.php?f=26&t=3919
+- Open Boards Manager from Tools > Board menu and install esp8266 platform
+  (and don't forget to select your ESP8266 board from Tools > Board menu after
+  installation).
 
 
