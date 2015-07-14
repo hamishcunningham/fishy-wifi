@@ -11,8 +11,8 @@ OPTIONSTRING=hdSHx:
 
 # specific locals
 PREFSDIR=~/.arduino15
-S_PREFSDIR=~/.arduino15-staging
-H_PREFSDIR=~/.arduino15-head
+SPREFSDIR=~/.arduino15-staging
+HPREFSDIR=~/.arduino15-head
 X=
 STAGING=
 HEAD=
@@ -47,11 +47,12 @@ fi
 # choose version
 if [ x$STAGING == xyes ]
 then
-  USE_PREFS=${S_PREFSDIR}
-  USE_IDE=${STAGING_DIR}
+  USEPREFS=${SPREFSDIR}
+  USEIDE=${STAGINGDIR}
 elif [ x$HEAD == xyes ]
-  USE_PREFS=${H_PREFSDIR}
-  USE_IDE=${HEAD_DIR}
+then
+  USEPREFS=${HPREFSDIR}
+  USEIDE=${HEADDIR}
 else
   echo you must choose either staging or head
   usage 3
@@ -67,10 +68,10 @@ fi
 
 # switch the link to the required version
 rm $PREFSDIR
-ln -s $PREFSDIR $USE_PREFS
+ln -s $USEPREFS $PREFSDIR
 echo using $PREFSDIR: `ls -ld $PREFSDIR`
 
 # run the IDE
-cd $USE_IDE
+cd $USEIDE
 echo running arduino IDE from `pwd`
 ./arduino
