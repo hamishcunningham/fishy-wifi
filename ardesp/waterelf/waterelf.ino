@@ -22,10 +22,15 @@ DNSServer dnsServer;
 ESP8266WebServer webServer(80);
 const char* ssid = "WaterElf";
 
+IPAddress server(192,168,1,151);
+WiFiClient client;
+IPAddress googleServer(216,58,210,78);
+WiFiClient googleClient;
+
 /////////////////////////////////////////////////////////////////////////////
 // page generation stuff ////////////////////////////////////////////////////
 const char* pageTop =
-  "<html><head><title>WaterElf Aquaponics Helper";
+  "<html><head><title>WaterElf Aquaponics Helper version 0000000001";
 const char* pageTop2 = "</title>\n"
   "<style>body{background:#FFF;color: #000;font-family: sans-serif;}</style>"
   "</head><body>\n";
@@ -64,6 +69,7 @@ int monitorCursor = 0;
 int monitorSize = 0;
 const int DATA_ENTRIES = 30; // size of /data report; must be <= MONITOR_POINTS
 void updateSensorData(monitor_t *monitorData);
+void postSensorData(monitor_t *monitorData);
 void printMonitorEntry(monitor_t m, String* buf);
 
 /////////////////////////////////////////////////////////////////////////////
@@ -139,6 +145,7 @@ void loop() {
     updateSensorData(monitorData);
     delay(100);
     // ledOff();
+    postSensorData(monitorData);
   } 
   if(loopCounter == TICK_WIFI_DEBUG) {
     Serial.print("SSID: "); Serial.print(ssid);
@@ -376,6 +383,29 @@ void updateSensorData(monitor_t *monitorData) {
 
   if(++monitorCursor == MONITOR_POINTS)
     monitorCursor = 0;
+}
+
+void postSensorData(monitor_t *monitorData) {
+  // create a JSON form and ping 
+  // 192.168.1.151:5984
+  Serial.println("postSensorData");
+
+  if(googleClient.connect(googleServer, 80)) {
+    Serial.println("connected to google server");
+  } 
+  if(client.connect(server, 5984)) {
+    Serial.println("connected to server");
+    client.println("POST /fishydata HTTP/1.1");
+    client.println("Content-Type: application/json");
+    client.println("Connection: close");
+    client.println();
+    client.println("{ \"key\": \"value\" }");
+  } else {
+    Serial.println("no server");
+  }
+
+  client.stop();
+  return;
 }
 
 void printMonitorEntry(monitor_t m, String* buf) {
