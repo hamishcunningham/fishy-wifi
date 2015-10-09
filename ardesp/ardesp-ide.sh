@@ -17,7 +17,7 @@ X=
 STAGING=
 HEAD=
 IDEBASE=~/esp-arduino-ide
-STAGINGDIR=${IDEBASE}/arduino-1.6.5
+STAGINGDIR=${IDEBASE}/arduino-1.6.5*
 HEADDIR=${IDEBASE}/arduino-1.6.6
 
 # message & exit if exit num present
@@ -74,4 +74,11 @@ echo using $PREFSDIR: `ls -ld $PREFSDIR`
 # run the IDE
 cd $USEIDE
 echo running arduino IDE from `pwd`
-./arduino
+if [ -x ./arduino ] 
+then
+  ./arduino
+else 
+  cd build
+  ant run
+fi
+
