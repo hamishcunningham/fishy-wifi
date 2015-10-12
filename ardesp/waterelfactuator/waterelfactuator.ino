@@ -62,7 +62,7 @@ const char* pageFooter =
   "<a href='https://www.fish4tea.net/'>Fish4Tea</a></p></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////
-// data monitoring stuff
+// data monitoring stuff ////////////////////////////////////////////////////
 const int MONITOR_POINTS = 60; // number of data points to store
 struct monitor_t {
   unsigned long timestamp;
@@ -84,7 +84,7 @@ void getTemperature(float* celsius, float* fahrenheit);
 
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
-
+RCSwitch mySwitch = RCSwitch();
 
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
@@ -96,9 +96,14 @@ String ip2str(IPAddress address);
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
 void setup() {
+  // TODO remove this code?
   // huzzah LED
-  pinMode(BUILTIN_LED, OUTPUT);
-  blink(3);
+  // pinMode(BUILTIN_LED, OUTPUT);
+  // blink(3);
+
+  // RC Transmitter is connected to Pin #13  
+  mySwitch.enableTransmit(13);
+
   Serial.begin(115200);
 
   // TODO don't do this if wifi config'd and connected
@@ -370,6 +375,11 @@ void handle_actuate() {
   }
 
   // TODO trigger the 433 transmitter
+  if(newState == true){
+    mySwitch.switchOn(4, 2);
+  } else {
+    mySwitch.switchOff(4,2);
+  }
 
   toSend += "<h2>Actuator triggered</h2>\n";
   toSend += "<p>(New state is ";
