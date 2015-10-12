@@ -8,7 +8,7 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // misc /////////////////////////////////////////////////////////////////////
-const boolean GOT_TEMP_SENSOR = false;
+const boolean GOT_TEMP_SENSOR = true;
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
@@ -92,7 +92,7 @@ String ip2str(IPAddress address);
 // setup ////////////////////////////////////////////////////////////////////
 void setup() {
   // huzzah LED
-  pinMode(0, OUTPUT);
+  pinMode(BUILTIN_LED, OUTPUT);
   blink(3);
   Serial.begin(115200);
 
@@ -140,6 +140,8 @@ void setup() {
 /////////////////////////////////////////////////////////////////////////////
 // looooooooooooooooooooop //////////////////////////////////////////////////
 void loop() {
+  blink(2);
+  
   dnsServer.processNextRequest(); // TODO don't do this if wifi config'd and connected
   webServer.handleClient();
   delay(100);
@@ -518,18 +520,8 @@ void getTemperature(float* celsius, float* fahrenheit) {
 
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
-void ledOn() {
-  if(ledState == LOW) {
-    ledState = HIGH;
-    digitalWrite(BUILTIN_LED, ledState);
-  }
-}
-void ledOff() {
-  if(ledState == HIGH) {
-    ledState = LOW;
-    digitalWrite(BUILTIN_LED, ledState);
-  }
-}
+void ledOn() { digitalWrite(BUILTIN_LED, LOW); }
+void ledOff() { digitalWrite(BUILTIN_LED, HIGH); }
 void blink(int times) {
   ledOff();
   delay(10);
