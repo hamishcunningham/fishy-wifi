@@ -8,7 +8,7 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // misc /////////////////////////////////////////////////////////////////////
-const boolean GOT_TEMP_SENSOR = true;
+const boolean GOT_TEMP_SENSOR = false;
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
@@ -26,8 +26,8 @@ DNSServer dnsServer;
 ESP8266WebServer webServer(80);
 const char* ssid = "WaterElf";
 
-IPAddress couchServer(192,168,1,151);
-WiFiClient client;
+IPAddress couchServer(192,168,1,85);
+WiFiClient couchClient;
 IPAddress googleServer(216,58,210,78);
 WiFiClient googleClient;
 
@@ -140,11 +140,11 @@ void setup() {
 /////////////////////////////////////////////////////////////////////////////
 // looooooooooooooooooooop //////////////////////////////////////////////////
 void loop() {
-  blink(2);
+//  blink(2);
   
   dnsServer.processNextRequest(); // TODO don't do this if wifi config'd and connected
   webServer.handleClient();
-  delay(100);
+  delay(10);
 
   if(loopCounter == TICK_MONITOR) {
     // ledOn();
@@ -399,19 +399,21 @@ void postSensorData(monitor_t *monitorData) {
 
   if(googleClient.connect(googleServer, 80)) {
     Serial.println("connected to google server");
+    googleClient.stop();
   } 
-  if(client.connect(couchServer, 5984)) {
+  delay(10);
+  if(couchClient.connect(couchServer, 5984)) {
     Serial.println("connected to server");
-    client.println("POST /fishydata HTTP/1.1");
-    client.println("Content-Type: application/json");
-    client.println("Connection: close");
-    client.println();
-    client.println("{ \"key\": \"value\" }");
+    couchClient.println("POST /fishydata HTTP/1.1");
+    couchClient.println("Content-Type: application/json");
+    couchClient.println("Connection: close");
+    couchClient.println();
+    couchClient.println("{ \"key\": \"value\" }");
   } else {
     Serial.println("no couch server");
   }
 
-  client.stop();
+  couchClient.stop();
   return;
 }
 
