@@ -47,9 +47,9 @@ const char* pageDefault =
   "<li><a href='/wifistatus'>Wifi status</a></li>\n"
   "<li>\n"
     "<form method='POST' action='actuate'>\n"
-    "Actuator: "
-    "on <input type='radio' name='state' value='on' checked>\n"
-    "off <input type='radio' name='state' value='off'>\n"
+    "Operate actuator: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off' checked>\n"
     "<input type='submit' value='Submit'></form></p>\n"
   "</li>\n"
   "</ul></p>\n"
@@ -374,7 +374,7 @@ void handle_actuate() {
     }
   }
 
-  // TODO trigger the 433 transmitter
+  // now we trigger the 433 transmitter
   if(newState == true){
     mySwitch.switchOn(4, 2);
   } else {
