@@ -10,13 +10,13 @@ DBG=:
 OPTIONSTRING=hdSHx:
 
 # specific locals
+IDEBASE=~/esp-arduino-ide
 PREFSDIR=~/.arduino15
-SPREFSDIR=~/.arduino15-staging
-HPREFSDIR=~/.arduino15-head
+SPREFSDIR=${IDEBASE}/dot-arduino15-staging
+HPREFSDIR=${IDEBASE}/dot-arduino15-head
 X=
 STAGING=
 HEAD=
-IDEBASE=~/esp-arduino-ide
 STAGINGDIR=${IDEBASE}/arduino-1.6.5*
 HEADDIR=${IDEBASE}/arduino-1.6.6
 
@@ -81,4 +81,3 @@ else
   cd build
   ant run
 fi
-
