@@ -21,18 +21,18 @@ void setup() {
 void loop() {
 
   // Switch on:
-  // The first parameter represents the setting of the first rotary switch. 
-  // In this example it's switched to "1" or "A" or "I". 
+  // The first parameter represents the setting of the upper rotary switch. 
+  // In this example it's switched to "IV". 
   // 
-  // The second parameter represents the setting of the second rotary switch. 
-  // In this example it's switched to "4" or "D" or "IV". 
-  mySwitch.switchOn(1, 1);
+  // The second parameter represents the setting of the lower rotary switch. 
+  // In this example it's switched to "2". 
+  mySwitch.switchOn(4, 2);
 
   // Wait a second
   delay(1000);
   
   // Switch off
-  mySwitch.switchOff(1, 1);
+  mySwitch.switchOff(4, 2);
   
   // Wait another second
   delay(1000);
