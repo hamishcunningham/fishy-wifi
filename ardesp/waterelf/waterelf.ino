@@ -7,6 +7,10 @@
 #include <OneWire.h>
 
 /////////////////////////////////////////////////////////////////////////////
+// misc /////////////////////////////////////////////////////////////////////
+const boolean GOT_TEMP_SENSOR = false;
+
+/////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
 byte loopCounter = 0;
 const byte TICK_WIFI_DEBUG = 0;
@@ -22,7 +26,7 @@ DNSServer dnsServer;
 ESP8266WebServer webServer(80);
 const char* ssid = "WaterElf";
 
-IPAddress server(192,168,1,151);
+IPAddress couchServer(192,168,1,151);
 WiFiClient client;
 IPAddress googleServer(216,58,210,78);
 WiFiClient googleClient;
@@ -87,10 +91,10 @@ String ip2str(IPAddress address);
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
 void setup() {
+  // huzzah LED
+  pinMode(0, OUTPUT);
+  blink(3);
   Serial.begin(115200);
-  // Serial.setDebugOutput(true);
-  if(false) // TODO this interferes with the serial line it seems :-(
-    pinMode(BUILTIN_LED, OUTPUT);
 
   // TODO don't do this if wifi config'd and connected
   WiFi.mode(WIFI_AP_STA);
@@ -379,7 +383,8 @@ void updateSensorData(monitor_t *monitorData) {
   if(monitorSize < MONITOR_POINTS)
     monitorSize++;
   now->timestamp = millis();
-  getTemperature(&now->celsius, &now->fahrenheit);
+  if(GOT_TEMP_SENSOR)
+    getTemperature(&now->celsius, &now->fahrenheit);
 
   if(++monitorCursor == MONITOR_POINTS)
     monitorCursor = 0;
@@ -393,7 +398,7 @@ void postSensorData(monitor_t *monitorData) {
   if(googleClient.connect(googleServer, 80)) {
     Serial.println("connected to google server");
   } 
-  if(client.connect(server, 5984)) {
+  if(client.connect(couchServer, 5984)) {
     Serial.println("connected to server");
     client.println("POST /fishydata HTTP/1.1");
     client.println("Content-Type: application/json");
@@ -401,7 +406,7 @@ void postSensorData(monitor_t *monitorData) {
     client.println();
     client.println("{ \"key\": \"value\" }");
   } else {
-    Serial.println("no server");
+    Serial.println("no couch server");
   }
 
   client.stop();
@@ -524,6 +529,14 @@ void ledOff() {
     ledState = LOW;
     digitalWrite(BUILTIN_LED, ledState);
   }
+}
+void blink(int times) {
+  ledOff();
+  delay(10);
+  for(int i=0; i<times; i++) {
+    ledOn(); delay(300); ledOff(); delay(300);
+  }
+  ledOff();
 }
 String ip2str(IPAddress address) {
   return
