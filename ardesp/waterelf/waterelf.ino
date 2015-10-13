@@ -337,7 +337,7 @@ void handle_chz() {
     toSend += "<h2>Ooops, no SSID...?</h2>";
     toSend += "<p>Looks like a bug :-(</p>";
   } else {
-    toSend += "<h2>Done! Joining...</h2>";
+    toSend += "<h2>Done! Now trying to join network...</h2>";
     toSend += "<p>Check <a href='/wifistatus'>wifi status here</a>.</p>";
     char ssidchars[sizeof(ssid)];
     char keychars[sizeof(key)];
