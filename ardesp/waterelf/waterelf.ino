@@ -8,10 +8,6 @@
 #include <RCSwitch.h>
 
 /////////////////////////////////////////////////////////////////////////////
-// misc /////////////////////////////////////////////////////////////////////
-const boolean GOT_TEMP_SENSOR = false;
-
-/////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
 byte loopCounter = 0;
 const byte TICK_WIFI_DEBUG = 0;
@@ -25,8 +21,10 @@ IPAddress apIP(192, 168, 1, 1);
 IPAddress netMsk(255, 255, 255, 0);
 DNSServer dnsServer;
 ESP8266WebServer webServer(80);
-const char* ssid = "WaterElf9999";
+String apSSIDStr = "WaterElf-" + String(ESP.getChipId());
+const char* apSSID = apSSIDStr.c_str();
 
+// TODO
 IPAddress couchServer(192,168,1,85);
 WiFiClient couchClient;
 IPAddress googleServer(216,58,210,78);
@@ -34,8 +32,10 @@ WiFiClient googleClient;
 
 /////////////////////////////////////////////////////////////////////////////
 // page generation stuff ////////////////////////////////////////////////////
-const char* pageTop =
-  "<html><head><title>WaterElf Aquaponics Helper";
+String pageTopStr = String(
+  "<html><head><title>WaterElf Aquaponics Helper [ID: " + apSSIDStr + "]"
+);
+const char* pageTop = pageTopStr.c_str();
 const char* pageTop2 = "</title>\n"
   "<style>body{background:#FFF;color: #000;font-family: sans-serif;}</style>"
   "</head><body>\n";
@@ -81,6 +81,7 @@ void printMonitorEntry(monitor_t m, String* buf);
 // temperature sensor stuff /////////////////////////////////////////////////
 OneWire ds(2); // DS1820 on pin 2 (a 4.7K resistor is necessary)
 void getTemperature(float* celsius, float* fahrenheit);
+const boolean GOT_TEMP_SENSOR = true;
 
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
@@ -88,7 +89,6 @@ RCSwitch mySwitch = RCSwitch();
 
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
-int ledState = LOW;     
 void ledOn();
 void ledOff();
 String ip2str(IPAddress address);
@@ -96,6 +96,8 @@ String ip2str(IPAddress address);
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
 void setup() {
+  Serial.begin(115200);
+
   // huzzah LED
   pinMode(BUILTIN_LED, OUTPUT);
   blink(3);
@@ -103,26 +105,72 @@ void setup() {
   // RC Transmitter is connected to Pin #13  
   mySwitch.enableTransmit(13);
 
-  Serial.begin(115200);
+  // TODO don't do this if wifi config'd and connected
+  startAP();
+  printIPs();
 
   // TODO don't do this if wifi config'd and connected
+  startDNS();
+
+  startWebServer();
+
+  // TODO if this keeps failing move it into loop? or need to pick up config
+  // from ESP ROM somehow, and do WiFi.begin?
+  if(WiFi.hostname("waterelf"))
+    Serial.println("set hostname succeeded");
+  else
+    Serial.println("set hostname failed");
+
+  blink(3);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// looooooooooooooooooooop //////////////////////////////////////////////////
+void loop() {
+  dnsServer.processNextRequest(); // TODO don't do this if wifi config'd and connected
+  webServer.handleClient();
+  delay(10);
+
+  if(loopCounter == TICK_MONITOR) {
+    // ledOn();
+    updateSensorData(monitorData);
+    delay(100);
+    // ledOff();
+    postSensorData(monitorData);
+  } 
+  if(loopCounter == TICK_WIFI_DEBUG) {
+    Serial.print("SSID: "); Serial.print(apSSID);
+    Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
+    Serial.print("; AP="); Serial.println(WiFi.softAPIP());
+  }
+  if(loopCounter == TICK_HEAP_DEBUG) {
+    Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
+  }
+  loopCounter++;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// wifi and web server management stuff /////////////////////////////////////
+void startAP() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(ssid);
-
-  Serial.print("SSID: ");
-  Serial.print(ssid);
+  WiFi.softAP(apSSID);
+  Serial.println("Soft AP started");
+}
+void startDNS() {
+  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+  dnsServer.start(DNS_PORT, "*", apIP);
+  Serial.println("DNS server started");
+}
+void printIPs() {
+  Serial.print("AP SSID: ");
+  Serial.print(apSSID);
   Serial.print("; IP address(es): local=");
   Serial.print(WiFi.localIP());
   Serial.print("; AP=");
   Serial.println(WiFi.softAPIP());
-
-  // TODO don't do this if wifi config'd and connected
-  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-  dnsServer.start(DNS_PORT, "*", apIP);
-
-  Serial.println("DNS server started");
-
+}
+void startWebServer() {
   webServer.on("/", handle_root);
   webServer.on("/generate_204", handle_root); // Android support
   webServer.on("/L0", handle_root);
@@ -137,51 +185,13 @@ void setup() {
   webServer.on("/actuate", handle_actuate);
   webServer.begin();
   Serial.println("HTTP server started");
-
-  // TODO if this keeps failing move it into loop? or need to pick up config
-  // from ESP ROM somehow, and do WiFi.begin?
-  if(WiFi.hostname("waterelf"))
-    Serial.println("set hostname succeeded");
-  else
-    Serial.println("set hostname failed");
 }
-
-/////////////////////////////////////////////////////////////////////////////
-// looooooooooooooooooooop //////////////////////////////////////////////////
-void loop() {
-//  blink(2);
-  
-  dnsServer.processNextRequest(); // TODO don't do this if wifi config'd and connected
-  webServer.handleClient();
-  delay(10);
-
-  if(loopCounter == TICK_MONITOR) {
-    // ledOn();
-    updateSensorData(monitorData);
-    delay(100);
-    // ledOff();
-    postSensorData(monitorData);
-  } 
-  if(loopCounter == TICK_WIFI_DEBUG) {
-    Serial.print("SSID: "); Serial.print(ssid);
-    Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
-    Serial.print("; AP="); Serial.println(WiFi.softAPIP());
-  }
-  if(loopCounter == TICK_HEAP_DEBUG) {
-    Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
-  }
-  loopCounter++;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// wifi management stuff ////////////////////////////////////////////////////
 void handleNotFound() {
   Serial.print("URI Not Found: ");
   Serial.println(webServer.uri());
   // TODO send redirect to /? or just use handle_root?
   webServer.send(200, "text/plain", "URI Not Found");
 }
-
 void handle_root() {
   Serial.println("serving page notionally at /");
   String toSend = pageTop;
@@ -191,7 +201,6 @@ void handle_root() {
   webServer.send(200, "text/html", toSend);
   delay(100);
 }
-
 void handle_data() {
   Serial.println("serving page at /data");
   String toSend = pageTop;
@@ -220,7 +229,6 @@ void handle_data() {
   webServer.send(200, "text/html", toSend);
   delay(100);
 }
-
 String genAPForm() {
   String f = pageTop;
   f += ": Wifi Config";
@@ -266,14 +274,12 @@ String genAPForm() {
   f += pageFooter;
   return f;
 }
-
 void handle_wifi() {
   Serial.println("serving page at /wifi");
   String toSend = genAPForm();
   webServer.send(200, "text/html", toSend);
   delay(100);
 }
-
 void handle_wifistatus() {
   Serial.println("serving page at /wifistatus");
 
@@ -309,7 +315,7 @@ void handle_wifistatus() {
   toSend += "</li>\n";
   toSend += "\n<li>Soft AP IP: "; toSend += ip2str(WiFi.softAPIP());
   toSend += "</li>\n";
-  toSend += "\n<li>AP SSID name: "; toSend += ssid;
+  toSend += "\n<li>AP SSID name: "; toSend += apSSID;
   toSend += "</li>\n";
 
   toSend += "</ul></p>";
@@ -318,7 +324,6 @@ void handle_wifistatus() {
   webServer.send(200, "text/html", toSend);
   delay(100);
 }
-
 void handle_chz() {
   Serial.println("serving page at /chz");
   String toSend = pageTop;
@@ -360,7 +365,6 @@ void handle_chz() {
   webServer.send(200, "text/html", toSend);
   delay(100);
 }
-
 void handle_actuate() {
   Serial.println("serving page at /actuate");
   String toSend = pageTop;
@@ -407,7 +411,6 @@ void updateSensorData(monitor_t *monitorData) {
   if(++monitorCursor == MONITOR_POINTS)
     monitorCursor = 0;
 }
-
 void postSensorData(monitor_t *monitorData) {
   // create a JSON form and ping 
   // 192.168.1.151:5984
@@ -432,7 +435,6 @@ void postSensorData(monitor_t *monitorData) {
   couchClient.stop();
   return;
 }
-
 void printMonitorEntry(monitor_t m, String* buf) {
   buf->concat("timestamp: ");
   buf->concat(m.timestamp);
@@ -441,7 +443,6 @@ void printMonitorEntry(monitor_t m, String* buf) {
   buf->concat(", fahrenheit: ");
   buf->concat(m.fahrenheit);
 }
-
 void getTemperature(float* celsius, float* fahrenheit) {
   byte i;
   byte present = 0;
@@ -542,7 +543,6 @@ void ledOn() { digitalWrite(BUILTIN_LED, LOW); }
 void ledOff() { digitalWrite(BUILTIN_LED, HIGH); }
 void blink(int times) {
   ledOff();
-  delay(10);
   for(int i=0; i<times; i++) {
     ledOn(); delay(300); ledOff(); delay(300);
   }
