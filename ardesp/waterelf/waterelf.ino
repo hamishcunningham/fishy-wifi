@@ -129,7 +129,6 @@ void setup() {
 void loop() {
   dnsServer.processNextRequest(); // TODO don't do this if wifi config'd and connected
   webServer.handleClient();
-  delay(10);
 
   if(loopCounter == TICK_MONITOR) {
     // ledOn();
@@ -199,7 +198,6 @@ void handle_root() {
   toSend += pageDefault;
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
-  delay(100);
 }
 void handle_data() {
   Serial.println("serving page at /data");
@@ -227,7 +225,6 @@ void handle_data() {
   toSend += "</pre>\n";
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
-  delay(100);
 }
 String genAPForm() {
   String f = pageTop;
@@ -256,7 +253,6 @@ String genAPForm() {
       Serial.print(WiFi.RSSI(i));
       Serial.print(")");
       Serial.println((WiFi.encryptionType(i) == ENC_TYPE_NONE)?" ":"*");
-      delay(10);
 
       f.concat("<input type='radio' name='ssid' value='");
       f.concat(WiFi.SSID(i));
@@ -278,7 +274,6 @@ void handle_wifi() {
   Serial.println("serving page at /wifi");
   String toSend = genAPForm();
   webServer.send(200, "text/html", toSend);
-  delay(100);
 }
 void handle_wifistatus() {
   Serial.println("serving page at /wifistatus");
@@ -322,7 +317,6 @@ void handle_wifistatus() {
 
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
-  delay(100);
 }
 void handle_chz() {
   Serial.println("serving page at /chz");
@@ -363,7 +357,6 @@ void handle_chz() {
 
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
-  delay(100);
 }
 void handle_actuate() {
   Serial.println("serving page at /actuate");
@@ -392,7 +385,6 @@ void handle_actuate() {
   toSend += ".)</p>\n";
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
-  delay(100);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -420,7 +412,6 @@ void postSensorData(monitor_t *monitorData) {
     Serial.println("connected to google server");
     googleClient.stop();
   } 
-  delay(10);
   if(couchClient.connect(couchServer, 5984)) {
     Serial.println("connected to server");
     couchClient.println("POST /fishydata HTTP/1.1");
