@@ -25,7 +25,7 @@ IPAddress apIP(192, 168, 1, 1);
 IPAddress netMsk(255, 255, 255, 0);
 DNSServer dnsServer;
 ESP8266WebServer webServer(80);
-const char* ssid = "WaterElfada1";
+const char* ssid = "WaterElf9999";
 
 IPAddress couchServer(192,168,1,85);
 WiFiClient couchClient;
@@ -35,7 +35,7 @@ WiFiClient googleClient;
 /////////////////////////////////////////////////////////////////////////////
 // page generation stuff ////////////////////////////////////////////////////
 const char* pageTop =
-  "<html><head><title>WaterElf Aquaponics Helper version 0000000001";
+  "<html><head><title>WaterElf Aquaponics Helper";
 const char* pageTop2 = "</title>\n"
   "<style>body{background:#FFF;color: #000;font-family: sans-serif;}</style>"
   "</head><body>\n";
@@ -47,9 +47,9 @@ const char* pageDefault =
   "<li><a href='/wifistatus'>Wifi status</a></li>\n"
   "<li>\n"
     "<form method='POST' action='actuate'>\n"
-    "Actuator: "
-    "on <input type='radio' name='state' value='on' checked>\n"
-    "off <input type='radio' name='state' value='off'>\n"
+    "Operate actuator: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off' checked>\n"
     "<input type='submit' value='Submit'></form></p>\n"
   "</li>\n"
   "</ul></p>\n"
@@ -62,7 +62,7 @@ const char* pageFooter =
   "<a href='https://www.fish4tea.net/'>Fish4Tea</a></p></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////
-// data monitoring stuff
+// data monitoring stuff ////////////////////////////////////////////////////
 const int MONITOR_POINTS = 60; // number of data points to store
 struct monitor_t {
   unsigned long timestamp;
@@ -84,7 +84,7 @@ void getTemperature(float* celsius, float* fahrenheit);
 
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
-
+RCSwitch mySwitch = RCSwitch();
 
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
@@ -99,6 +99,10 @@ void setup() {
   // huzzah LED
   pinMode(BUILTIN_LED, OUTPUT);
   blink(3);
+
+  // RC Transmitter is connected to Pin #13  
+  mySwitch.enableTransmit(13);
+
   Serial.begin(115200);
 
   // TODO don't do this if wifi config'd and connected
@@ -305,6 +309,8 @@ void handle_wifistatus() {
   toSend += "</li>\n";
   toSend += "\n<li>Soft AP IP: "; toSend += ip2str(WiFi.softAPIP());
   toSend += "</li>\n";
+  toSend += "\n<li>AP SSID name: "; toSend += ssid;
+  toSend += "</li>\n";
 
   toSend += "</ul></p>";
 
@@ -369,7 +375,12 @@ void handle_actuate() {
     }
   }
 
-  // TODO trigger the 433 transmitter
+  // now we trigger the 433 transmitter
+  if(newState == true){
+    mySwitch.switchOn(4, 2);
+  } else {
+    mySwitch.switchOff(4, 2);
+  }
 
   toSend += "<h2>Actuator triggered</h2>\n";
   toSend += "<p>(New state is ";
