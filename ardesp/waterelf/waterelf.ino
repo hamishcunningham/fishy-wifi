@@ -59,7 +59,7 @@ const char* pageDefault =
   "</ul></p>\n";
 const char* pageFooter =
   "\n<p><a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;"
-  "<a href='https://www.cleanfood.net/'>CleanFood</a></p></body></html>";
+  "<a href='https://www.wegrow.social/'>CleanFood</a></p></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
