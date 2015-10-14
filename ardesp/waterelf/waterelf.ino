@@ -59,7 +59,7 @@ const char* pageDefault =
   "</ul></p>\n";
 const char* pageFooter =
   "\n<p><a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;"
-  "<a href='https://www.fish4tea.net/'>Fish4Tea</a></p></body></html>";
+  "<a href='https://www.wegrow.social/'>CleanFood</a></p></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
@@ -102,8 +102,7 @@ void setup() {
   pinMode(BUILTIN_LED, OUTPUT);
   blink(3);
 
-  // RC Transmitter is connected to Pin #13  
-  mySwitch.enableTransmit(13);
+  startPeripherals();
 
   // TODO don't do this if wifi config'd and connected
   startAP();
@@ -338,7 +337,7 @@ void handle_chz() {
     toSend += "<h2>Ooops, no SSID...?</h2>";
     toSend += "<p>Looks like a bug :-(</p>";
   } else {
-    toSend += "<h2>Done! Joining...</h2>";
+    toSend += "<h2>Done! Now trying to join network...</h2>";
     toSend += "<p>Check <a href='/wifistatus'>wifi status here</a>.</p>";
     char ssidchars[sizeof(ssid)];
     char keychars[sizeof(key)];
@@ -388,7 +387,11 @@ void handle_actuate() {
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// sensor stuff /////////////////////////////////////////////////////////////
+// sensor/actuator stuff ////////////////////////////////////////////////////
+void startPeripherals() {
+  // RC Transmitter is connected to Pin #13  
+  mySwitch.enableTransmit(13);
+}
 void updateSensorData(monitor_t *monitorData) {
   // Serial.print("monitorCursor = "); Serial.print(monitorCursor);
   // Serial.print(" monitorSize = ");  Serial.println(monitorSize);
