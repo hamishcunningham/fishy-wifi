@@ -66,9 +66,8 @@ const char* pageFooter =
 const int MONITOR_POINTS = 60; // number of data points to store
 struct monitor_t {
   unsigned long timestamp;
-  float celsius;
-  float fahrenheit;
-};
+  float waterCelsius;
+  };
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
 int monitorSize = 0;
@@ -80,7 +79,7 @@ void printMonitorEntry(monitor_t m, String* buf);
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
 OneWire ds(2); // DS1820 on pin 2 (a 4.7K resistor is necessary)
-void getTemperature(float* celsius, float* fahrenheit);
+void getTemperature(float* waterCelsius);
 const boolean GOT_TEMP_SENSOR = true;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -401,7 +400,7 @@ void updateSensorData(monitor_t *monitorData) {
     monitorSize++;
   now->timestamp = millis();
   if(GOT_TEMP_SENSOR)
-    getTemperature(&now->celsius, &now->fahrenheit);
+    getTemperature(&now->waterCelsius);
 
   if(++monitorCursor == MONITOR_POINTS)
     monitorCursor = 0;
@@ -432,19 +431,17 @@ void postSensorData(monitor_t *monitorData) {
 void printMonitorEntry(monitor_t m, String* buf) {
   buf->concat("timestamp: ");
   buf->concat(m.timestamp);
-  buf->concat(", celsius: ");
-  buf->concat(m.celsius);
-  buf->concat(", fahrenheit: ");
-  buf->concat(m.fahrenheit);
+  buf->concat(", Water Temp: ");
+  buf->concat(m.waterCelsius);
+  buf->concat("°C");
 }
-void getTemperature(float* celsius, float* fahrenheit) {
+void getTemperature(float* waterCelsius) {
   byte i;
   byte present = 0;
   byte type_s;
   byte data[12];
   byte addr[8];
-  float _celsius = *celsius;
-  float _fahrenheit = *fahrenheit;
+  float _waterCelsius = *waterCelsius;
   Serial.println("getTemperature()...");
 
   while(!ds.search(addr)) {
@@ -518,16 +515,12 @@ void getTemperature(float* celsius, float* fahrenheit) {
     else if(cfg == 0x40) raw = raw & ~1; // 11 bit res, 375 ms
     // default is 12 bit resolution, 750 ms conversion time
   }
-  _celsius = (float) raw / 16.0;
-  _fahrenheit = _celsius * 1.8 + 32.0;
+  _waterCelsius = (float) raw / 16.0;
   Serial.print("; temp: ");
-  Serial.print(_celsius);
+  Serial.print(_waterCelsius);
   Serial.print(" C, ");
-  Serial.print(_fahrenheit);
-  Serial.println(" F");
 
-  *celsius = _celsius;
-  *fahrenheit = _fahrenheit;
+  *waterCelsius = _waterCelsius;
   return;
 }
 
