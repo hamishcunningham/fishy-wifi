@@ -439,17 +439,16 @@ void printMonitorEntry(monitor_t m, String* buf) {
   buf->concat(m.timestamp);
   buf->concat(", Water Temp: ");
   buf->concat(m.waterCelsius);
-  buf->concat("°C");
+  buf->concat(" °C");
 }
 void getTemperature(float* waterCelsius) {
   float _waterCelsius = *waterCelsius;
-  Serial.println("getTemperature()...");
   tempSensor.requestTemperatures(); // Send the command to get temperatures
-  Serial.println("DONE");
+  Serial.println("Temp requested from sensor");
   _waterCelsius = (tempSensor.getTempC(tempAddr));
-  Serial.print("; temp: ");
+  Serial.print("Temp: ");
   Serial.print(_waterCelsius);
-  Serial.print(" C, ");
+  Serial.println(" C, ");
   *waterCelsius = _waterCelsius;
   return;
 }
