@@ -425,8 +425,8 @@ void startPeripherals() {
   // Changing the integration time gives you a longer time over which to sense light
   // longer timelines are slower, but are good in very low light situtations!
   //tsl.setTiming(TSL2591_INTEGRATIONTIME_100MS);  // shortest integration time (bright light)
-  //tsl.setTiming(TSL2591_INTEGRATIONTIME_200MS);
-  tsl.setTiming(TSL2591_INTEGRATIONTIME_300MS);
+  tsl.setTiming(TSL2591_INTEGRATIONTIME_200MS);
+  //tsl.setTiming(TSL2591_INTEGRATIONTIME_300MS);
   //tsl.setTiming(TSL2591_INTEGRATIONTIME_400MS);
   //tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
   //tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS);  // longest integration time (dim light)
