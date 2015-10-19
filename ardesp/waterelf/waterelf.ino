@@ -30,12 +30,6 @@ ESP8266WebServer webServer(80);
 String apSSIDStr = "WaterElf-" + String(ESP.getChipId());
 const char* apSSID = apSSIDStr.c_str();
 
-// TODO
-IPAddress couchServer(192,168,1,85);
-WiFiClient couchClient;
-IPAddress googleServer(216,58,210,78);
-WiFiClient googleClient;
-
 /////////////////////////////////////////////////////////////////////////////
 // page generation stuff ////////////////////////////////////////////////////
 String pageTopStr = String(
@@ -85,6 +79,7 @@ const int DATA_ENTRIES = 30; // size of /data report; must be <= MONITOR_POINTS
 void updateSensorData(monitor_t *monitorData);
 void postSensorData(monitor_t *monitorData);
 void printMonitorEntry(monitor_t m, String* buf);
+void jsonMonitorEntry(monitor_t *m, String* buf);
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
@@ -124,7 +119,7 @@ void setup() {
   pinMode(BUILTIN_LED, OUTPUT);
   blink(3);
 
-//TODO  startPeripherals();
+  startPeripherals();
 
   // TODO don't do this if wifi config'd and connected
   startAP();
@@ -151,10 +146,6 @@ void loop() {
   dnsServer.processNextRequest(); // TODO don't do this if wifi config'd and connected
   webServer.handleClient();
 
-  blink(4); // TODO
-  delay(100);
-
-/* TODO
   if(loopCounter == TICK_MONITOR) {
     // ledOn();
     updateSensorData(monitorData);
@@ -162,7 +153,6 @@ void loop() {
     // ledOff();
     postSensorData(monitorData);
   } 
-*/
   if(loopCounter == TICK_WIFI_DEBUG) {
     Serial.print("SSID: "); Serial.print(apSSID);
     Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
@@ -171,35 +161,6 @@ void loop() {
   if(loopCounter == TICK_HEAP_DEBUG) {
     Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
   }
-
-
-  if(loopCounter == TICK_POST_DEBUG) {
-    // create a JSON form and ping 192.168.1.151:5984
-
-IPAddress couchServer(10,0,0,24);
-WiFiClient couchClient;
-Serial.print("couchServer: ");
-Serial.println(ip2str(couchServer));
-
-    if(googleClient.connect(googleServer, 80)) {
-      Serial.println("connected to google server");
-      googleClient.stop();
-    } 
-    if(couchClient.connect(couchServer, 5984)) {
-      Serial.println("connected to server");
-      couchClient.println("POST /fishydata HTTP/1.1");
-      couchClient.println("Content-Type: application/json");
-      couchClient.println("Connection: close");
-      couchClient.println();
-      couchClient.println("{ \"key\": \"value\" }");
-    } else {
-      Serial.println("no couch server");
-    }
-    // couchClient.stop();
-  }
-  delay(100); // TODO
-  blink(4);
-  delay(100);
 
   loopCounter++;
 }
@@ -475,7 +436,6 @@ void startPeripherals() {
   tsl.begin();    // Start the light sensor
   }
 }
-
 void updateSensorData(monitor_t *monitorData) {
   // Serial.print("monitorCursor = "); Serial.print(monitorCursor);
   // Serial.print(" monitorSize = ");  Serial.println(monitorSize);
@@ -497,48 +457,79 @@ void updateSensorData(monitor_t *monitorData) {
     monitorCursor = 0;
 }
 void postSensorData(monitor_t *monitorData) {
-  // create a JSON form and ping 
-  // 192.168.1.151:5984
   Serial.println("postSensorData");
 
-  if(googleClient.connect(googleServer, 80)) {
-    Serial.println("connected to google server");
-    googleClient.stop();
-  } 
+  // create a JSON form
+  String jsonBuf = "";
+  jsonMonitorEntry(monitorData, &jsonBuf);
+  String envelope = "POST /fishydata HTTP/1.1\n";
+  envelope += "Content-Type: application/json\n";
+  envelope += "Content-Length: " ;
+  envelope += jsonBuf.length();
+  envelope += "\nConnection: close\n\n";
+  envelope += jsonBuf;
+  Serial.println(envelope);
+
+  IPAddress couchServer(10,0,0,24);
+  WiFiClient couchClient;
+  Serial.print("couchServer: ");
+  Serial.println(ip2str(couchServer));
+
   if(couchClient.connect(couchServer, 5984)) {
-    Serial.println("connected to server");
-    couchClient.println("POST /fishydata HTTP/1.1");
-    couchClient.println("Content-Type: application/json");
-    couchClient.println("Connection: close");
-    couchClient.println();
-    couchClient.println("{ \"key\": \"value\" }");
+    Serial.println("connected to couch server");
+    couchClient.print(envelope);
   } else {
     Serial.println("no couch server");
   }
+  // couchClient.stop();
 
-  couchClient.stop();
   return;
 }
-void printMonitorEntry(monitor_t m, String* buf) {
-  buf->concat("timestamp: ");
-  buf->concat(m.timestamp);
+void jsonMonitorEntry(monitor_t *m, String* buf) {
+  buf->concat("{ ");
+  buf->concat("\"timestamp\": ");
+  buf->concat(m->timestamp);
   if(GOT_TEMP_SENSOR){
-  buf->concat(", Water Temp: ");
-  buf->concat(m.waterCelsius);
-  buf->concat(" °C");
+    buf->concat(", ");
+    buf->concat("\"waterTemp\": ");
+    buf->concat(m->waterCelsius);
   }
   if(GOT_HUMID_SENSOR){  
-  buf->concat(", Air Temp: ");
-  buf->concat(m.airCelsius);
-  buf->concat(" °C"); 
-  buf->concat(", Humidity: ");
-  buf->concat(m.airHumid);
-  buf->concat(" %RH");
+    buf->concat(", ");
+    buf->concat("\"airTemp\": ");
+    buf->concat(m->airCelsius);
+    buf->concat(", ");
+    buf->concat("\"humidity\": ");
+    buf->concat(m->airHumid);
   }
   if(GOT_LIGHT_SENSOR){
-  buf->concat(", Light: ");
-  buf->concat(m.lux);
-  buf->concat(" lux");
+    buf->concat(", ");
+    buf->concat(", \"lux\": ");
+    buf->concat(m->lux);
+  }
+  buf->concat(" }");
+}
+void printMonitorEntry(monitor_t m, String* buf) {
+  buf->concat("{ ");
+  buf->concat("\"timestamp\": ");
+  buf->concat(m.timestamp);
+  if(GOT_TEMP_SENSOR){
+    buf->concat(", Water Temp: ");
+    buf->concat(m.waterCelsius);
+    buf->concat(" °C");
+  }
+  if(GOT_HUMID_SENSOR){  
+    buf->concat(", Air Temp: ");
+    buf->concat(m.airCelsius);
+    buf->concat(" °C"); 
+    buf->concat(", Humidity: ");
+    buf->concat(m.airHumid);
+    buf->concat(" %RH");
+  }
+  if(GOT_LIGHT_SENSOR){
+    buf->concat(", Light: ");
+    buf->concat(m.lux);
+    buf->concat(" lux");
   }
 }
 void getTemperature(float* waterCelsius) {
