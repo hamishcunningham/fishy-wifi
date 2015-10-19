@@ -4,6 +4,7 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
+#include <FS.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <DHT.h>
@@ -38,6 +39,7 @@ String pageTopStr = String(
 );
 const char* pageTop = pageTopStr.c_str();
 const char* pageTop2 = "</title>\n"
+  "<meta charset=\"utf-8\">"
   "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
   "<style>body{background:#FFF;color: #000;font-family: sans-serif;}</style>"
   "</head><body>\n";
@@ -46,18 +48,18 @@ const char* pageDefault =
   "<h2>Control</h2>\n"
   "<p><ul>\n"
   "<li><a href='/wifi'>Join a wifi network</a></li>\n"
-  "<li><a href='/wifistatus'>Wifi status</a></li>\n"
   "<li><a href='/serverconf'>Configure server location</a></li>\n"
   "<li>\n"
     "<form method='POST' action='actuate'>\n"
     "Operate actuator: "
     "on <input type='radio' name='state' value='on'>\n"
     "off <input type='radio' name='state' value='off' checked>\n"
-    "<input type='submit' value='Submit'></form></p>\n"
+    "<input type='submit' value='Submit'></form>\n"
   "</li>\n"
   "</ul></p>\n"
   "<h2>Monitor</h2>\n"
   "<p><ul>\n"
+  "<li><a href='/wifistatus'>Wifi status</a></li>\n"
   "<li><a href='/data'>Sensor data</a></li>\n"
   "</ul></p>\n";
 const char* pageFooter =
@@ -388,7 +390,11 @@ String genServerConfForm() {
   f += "<h2>Configure a server</h2><p>\n";
 
   f += "<form method='POST' action='svrchz'> ";
-  f += "<br/>IP address: <input type='textarea' name='svraddr'><br/><br/> ";
+  f += "<br/>Local server IP address: ";
+  f += "<input type='textarea' name='svraddr'><br/><br/> ";
+  f += "Sharing on WeGrow.social: ";
+  f += "on <input type='radio' name='wegrow' value='on' checked>\n";
+  f += "off <input type='radio' name='wegrow' value='off'>\n";
   f += "<input type='submit' value='Submit'></form></p>";
 
   f += pageFooter;
@@ -406,8 +412,15 @@ void handle_svrchz() {
   toSend += pageTop2;
 
   for(uint8_t i = 0; i < webServer.args(); i++) {
-    if(webServer.argName(i) == "svraddr")
+    if(webServer.argName(i) == "svraddr") {
       svrAddr = webServer.arg(i);
+      toSend += "<h2>Added local server config...</h2>";
+      toSend += "<p>...at ";
+      toSend += svrAddr;
+      toSend += "</p>";
+    }
+
+    // TODO else if got "wegrow" turn cloud server share on
   }
 
   // TODO persist the config
@@ -539,20 +552,16 @@ void postSensorData(monitor_t *monitorData) {
   envelope += jsonBuf;
   Serial.println(envelope);
 
-  IPAddress couchServer(10,0,0,24);
-  //TODO parse svrAddr
-  //IPAddress couchServer(svrAddr);
+  //IPAddress couchServer(10,0,0,24);
   WiFiClient couchClient;
-  Serial.print("couchServer: ");
-  Serial.println(ip2str(couchServer));
-
-  if(couchClient.connect(couchServer, 5984)) {
-    Serial.println("connected to couch server");
+  if(couchClient.connect(svrAddr.c_str(), 5984)) {
+    Serial.print(svrAddr);
+    Serial.println(" - connected as couch server");
     couchClient.print(envelope);
   } else {
-    Serial.println("no couch server");
+    Serial.print(svrAddr);
+    Serial.println(" - no couch server");
   }
-  // couchClient.stop();
 
   return;
 }
