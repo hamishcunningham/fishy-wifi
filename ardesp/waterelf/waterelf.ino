@@ -89,18 +89,22 @@ void jsonMonitorEntry(monitor_t *m, String* buf);
 OneWire ds(2); // DS1820 on pin 2 (a 4.7K resistor is necessary)
 DallasTemperature tempSensor(&ds);  // pass through reference to library
 void getTemperature(float* waterCelsius);
-boolean GOT_TEMP_SENSOR = true;
+boolean GOT_TEMP_SENSOR = false; // we'll change later if we detect sensor
 DeviceAddress tempAddr; // array to hold device address
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
 DHT dht(12, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
-boolean GOT_HUMID_SENSOR = false;
+boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // Light sensor stuff ///////////////////////////////////////////////////////
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the sensor identifier (for your use later)
 boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
+
+/////////////////////////////////////////////////////////////////////////////
+// pH sensor stuff //////////////////////////////////////////////////////////
+boolean GOT_PH_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
@@ -444,6 +448,7 @@ void handle_actuate() {
 /////////////////////////////////////////////////////////////////////////////
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
+  Serial.println("StartPeripherals");
   mySwitch.enableTransmit(13);   // RC Transmitter is connected to Pin #13
 
   tempSensor.begin();     // Start the onewire temperature sensor
@@ -457,7 +462,7 @@ void startPeripherals() {
   float airHumid = dht.readHumidity();
   float airCelsius = dht.readTemperature();
   if (isnan(airHumid) || isnan(airCelsius)) {
-    Serial.println("Failed to read from DHT sensor!");
+    Serial.println("Failed to find Humidity sensor!");
   } else {
     GOT_HUMID_SENSOR = true;
   }
@@ -483,7 +488,16 @@ void startPeripherals() {
     //tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
     //tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS);  // longest integration time (dim light)
   }
+  
+  Wire.begin();
+  Wire.beginTransmission(0x4D);
+  error = Wire.endTransmission();
+  if(error==0){
+    GOT_PH_SENSOR = true;
+    Serial.println("Found pH sensor");
+  }
 }
+
 void updateSensorData(monitor_t *monitorData) {
   // Serial.print("monitorCursor = "); Serial.print(monitorCursor);
   // Serial.print(" monitorSize = ");  Serial.println(monitorSize);
