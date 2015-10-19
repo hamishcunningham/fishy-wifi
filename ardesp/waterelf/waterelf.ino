@@ -29,6 +29,7 @@ DNSServer dnsServer;
 ESP8266WebServer webServer(80);
 String apSSIDStr = "WaterElf-" + String(ESP.getChipId());
 const char* apSSID = apSSIDStr.c_str();
+String svrAddr = ""; // address of a local server
 
 /////////////////////////////////////////////////////////////////////////////
 // page generation stuff ////////////////////////////////////////////////////
@@ -46,6 +47,7 @@ const char* pageDefault =
   "<p><ul>\n"
   "<li><a href='/wifi'>Join a wifi network</a></li>\n"
   "<li><a href='/wifistatus'>Wifi status</a></li>\n"
+  "<li><a href='/serverconf'>Configure server location</a></li>\n"
   "<li>\n"
     "<form method='POST' action='actuate'>\n"
     "Operate actuator: "
@@ -64,7 +66,7 @@ const char* pageFooter =
 
 /////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
-const boolean SEND_DATA = false;  // turn of posting of data if required here
+const boolean SEND_DATA = true;  // turn of posting of data if required here
 const int MONITOR_POINTS = 60; // number of data points to store
 struct monitor_t {
   unsigned long timestamp;
@@ -86,10 +88,9 @@ void jsonMonitorEntry(monitor_t *m, String* buf);
 // temperature sensor stuff /////////////////////////////////////////////////
 OneWire ds(2); // DS1820 on pin 2 (a 4.7K resistor is necessary)
 DallasTemperature tempSensor(&ds);  // pass through reference to library
-//void getTemperature(float* waterCelsius);
+void getTemperature(float* waterCelsius);
 boolean GOT_TEMP_SENSOR = false;
-// array to hold device address
-DeviceAddress tempAddr;
+DeviceAddress tempAddr; // array to hold device address
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
@@ -149,7 +150,7 @@ void loop() {
 
   if(loopCounter == TICK_MONITOR) {
     updateSensorData(monitorData);
-    delay(100);
+    delay(250);
     if(SEND_DATA) postSensorData(monitorData);
   } 
   if(loopCounter == TICK_WIFI_DEBUG) {
@@ -195,7 +196,9 @@ void startWebServer() {
 
   webServer.on("/wifi", handle_wifi);
   webServer.on("/wifistatus", handle_wifistatus);
-  webServer.on("/chz", handle_chz);
+  webServer.on("/serverconf", handle_serverconf);
+  webServer.on("/wfchz", handle_wfchz);
+  webServer.on("/svrchz", handle_svrchz);
   webServer.on("/data", handle_data);
   webServer.on("/actuate", handle_actuate);
   webServer.begin();
@@ -257,7 +260,7 @@ String genAPForm() {
   } else {
     Serial.print(n);
     Serial.println(" networks found");
-    f += "<form method='POST' action='chz'> ";
+    f += "<form method='POST' action='wfchz'> ";
     for(int i = 0; i < n; ++i) {
       // print SSID and RSSI for each network found
       Serial.print(i + 1);
@@ -332,8 +335,8 @@ void handle_wifistatus() {
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
 }
-void handle_chz() {
-  Serial.println("serving page at /chz");
+void handle_wfchz() {
+  Serial.println("serving page at /wfchz");
   String toSend = pageTop;
   toSend += ": joining wifi network";
   toSend += pageTop2;
@@ -368,6 +371,42 @@ void handle_chz() {
       Serial.println("set hostname failed");
     */
   }
+
+  toSend += pageFooter;
+  webServer.send(200, "text/html", toSend);
+}
+String genServerConfForm() {
+  String f = pageTop;
+  f += ": Server Config";
+  f += pageTop2;
+  f += "<h2>Configure a server</h2><p>\n";
+
+  f += "<form method='POST' action='svrchz'> ";
+  f += "<br/>IP address: <input type='textarea' name='svraddr'><br/><br/> ";
+  f += "<input type='submit' value='Submit'></form></p>";
+
+  f += pageFooter;
+  return f;
+}
+void handle_serverconf() {
+  Serial.println("serving page at /serverconf");
+  String toSend = genServerConfForm();
+  webServer.send(200, "text/html", toSend);
+}
+void handle_svrchz() {
+  Serial.println("serving page at /svrchz");
+  String toSend = pageTop;
+  toSend += ": server configured";
+  toSend += pageTop2;
+
+  for(uint8_t i = 0; i < webServer.args(); i++) {
+    if(webServer.argName(i) == "svraddr")
+      svrAddr = webServer.arg(i);
+  }
+
+  // TODO persist the config
+
+  // TODO some way of verifying if server config worked
 
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
@@ -470,6 +509,8 @@ void postSensorData(monitor_t *monitorData) {
   Serial.println(envelope);
 
   IPAddress couchServer(10,0,0,24);
+  //TODO parse svrAddr
+  //IPAddress couchServer(svrAddr);
   WiFiClient couchClient;
   Serial.print("couchServer: ");
   Serial.println(ip2str(couchServer));
@@ -532,14 +573,11 @@ void printMonitorEntry(monitor_t m, String* buf) {
   }
 }
 void getTemperature(float* waterCelsius) {
-  float _waterCelsius = *waterCelsius;
   tempSensor.requestTemperatures(); // Send the command to get temperatures
-  //Serial.println("Temp requested from sensor");
-  _waterCelsius = (tempSensor.getTempC(tempAddr));
+  *waterCelsius = tempSensor.getTempC(tempAddr);
   Serial.print("Temp: ");
-  Serial.print(_waterCelsius);
+  Serial.print(*waterCelsius);
   Serial.println(" C, ");
-  *waterCelsius = _waterCelsius;
   return;
 }
 void getHumidity(float* airCelsius, float* airHumid) {
