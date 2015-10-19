@@ -64,6 +64,7 @@ const char* pageFooter =
 
 /////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
+const boolean SEND_DATA = false;  // turn of posting of data if required here
 const int MONITOR_POINTS = 60; // number of data points to store
 struct monitor_t {
   unsigned long timestamp;
@@ -86,19 +87,19 @@ void jsonMonitorEntry(monitor_t *m, String* buf);
 OneWire ds(2); // DS1820 on pin 2 (a 4.7K resistor is necessary)
 DallasTemperature tempSensor(&ds);  // pass through reference to library
 //void getTemperature(float* waterCelsius);
-const boolean GOT_TEMP_SENSOR = true;
+boolean GOT_TEMP_SENSOR = false;
 // array to hold device address
 DeviceAddress tempAddr;
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
 DHT dht(12, DHT22); // what digital pin we're connected to, plus type DHT22 aka AM2302
-const boolean GOT_HUMID_SENSOR = false;
+boolean GOT_HUMID_SENSOR = false;
 
 /////////////////////////////////////////////////////////////////////////////
 // Light sensor stuff ///////////////////////////////////////////////////////
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the sensor identifier (for your use later)
-const boolean GOT_LIGHT_SENSOR = false;
+boolean GOT_LIGHT_SENSOR = false;
 
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
@@ -151,7 +152,7 @@ void loop() {
     updateSensorData(monitorData);
     delay(100);
     // ledOff();
-    postSensorData(monitorData);
+    if(SEND_DATA) postSensorData(monitorData);
   } 
   if(loopCounter == TICK_WIFI_DEBUG) {
     Serial.print("SSID: "); Serial.print(apSSID);
@@ -418,7 +419,6 @@ void startPeripherals() {
   if(GOT_HUMID_SENSOR)
   dht.begin();    // Start the humidity and air temperature sensor
 
-  if(GOT_LIGHT_SENSOR){
   // You can change the gain of the light sensor on the fly, to adapt to brighter/dimmer light situations
   //tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
   tsl.setGain(TSL2591_GAIN_MED);      // 25x gain
@@ -433,7 +433,10 @@ void startPeripherals() {
   //tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
   //tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS);  // longest integration time (dim light)
 
-  tsl.begin();    // Start the light sensor
+  if (tsl.begin())
+  {
+    Serial.println("Found a Light sensor");
+    GOT_LIGHT_SENSOR = true;
   }
 }
 void updateSensorData(monitor_t *monitorData) {
