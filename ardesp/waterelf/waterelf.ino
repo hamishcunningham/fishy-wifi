@@ -66,7 +66,7 @@ const char* pageFooter =
 
 /////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
-const boolean SEND_DATA = true;  // turn of posting of data if required here
+const boolean SEND_DATA = true;  // turn off posting of data if required here
 const int MONITOR_POINTS = 60; // number of data points to store
 struct monitor_t {
   unsigned long timestamp;
@@ -89,18 +89,18 @@ void jsonMonitorEntry(monitor_t *m, String* buf);
 OneWire ds(2); // DS1820 on pin 2 (a 4.7K resistor is necessary)
 DallasTemperature tempSensor(&ds);  // pass through reference to library
 void getTemperature(float* waterCelsius);
-boolean GOT_TEMP_SENSOR = false;
+boolean GOT_TEMP_SENSOR = true;
 DeviceAddress tempAddr; // array to hold device address
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
-DHT dht(12, DHT22); // what digital pin we're connected to, plus type DHT22 aka AM2302
+DHT dht(12, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
 boolean GOT_HUMID_SENSOR = false;
 
 /////////////////////////////////////////////////////////////////////////////
 // Light sensor stuff ///////////////////////////////////////////////////////
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the sensor identifier (for your use later)
-boolean GOT_LIGHT_SENSOR = false;
+boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
@@ -150,7 +150,7 @@ void loop() {
 
   if(loopCounter == TICK_MONITOR) {
     updateSensorData(monitorData);
-    delay(250);
+    delay(500);
     if(SEND_DATA) postSensorData(monitorData);
   } 
   if(loopCounter == TICK_WIFI_DEBUG) {
@@ -233,6 +233,8 @@ void handle_data() {
     j <= DATA_ENTRIES && j <= monitorSize;
     i--, j++
   ) {
+    // Serial.print("printMonitorEntry(monitorData["); Serial.print(i); 
+    // Serial.println("], &toSend)");
     printMonitorEntry(monitorData[i], &toSend);
     toSend += "\n";
     if(i == 0)
@@ -446,32 +448,40 @@ void startPeripherals() {
   mySwitch.enableTransmit(13);   // RC Transmitter is connected to Pin #13
 
   if(GOT_TEMP_SENSOR){
-  tempSensor.begin();     // Start the onewire temperature sensor
-  tempSensor.getAddress(tempAddr, 0);
-  tempSensor.setResolution(tempAddr, 12);    // set the resolution to 12 bit (DS18B20 goes from 9-12 bit)
+    tempSensor.begin();     // Start the onewire temperature sensor
+    tempSensor.getAddress(tempAddr, 0);
+    tempSensor.setResolution(tempAddr, 12);    // set the resolution to 12 bit (DS18B20 goes from 9-12 bit)
   }
 
-  if(GOT_HUMID_SENSOR)
   dht.begin();    // Start the humidity and air temperature sensor
+  float airHumid = dht.readHumidity();
+  float airCelsius = dht.readTemperature();
+  if (isnan(airHumid) || isnan(airCelsius)) {
+    Serial.println("Failed to read from DHT sensor!");
+  } else {
+    GOT_HUMID_SENSOR = true;
+  }
 
-  // You can change the gain of the light sensor on the fly, to adapt to brighter/dimmer light situations
-  //tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
-  tsl.setGain(TSL2591_GAIN_MED);      // 25x gain
-  //tsl.setGain(TSL2591_GAIN_HIGH);   // 428x gain
-  
-  // Changing the integration time gives you a longer time over which to sense light
-  // longer timelines are slower, but are good in very low light situtations!
-  //tsl.setTiming(TSL2591_INTEGRATIONTIME_100MS);  // shortest integration time (bright light)
-  tsl.setTiming(TSL2591_INTEGRATIONTIME_200MS);
-  //tsl.setTiming(TSL2591_INTEGRATIONTIME_300MS);
-  //tsl.setTiming(TSL2591_INTEGRATIONTIME_400MS);
-  //tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
-  //tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS);  // longest integration time (dim light)
-
-  if (tsl.begin())
-  {
-    Serial.println("Found a Light sensor");
+  Wire.begin();
+  byte error;
+  Wire.beginTransmission(0x29);
+  error = Wire.endTransmission();
+  if(error==0){
     GOT_LIGHT_SENSOR = true;
+    tsl.begin();  // startup light sensor
+    // You can change the gain of the light sensor on the fly, to adapt to brighter/dimmer light situations
+    //tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
+    tsl.setGain(TSL2591_GAIN_MED);      // 25x gain
+    //tsl.setGain(TSL2591_GAIN_HIGH);   // 428x gain
+  
+    // Changing the integration time gives you a longer time over which to sense light
+    // longer timelines are slower, but are good in very low light situtations!
+    //tsl.setTiming(TSL2591_INTEGRATIONTIME_100MS);  // shortest integration time (bright light)
+    tsl.setTiming(TSL2591_INTEGRATIONTIME_200MS);
+    //tsl.setTiming(TSL2591_INTEGRATIONTIME_300MS);
+    //tsl.setTiming(TSL2591_INTEGRATIONTIME_400MS);
+    //tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
+    //tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS);  // longest integration time (dim light)
   }
 }
 void updateSensorData(monitor_t *monitorData) {
@@ -481,9 +491,9 @@ void updateSensorData(monitor_t *monitorData) {
   monitor_t* now = &monitorData[monitorCursor];
   if(monitorSize < MONITOR_POINTS)
     monitorSize++;
-  now->timestamp = micros();
+  now->timestamp = millis();
   if(GOT_TEMP_SENSOR)
-    getTemperature(&now->waterCelsius);
+    getTemperature(&(now->waterCelsius));
 
   if(GOT_HUMID_SENSOR)
     getHumidity(&now->airCelsius, &now->airHumid);
@@ -573,8 +583,8 @@ void printMonitorEntry(monitor_t m, String* buf) {
   }
 }
 void getTemperature(float* waterCelsius) {
-  tempSensor.requestTemperatures(); // Send the command to get temperatures
-  *waterCelsius = tempSensor.getTempC(tempAddr);
+  tempSensor.requestTemperatures(); // send command to get temperatures
+  (*waterCelsius) = tempSensor.getTempC(tempAddr);
   Serial.print("Temp: ");
   Serial.print(*waterCelsius);
   Serial.println(" C, ");
