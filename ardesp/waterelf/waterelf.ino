@@ -411,32 +411,35 @@ void startPeripherals() {
   mySwitch.enableTransmit(13);   // RC Transmitter is connected to Pin #13
 
   if(GOT_TEMP_SENSOR){
-  tempSensor.begin();     // Start the onewire temperature sensor
-  tempSensor.getAddress(tempAddr, 0);
-  tempSensor.setResolution(tempAddr, 12);    // set the resolution to 12 bit (DS18B20 goes from 9-12 bit)
+    tempSensor.begin();     // Start the onewire temperature sensor
+    tempSensor.getAddress(tempAddr, 0);
+    tempSensor.setResolution(tempAddr, 12);    // set the resolution to 12 bit (DS18B20 goes from 9-12 bit)
   }
 
-  if(GOT_HUMID_SENSOR)
-  dht.begin();    // Start the humidity and air temperature sensor
+  if(GOT_HUMID_SENSOR){
+    dht.begin();    // Start the humidity and air temperature sensor
+  }
 
-  // You can change the gain of the light sensor on the fly, to adapt to brighter/dimmer light situations
-  //tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
-  tsl.setGain(TSL2591_GAIN_MED);      // 25x gain
-  //tsl.setGain(TSL2591_GAIN_HIGH);   // 428x gain
-  
-  // Changing the integration time gives you a longer time over which to sense light
-  // longer timelines are slower, but are good in very low light situtations!
-  //tsl.setTiming(TSL2591_INTEGRATIONTIME_100MS);  // shortest integration time (bright light)
-  tsl.setTiming(TSL2591_INTEGRATIONTIME_200MS);
-  //tsl.setTiming(TSL2591_INTEGRATIONTIME_300MS);
-  //tsl.setTiming(TSL2591_INTEGRATIONTIME_400MS);
-  //tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
-  //tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS);  // longest integration time (dim light)
-
-  if (tsl.begin())
-  {
-    Serial.println("Found a Light sensor");
+  Wire.begin();
+  byte error;
+  Wire.beginTransmission(0x29);
+  error = Wire.endTransmission();
+  if(error==0){
     GOT_LIGHT_SENSOR = true;
+    tsl.begin();  // startup light sensor
+    // You can change the gain of the light sensor on the fly, to adapt to brighter/dimmer light situations
+    //tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
+    tsl.setGain(TSL2591_GAIN_MED);      // 25x gain
+    //tsl.setGain(TSL2591_GAIN_HIGH);   // 428x gain
+  
+    // Changing the integration time gives you a longer time over which to sense light
+    // longer timelines are slower, but are good in very low light situtations!
+    //tsl.setTiming(TSL2591_INTEGRATIONTIME_100MS);  // shortest integration time (bright light)
+    tsl.setTiming(TSL2591_INTEGRATIONTIME_200MS);
+    //tsl.setTiming(TSL2591_INTEGRATIONTIME_300MS);
+    //tsl.setTiming(TSL2591_INTEGRATIONTIME_400MS);
+    //tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
+    //tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS);  // longest integration time (dim light)
   }
 }
 void updateSensorData(monitor_t *monitorData) {
