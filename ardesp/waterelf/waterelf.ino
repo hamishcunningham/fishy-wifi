@@ -15,11 +15,12 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
-byte loopCounter = 0;
-const byte TICK_WIFI_DEBUG = 0;
-const byte TICK_HEAP_DEBUG = 0;
+int loopCounter = 0;
+const int LOOP_ROLLOVER = 1000; // how many loops per action slice
+const byte TICK_MONITOR = 0;
+const byte TICK_WIFI_DEBUG = 500;
 const byte TICK_POST_DEBUG = 200;
-const byte TICK_MONITOR = 100;
+const byte TICK_HEAP_DEBUG = 1000;
 
 /////////////////////////////////////////////////////////////////////////////
 // wifi management stuff ////////////////////////////////////////////////////
@@ -80,7 +81,7 @@ struct monitor_t {
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
 int monitorSize = 0;
-const int DATA_ENTRIES = 30; // size of /data report; must be <= MONITOR_POINTS
+const int DATA_ENTRIES = 30; // size of /data rpt; must be <= MONITOR_POINTS
 void updateSensorData(monitor_t *monitorData);
 void postSensorData(monitor_t *monitorData);
 void printMonitorEntry(monitor_t m, String* buf);
@@ -101,7 +102,7 @@ boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // Light sensor stuff ///////////////////////////////////////////////////////
-Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the sensor identifier (for your use later)
+Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // sensor id
 boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -123,40 +124,33 @@ String ip2str(IPAddress address);
 void setup() {
   Serial.begin(115200);
 
-  // huzzah LED
-  pinMode(BUILTIN_LED, OUTPUT);
-  blink(3);
+  pinMode(BUILTIN_LED, OUTPUT); // turn built-in LED on
+  blink(3); // signal we're starting config
 
   startPeripherals();
-
-  // TODO don't do this if wifi config'd and connected
   startAP();
   printIPs();
-
-  // TODO don't do this if wifi config'd and connected
   startDNS();
 
   startWebServer();
 
-  // TODO if this keeps failing move it into loop? or need to pick up config
-  // from ESP ROM somehow, and do WiFi.begin?
   if(WiFi.hostname("waterelf"))
     Serial.println("set hostname succeeded");
   else
     Serial.println("set hostname failed");
 
-  blink(3);
+  delay(300); blink(3); // signal we've finished config
 }
 
 /////////////////////////////////////////////////////////////////////////////
 // looooooooooooooooooooop //////////////////////////////////////////////////
 void loop() {
-  dnsServer.processNextRequest(); // TODO don't do this if wifi config'd and connected
+  dnsServer.processNextRequest();
   webServer.handleClient();
 
   if(loopCounter == TICK_MONITOR) {
     updateSensorData(monitorData);
-    delay(500);
+    delay(500); // TODO a better way?!
   } 
   if(loopCounter == TICK_WIFI_DEBUG) {
     Serial.print("SSID: "); Serial.print(apSSID);
@@ -167,7 +161,7 @@ void loop() {
     Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
   }
 
-  loopCounter++;
+  if(loopCounter++ == LOOP_ROLLOVER) loopCounter = 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -391,7 +385,7 @@ String genServerConfForm() {
   f += "<form method='POST' action='svrchz'> ";
   f += "<br/>Local server IP address: ";
   f += "<input type='textarea' name='svraddr'><br/><br/> ";
-  f += "Sharing on WeGrow.social: ";
+  f += "Sharing on WeGrow.social: <br/>";
   f += "on <input type='radio' name='wegrow' value='on' checked>\n";
   f += "off <input type='radio' name='wegrow' value='off'>\n";
   f += "<input type='submit' value='Submit'></form></p>";
@@ -461,21 +455,21 @@ void handle_actuate() {
 /////////////////////////////////////////////////////////////////////////////
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
-  Serial.println("StartPeripherals");
-  mySwitch.enableTransmit(13);   // RC Transmitter is connected to Pin #13
+  Serial.println("startPeripherals");
+  mySwitch.enableTransmit(13);   // RC transmitter is connected to Pin 13
 
-  tempSensor.begin();     // Start the onewire temperature sensor
+  tempSensor.begin();     // start the onewire temperature sensor
   if(tempSensor.getDeviceCount()==1) {
     GOT_TEMP_SENSOR = true;
     tempSensor.getAddress(tempAddr, 0);
-    tempSensor.setResolution(tempAddr, 12);    // set the resolution to 12 bit (DS18B20 goes from 9-12 bit)
+    tempSensor.setResolution(tempAddr, 12); // 12 bit res (DS18B20 does 9-12)
   }
   
   dht.begin();    // Start the humidity and air temperature sensor
   float airHumid = dht.readHumidity();
   float airCelsius = dht.readTemperature();
   if (isnan(airHumid) || isnan(airCelsius)) {
-    Serial.println("Failed to find Humidity sensor!");
+    Serial.println("failed to find Humidity sensor");
   } else {
     GOT_HUMID_SENSOR = true;
   }
@@ -487,19 +481,21 @@ void startPeripherals() {
   if(error==0){
     GOT_LIGHT_SENSOR = true;
     tsl.begin();  // startup light sensor
-    // You can change the gain of the light sensor on the fly, to adapt to brighter/dimmer light situations
-    //tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
-    tsl.setGain(TSL2591_GAIN_MED);      // 25x gain
-    //tsl.setGain(TSL2591_GAIN_HIGH);   // 428x gain
+    // can change gain of light sensor on the fly, to adapt 
+    // brighter/dimmer light situations
+    // tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
+    tsl.setGain(TSL2591_GAIN_MED);       // 25x gain
+    // tsl.setGain(TSL2591_GAIN_HIGH);   // 428x gain
   
-    // Changing the integration time gives you a longer time over which to sense light
-    // longer timelines are slower, but are good in very low light situtations!
-    //tsl.setTiming(TSL2591_INTEGRATIONTIME_100MS);  // shortest integration time (bright light)
+    // changing the integration time gives you a longer time over which to
+    // sense light longer timelines are slower, but are good in very low light
+    // situtations!
+    // tsl.setTiming(TSL2591_INTEGRATIONTIME_100MS); // shortest (bright)
     tsl.setTiming(TSL2591_INTEGRATIONTIME_200MS);
-    //tsl.setTiming(TSL2591_INTEGRATIONTIME_300MS);
-    //tsl.setTiming(TSL2591_INTEGRATIONTIME_400MS);
-    //tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
-    //tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS);  // longest integration time (dim light)
+    // tsl.setTiming(TSL2591_INTEGRATIONTIME_300MS);
+    // tsl.setTiming(TSL2591_INTEGRATIONTIME_400MS);
+    // tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
+    // tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS); // longest (dim)
   }
   
   Wire.begin();
@@ -510,7 +506,6 @@ void startPeripherals() {
     Serial.println("Found pH sensor");
   }
 }
-
 void updateSensorData(monitor_t *monitorData) {
   // Serial.print("monitorCursor = "); Serial.print(monitorCursor);
   // Serial.print(" monitorSize = ");  Serial.println(monitorSize);
