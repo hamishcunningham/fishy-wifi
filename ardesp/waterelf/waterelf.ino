@@ -74,6 +74,7 @@ struct monitor_t {
   float airCelsius;
   float airHumid;
   uint16_t lux;
+  float pH;
 };
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
@@ -120,7 +121,7 @@ String ip2str(IPAddress address);
 // setup ////////////////////////////////////////////////////////////////////
 void setup() {
   Serial.begin(115200);
-
+  Serial.println("\nAnd we're off...");
   // huzzah LED
   pinMode(BUILTIN_LED, OUTPUT);
   blink(3);
@@ -433,8 +434,10 @@ void handle_actuate() {
   // now we trigger the 433 transmitter
   if(newState == true){
     mySwitch.switchOn(4, 2);
+    Serial.println("Actuator on");
   } else {
     mySwitch.switchOff(4, 2);
+    Serial.println("Actuator off");
   }
 
   toSend += "<h2>Actuator triggered</h2>\n";
@@ -448,7 +451,6 @@ void handle_actuate() {
 /////////////////////////////////////////////////////////////////////////////
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
-  Serial.println("StartPeripherals");
   mySwitch.enableTransmit(13);   // RC Transmitter is connected to Pin #13
 
   tempSensor.begin();     // Start the onewire temperature sensor
@@ -489,7 +491,7 @@ void startPeripherals() {
     //tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS);  // longest integration time (dim light)
   }
   
-  Wire.begin();
+  //Wire.begin();
   Wire.beginTransmission(0x4D);
   error = Wire.endTransmission();
   if(error==0){
@@ -515,6 +517,9 @@ void updateSensorData(monitor_t *monitorData) {
   if(GOT_LIGHT_SENSOR)
     getLight(&now->lux);
 
+  if(GOT_PH_SENSOR)
+    getPH(&now->pH);
+    
   if(SEND_DATA) postSensorData(&monitorData[monitorCursor]);
     
   if(++monitorCursor == MONITOR_POINTS)
@@ -573,6 +578,11 @@ void jsonMonitorEntry(monitor_t *m, String* buf) {
     buf->concat(", \"lux\": ");
     buf->concat(m->lux);
   }
+  if(GOT_PH_SENSOR){
+  buf->concat(", ");
+  buf->concat(", \"pH\": ");
+  buf->concat(m->pH);
+  }
   buf->concat(" }");
 }
 void printMonitorEntry(monitor_t m, String* buf) {
@@ -597,6 +607,11 @@ void printMonitorEntry(monitor_t m, String* buf) {
     buf->concat(m.lux);
     buf->concat(" lux");
   }
+  if(GOT_PH_SENSOR){
+    buf->concat(", pH: ");
+    buf->concat(m.pH);
+    buf->concat(" pH");
+  }
 }
 void getTemperature(float* waterCelsius) {
   tempSensor.requestTemperatures(); // send command to get temperatures
@@ -607,29 +622,30 @@ void getTemperature(float* waterCelsius) {
   return;
 }
 void getHumidity(float* airCelsius, float* airHumid) {
-  float _airCelsius = *airCelsius;
-  float _airHumid = *airHumid;
-  _airCelsius = dht.readTemperature();
-  _airHumid = dht.readHumidity();
+  (*airCelsius) = dht.readTemperature();
+  (*airHumid) = dht.readHumidity();
   Serial.print("Air Temp: ");
-  Serial.print(_airCelsius);
+  Serial.print(*airCelsius);
   Serial.print(" C, ");
   Serial.print("Humidity: ");
-  Serial.print(_airHumid);
+  Serial.print(*airHumid);
   Serial.println(" %RH, ");
-  *airCelsius = _airCelsius;
-  *airHumid = _airHumid;
   return;
 }
 void getLight(uint16_t* lux) {
-  uint16_t _lux = *lux;
   sensors_event_t event;
   tsl.getEvent(&event);
-  _lux = event.light; 
+  (*lux) = event.light; 
   Serial.print("Light: ");
-  Serial.print(_lux);
+  Serial.print(*lux);
   Serial.println(" Lux");
-  *lux = _lux;
+  return;
+}
+void getPH(float* pH) {
+  (*pH) = 6.9; 
+  Serial.print("pH: ");
+  Serial.print(*pH);
+  Serial.println(" pH");
   return;
 }
 
