@@ -109,11 +109,11 @@ boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 /////////////////////////////////////////////////////////////////////////////
 // pH sensor stuff //////////////////////////////////////////////////////////
 const byte pH_Add = 0x4D;  // change this to match ph ADC address
-int pH7Cal = 2048; //assume ideal probe and amp conditions 1/2 of 4096
-int pH4Cal = 1286; //using ideal probe slope we end up this many 12bit units away on the 4 scale
-float pHStep = 59.16;//ideal probe slope
-const float vRef = 4.096; //Our vRef into the ADC wont be exact
-//Since you can run VCC lower than Vref its best to measure and adjust here
+int pH7Cal = 2048; // assume ideal probe and amp conditions 1/2 of 4096
+int pH4Cal = 1286; // ideal probe slope -> this many 12bit units on 4 scale
+float pHStep = 59.16; // ideal probe slope
+const float vRef = 4.096; // our vRef into the ADC wont be exact
+// since you can run VCC lower than Vref its best to measure and adjust here
 const float opampGain = 5.25; //what is our Op-Amps gain (stage 1)
 boolean GOT_PH_SENSOR = false; // we'll change later if we detect sensor
 
@@ -135,6 +135,8 @@ void setup() {
   pinMode(BUILTIN_LED, OUTPUT); // turn built-in LED on
   blink(3); // signal we're starting config
 
+  SPIFFS.begin();
+  readConfig();
   startPeripherals();
   startAP();
   printIPs();
@@ -623,21 +625,20 @@ void getLight(uint16_t* lux) {
   return;
 }
 void getPH(float* pH) {
-  //This is our I2C ADC interface section
-  //We'll assign 2 BYTES variables to capture the LSB and MSB(or Hi Low in this case)
+  // this is our I2C ADC interface section
+  // assign 2 BYTES variables to capture the LSB & MSB (or Hi Low in this case)
   byte adc_high;
   byte adc_low;
-  //We'll assemble the 2 in this variable
+  // we'll assemble the 2 in this variable
   int adc_result;
   
-  Wire.requestFrom(pH_Add, 2);        //requests 2 bytes
-  while(Wire.available() < 2);         //while two bytes to receive
-  //Set em 
-  adc_high = Wire.read();           
-  adc_low = Wire.read();
-  //now assemble them, remembering our byte maths a Union works well here as well
+  Wire.requestFrom(pH_Add, 2); // requests 2 bytes
+  while(Wire.available() < 2); // while two bytes to receive
+  adc_high = Wire.read();      // set...
+  adc_low = Wire.read();       // ...them
+  // now assemble them, remembering byte maths; a Union works well here too
   adc_result = (adc_high * 256) + adc_low;
-  //We have a our Raw pH reading fresh from the ADC now lets figure out what the pH is  
+  // we have a our Raw pH reading from the ADC; now figure out what the pH is  
   float miliVolts = (((float)adc_result/4096)*vRef)*1000;
   float temp = ((((vRef*(float)pH7Cal)/4096)*1000)- miliVolts)/opampGain;
   (*pH) = 7-(temp/pHStep); 
