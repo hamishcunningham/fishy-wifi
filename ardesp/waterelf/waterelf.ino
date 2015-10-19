@@ -410,17 +410,18 @@ void handle_actuate() {
 void startPeripherals() {
   mySwitch.enableTransmit(13);   // RC Transmitter is connected to Pin #13
 
-  if(GOT_TEMP_SENSOR){
-    tempSensor.begin();     // Start the onewire temperature sensor
+  tempSensor.begin();     // Start the onewire temperature sensor
+  if(tempSensor.getDeviceCount()==1) {
+    GOT_TEMP_SENSOR = true;
     tempSensor.getAddress(tempAddr, 0);
     tempSensor.setResolution(tempAddr, 12);    // set the resolution to 12 bit (DS18B20 goes from 9-12 bit)
   }
-
+  
   dht.begin();    // Start the humidity and air temperature sensor
   float airHumid = dht.readHumidity();
   float airCelsius = dht.readTemperature();
   if (isnan(airHumid) || isnan(airCelsius)) {
-    Serial.println("Failed to read from DHT sensor!");h
+    Serial.println("Failed to read from DHT sensor!");
   }
   else
   {
