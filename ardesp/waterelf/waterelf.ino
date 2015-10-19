@@ -52,7 +52,7 @@ const char* pageDefault =
   "<li><a href='/serverconf'>Configure server location</a></li>\n"
   "<li>\n"
     "<form method='POST' action='actuate'>\n"
-    "Operate actuator: "
+    "External power: "
     "on <input type='radio' name='state' value='on'>\n"
     "off <input type='radio' name='state' value='off' checked>\n"
     "<input type='submit' value='Submit'></form>\n"
@@ -389,9 +389,9 @@ String genServerConfForm() {
   f += "<form method='POST' action='svrchz'> ";
   f += "<br/>Local server IP address: ";
   f += "<input type='textarea' name='svraddr'><br/><br/> ";
-  f += "Sharing on WeGrow.social: <br/>";
+  f += "Sharing on WeGrow.social: ";
   f += "on <input type='radio' name='wegrow' value='on' checked>\n";
-  f += "off <input type='radio' name='wegrow' value='off'>\n";
+  f += "off <input type='radio' name='wegrow' value='off'><br/><br/>\n";
   f += "<input type='submit' value='Submit'></form></p>";
 
   f += pageFooter;
