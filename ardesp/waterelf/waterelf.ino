@@ -16,11 +16,11 @@
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
 int loopCounter = 0;
-const int LOOP_ROLLOVER = 1000; // how many loops per action slice
-const byte TICK_MONITOR = 0;
-const byte TICK_WIFI_DEBUG = 500;
-const byte TICK_POST_DEBUG = 200;
-const byte TICK_HEAP_DEBUG = 1000;
+const int LOOP_ROLLOVER = 5000; // how many loops per action slice
+const int TICK_MONITOR = 0;
+const int TICK_WIFI_DEBUG = 500;
+const int TICK_POST_DEBUG = 200;
+const int TICK_HEAP_DEBUG = 1000;
 
 /////////////////////////////////////////////////////////////////////////////
 // wifi management stuff ////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ const char* pageDefault =
   "</ul></p>\n";
 const char* pageFooter =
   "\n<p><a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;"
-  "<a href='https://www.wegrow.social/'>CleanFood</a></p></body></html>";
+  "<a href='https://now.wegrow.social/'>WeGrow</a></p></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
@@ -230,19 +230,15 @@ void handle_data() {
   String toSend = pageTop;
   toSend += ": Sensor Data";
   toSend += pageTop2;
-  toSend += "<pre>\n";
+  toSend += "\n<h2>Sensor Data</h2><p><pre>\n";
 
-  // Serial.print("monitorCursor="); Serial.print(monitorCursor);
-  // Serial.print(" monitorSize=");  Serial.println(monitorSize);
   int mSize = monitorSize;
   for(
     int i = monitorCursor - 1, j = 1;
     j <= DATA_ENTRIES && j <= monitorSize;
     i--, j++
   ) {
-    // Serial.print("printMonitorEntry(monitorData["); Serial.print(i); 
-    // Serial.println("], &toSend)");
-    printMonitorEntry(monitorData[i], &toSend);
+    jsonMonitorEntry(&monitorData[i], &toSend);
     toSend += "\n";
     if(i == 0)
       i = MONITOR_POINTS;
@@ -479,7 +475,7 @@ void startPeripherals() {
   float airHumid = dht.readHumidity();
   float airCelsius = dht.readTemperature();
   if (isnan(airHumid) || isnan(airCelsius)) {
-    Serial.println("failed to find Humidity sensor");
+    Serial.println("failed to find humidity sensor");
   } else {
     GOT_HUMID_SENSOR = true;
   }
@@ -542,7 +538,7 @@ void updateSensorData(monitor_t *monitorData) {
     monitorCursor = 0;
 }
 void postSensorData(monitor_t *monitorData) {
-  Serial.println("postSensorData");
+  Serial.println("\npostSensorData");
 
   // create a JSON form
   String jsonBuf = "";
@@ -566,6 +562,7 @@ void postSensorData(monitor_t *monitorData) {
     Serial.println(" - no couch server");
   }
 
+  Serial.println("");
   return;
 }
 void jsonMonitorEntry(monitor_t *m, String* buf) {
@@ -591,39 +588,11 @@ void jsonMonitorEntry(monitor_t *m, String* buf) {
     buf->concat(m->lux);
   }
   if(GOT_PH_SENSOR){
-  buf->concat(", ");
-  buf->concat(", \"pH\": ");
-  buf->concat(m->pH);
+    buf->concat(", ");
+    buf->concat(", \"pH\": ");
+    buf->concat(m->pH);
   }
   buf->concat(" }");
-}
-void printMonitorEntry(monitor_t m, String* buf) {
-  buf->concat("{ ");
-  buf->concat("\"timestamp\": ");
-  buf->concat(m.timestamp);
-  if(GOT_TEMP_SENSOR){
-    buf->concat(", Water Temp: ");
-    buf->concat(m.waterCelsius);
-    buf->concat(" °C");
-  }
-  if(GOT_HUMID_SENSOR){  
-    buf->concat(", Air Temp: ");
-    buf->concat(m.airCelsius);
-    buf->concat(" °C"); 
-    buf->concat(", Humidity: ");
-    buf->concat(m.airHumid);
-    buf->concat(" %RH");
-  }
-  if(GOT_LIGHT_SENSOR){
-    buf->concat(", Light: ");
-    buf->concat(m.lux);
-    buf->concat(" lux");
-  }
-  if(GOT_PH_SENSOR){
-    buf->concat(", pH: ");
-    buf->concat(m.pH);
-    buf->concat(" pH");
-  }
 }
 void getTemperature(float* waterCelsius) {
   tempSensor.requestTemperatures(); // send command to get temperatures
