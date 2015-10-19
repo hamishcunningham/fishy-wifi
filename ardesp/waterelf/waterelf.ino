@@ -17,6 +17,7 @@
 byte loopCounter = 0;
 const byte TICK_WIFI_DEBUG = 0;
 const byte TICK_HEAP_DEBUG = 0;
+const byte TICK_POST_DEBUG = 200;
 const byte TICK_MONITOR = 100;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -42,6 +43,7 @@ String pageTopStr = String(
 );
 const char* pageTop = pageTopStr.c_str();
 const char* pageTop2 = "</title>\n"
+  "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
   "<style>body{background:#FFF;color: #000;font-family: sans-serif;}</style>"
   "</head><body>\n";
 const char* pageDefault =
@@ -75,7 +77,7 @@ struct monitor_t {
   float airCelsius;
   float airHumid;
   uint16_t lux;
-  };
+};
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
 int monitorSize = 0;
@@ -96,12 +98,12 @@ DeviceAddress tempAddr;
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
 DHT dht(12, DHT22); // what digital pin we're connected to, plus type DHT22 aka AM2302
-const boolean GOT_HUMID_SENSOR = true;
+const boolean GOT_HUMID_SENSOR = false;
 
 /////////////////////////////////////////////////////////////////////////////
 // Light sensor stuff ///////////////////////////////////////////////////////
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the sensor identifier (for your use later)
-const boolean GOT_LIGHT_SENSOR = true;
+const boolean GOT_LIGHT_SENSOR = false;
 
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
@@ -122,7 +124,7 @@ void setup() {
   pinMode(BUILTIN_LED, OUTPUT);
   blink(3);
 
-  startPeripherals();
+//TODO  startPeripherals();
 
   // TODO don't do this if wifi config'd and connected
   startAP();
@@ -149,6 +151,10 @@ void loop() {
   dnsServer.processNextRequest(); // TODO don't do this if wifi config'd and connected
   webServer.handleClient();
 
+  blink(4); // TODO
+  delay(100);
+
+/* TODO
   if(loopCounter == TICK_MONITOR) {
     // ledOn();
     updateSensorData(monitorData);
@@ -156,6 +162,7 @@ void loop() {
     // ledOff();
     postSensorData(monitorData);
   } 
+*/
   if(loopCounter == TICK_WIFI_DEBUG) {
     Serial.print("SSID: "); Serial.print(apSSID);
     Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
@@ -164,6 +171,36 @@ void loop() {
   if(loopCounter == TICK_HEAP_DEBUG) {
     Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
   }
+
+
+  if(loopCounter == TICK_POST_DEBUG) {
+    // create a JSON form and ping 192.168.1.151:5984
+
+IPAddress couchServer(10,0,0,24);
+WiFiClient couchClient;
+Serial.print("couchServer: ");
+Serial.println(ip2str(couchServer));
+
+    if(googleClient.connect(googleServer, 80)) {
+      Serial.println("connected to google server");
+      googleClient.stop();
+    } 
+    if(couchClient.connect(couchServer, 5984)) {
+      Serial.println("connected to server");
+      couchClient.println("POST /fishydata HTTP/1.1");
+      couchClient.println("Content-Type: application/json");
+      couchClient.println("Connection: close");
+      couchClient.println();
+      couchClient.println("{ \"key\": \"value\" }");
+    } else {
+      Serial.println("no couch server");
+    }
+    // couchClient.stop();
+  }
+  delay(100); // TODO
+  blink(4);
+  delay(100);
+
   loopCounter++;
 }
 
