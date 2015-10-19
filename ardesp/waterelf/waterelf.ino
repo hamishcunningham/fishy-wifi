@@ -99,7 +99,7 @@ boolean GOT_HUMID_SENSOR = false;
 /////////////////////////////////////////////////////////////////////////////
 // Light sensor stuff ///////////////////////////////////////////////////////
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the sensor identifier (for your use later)
-boolean GOT_LIGHT_SENSOR = false;
+boolean GOT_LIGHT_SENSOR = false; // we'll change this later if we can detect the sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
@@ -148,8 +148,10 @@ void loop() {
   webServer.handleClient();
 
   if(loopCounter == TICK_MONITOR) {
+    // ledOn();
     updateSensorData(monitorData);
     delay(100);
+    // ledOff();
     if(SEND_DATA) postSensorData(monitorData);
   } 
   if(loopCounter == TICK_WIFI_DEBUG) {
@@ -230,6 +232,8 @@ void handle_data() {
     j <= DATA_ENTRIES && j <= monitorSize;
     i--, j++
   ) {
+    // Serial.print("printMonitorEntry(monitorData["); Serial.print(i); 
+    // Serial.println("], &toSend)");
     printMonitorEntry(monitorData[i], &toSend);
     toSend += "\n";
     if(i == 0)
@@ -412,8 +416,15 @@ void startPeripherals() {
     tempSensor.setResolution(tempAddr, 12);    // set the resolution to 12 bit (DS18B20 goes from 9-12 bit)
   }
 
-  if(GOT_HUMID_SENSOR){
-    dht.begin();    // Start the humidity and air temperature sensor
+  dht.begin();    // Start the humidity and air temperature sensor
+  float airHumid = dht.readHumidity();
+  float airCelsius = dht.readTemperature();
+  if (isnan(airHumid) || isnan(airCelsius)) {
+    Serial.println("Failed to read from DHT sensor!");h
+  }
+  else
+  {
+    GOT_HUMID_SENSOR = true;
   }
 
   Wire.begin();
@@ -445,7 +456,7 @@ void updateSensorData(monitor_t *monitorData) {
   monitor_t* now = &monitorData[monitorCursor];
   if(monitorSize < MONITOR_POINTS)
     monitorSize++;
-  now->timestamp = micros();
+  now->timestamp = millis();
   if(GOT_TEMP_SENSOR)
     getTemperature(&now->waterCelsius);
 
