@@ -77,6 +77,7 @@ struct monitor_t {
   float airCelsius;
   float airHumid;
   uint16_t lux;
+  float pH;
 };
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
@@ -107,6 +108,13 @@ boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // pH sensor stuff //////////////////////////////////////////////////////////
+const byte pH_Add = 0x4D;  // change this to match ph ADC address
+int pH7Cal = 2048; //assume ideal probe and amp conditions 1/2 of 4096
+int pH4Cal = 1286; //using ideal probe slope we end up this many 12bit units away on the 4 scale
+float pHStep = 59.16;//ideal probe slope
+const float vRef = 4.096; //Our vRef into the ADC wont be exact
+//Since you can run VCC lower than Vref its best to measure and adjust here
+const float opampGain = 5.25; //what is our Op-Amps gain (stage 1)
 boolean GOT_PH_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -440,8 +448,10 @@ void handle_actuate() {
   // now we trigger the 433 transmitter
   if(newState == true){
     mySwitch.switchOn(4, 2);
+    Serial.println("Actuator on");
   } else {
     mySwitch.switchOff(4, 2);
+    Serial.println("Actuator off");
   }
 
   toSend += "<h2>Actuator triggered</h2>\n";
@@ -498,8 +508,8 @@ void startPeripherals() {
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS); // longest (dim)
   }
   
-  Wire.begin();
-  Wire.beginTransmission(0x4D);
+  //Wire.begin();
+  Wire.beginTransmission(pH_Add);
   error = Wire.endTransmission();
   if(error==0){
     GOT_PH_SENSOR = true;
@@ -523,6 +533,9 @@ void updateSensorData(monitor_t *monitorData) {
   if(GOT_LIGHT_SENSOR)
     getLight(&now->lux);
 
+  if(GOT_PH_SENSOR)
+    getPH(&now->pH);
+    
   if(SEND_DATA) postSensorData(&monitorData[monitorCursor]);
     
   if(++monitorCursor == MONITOR_POINTS)
@@ -577,6 +590,11 @@ void jsonMonitorEntry(monitor_t *m, String* buf) {
     buf->concat(", \"lux\": ");
     buf->concat(m->lux);
   }
+  if(GOT_PH_SENSOR){
+  buf->concat(", ");
+  buf->concat(", \"pH\": ");
+  buf->concat(m->pH);
+  }
   buf->concat(" }");
 }
 void printMonitorEntry(monitor_t m, String* buf) {
@@ -601,6 +619,11 @@ void printMonitorEntry(monitor_t m, String* buf) {
     buf->concat(m.lux);
     buf->concat(" lux");
   }
+  if(GOT_PH_SENSOR){
+    buf->concat(", pH: ");
+    buf->concat(m.pH);
+    buf->concat(" pH");
+  }
 }
 void getTemperature(float* waterCelsius) {
   tempSensor.requestTemperatures(); // send command to get temperatures
@@ -611,29 +634,47 @@ void getTemperature(float* waterCelsius) {
   return;
 }
 void getHumidity(float* airCelsius, float* airHumid) {
-  float _airCelsius = *airCelsius;
-  float _airHumid = *airHumid;
-  _airCelsius = dht.readTemperature();
-  _airHumid = dht.readHumidity();
+  (*airCelsius) = dht.readTemperature();
+  (*airHumid) = dht.readHumidity();
   Serial.print("Air Temp: ");
-  Serial.print(_airCelsius);
+  Serial.print(*airCelsius);
   Serial.print(" C, ");
   Serial.print("Humidity: ");
-  Serial.print(_airHumid);
+  Serial.print(*airHumid);
   Serial.println(" %RH, ");
-  *airCelsius = _airCelsius;
-  *airHumid = _airHumid;
   return;
 }
 void getLight(uint16_t* lux) {
-  uint16_t _lux = *lux;
   sensors_event_t event;
   tsl.getEvent(&event);
-  _lux = event.light; 
+  (*lux) = event.light; 
   Serial.print("Light: ");
-  Serial.print(_lux);
+  Serial.print(*lux);
   Serial.println(" Lux");
-  *lux = _lux;
+  return;
+}
+void getPH(float* pH) {
+  //This is our I2C ADC interface section
+  //We'll assign 2 BYTES variables to capture the LSB and MSB(or Hi Low in this case)
+  byte adc_high;
+  byte adc_low;
+  //We'll assemble the 2 in this variable
+  int adc_result;
+  
+  Wire.requestFrom(pH_Add, 2);        //requests 2 bytes
+  while(Wire.available() < 2);         //while two bytes to receive
+  //Set em 
+  adc_high = Wire.read();           
+  adc_low = Wire.read();
+  //now assemble them, remembering our byte maths a Union works well here as well
+  adc_result = (adc_high * 256) + adc_low;
+  //We have a our Raw pH reading fresh from the ADC now lets figure out what the pH is  
+  float miliVolts = (((float)adc_result/4096)*vRef)*1000;
+  float temp = ((((vRef*(float)pH7Cal)/4096)*1000)- miliVolts)/opampGain;
+  (*pH) = 7-(temp/pHStep); 
+  Serial.print("pH: ");
+  Serial.print(*pH);
+  Serial.println(" pH");
   return;
 }
 
