@@ -151,7 +151,6 @@ void loop() {
   if(loopCounter == TICK_MONITOR) {
     updateSensorData(monitorData);
     delay(500);
-    if(SEND_DATA) postSensorData(monitorData);
   } 
   if(loopCounter == TICK_WIFI_DEBUG) {
     Serial.print("SSID: "); Serial.print(apSSID);
@@ -501,6 +500,8 @@ void updateSensorData(monitor_t *monitorData) {
     
   if(GOT_LIGHT_SENSOR)
     getLight(&now->lux);
+
+  if(SEND_DATA) postSensorData(&monitorData[monitorCursor]);
     
   if(++monitorCursor == MONITOR_POINTS)
     monitorCursor = 0;
