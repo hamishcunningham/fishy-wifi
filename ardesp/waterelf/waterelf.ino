@@ -147,12 +147,10 @@ void loop() {
   webServer.handleClient();
 
   if(loopCounter == TICK_MONITOR) {
-    // ledOn();
     updateSensorData(monitorData);
     delay(100);
-    // ledOff();
     postSensorData(monitorData);
-  } 
+  }
   if(loopCounter == TICK_WIFI_DEBUG) {
     Serial.print("SSID: "); Serial.print(apSSID);
     Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
@@ -231,8 +229,6 @@ void handle_data() {
     j <= DATA_ENTRIES && j <= monitorSize;
     i--, j++
   ) {
-    // Serial.print("printMonitorEntry(monitorData["); Serial.print(i); 
-    // Serial.println("], &toSend)");
     printMonitorEntry(monitorData[i], &toSend);
     toSend += "\n";
     if(i == 0)
@@ -443,7 +439,7 @@ void updateSensorData(monitor_t *monitorData) {
   monitor_t* now = &monitorData[monitorCursor];
   if(monitorSize < MONITOR_POINTS)
     monitorSize++;
-  now->timestamp = millis();
+  now->timestamp = micros();
   if(GOT_TEMP_SENSOR)
     getTemperature(&now->waterCelsius);
 
