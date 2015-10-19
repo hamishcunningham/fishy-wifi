@@ -102,7 +102,7 @@ DHT dht(12, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
 boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
-// Light sensor stuff ///////////////////////////////////////////////////////
+// light sensor stuff ///////////////////////////////////////////////////////
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // sensor id
 boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
@@ -122,6 +122,13 @@ boolean GOT_PH_SENSOR = false; // we'll change later if we detect sensor
 RCSwitch mySwitch = RCSwitch();
 
 /////////////////////////////////////////////////////////////////////////////
+// config utils /////////////////////////////////////////////////////////////
+boolean getCloudShare();
+void setCloudShare(boolean b);
+String getSvrAddr();
+void setSvrAddr(String s);
+
+/////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
 void ledOn();
 void ledOff();
@@ -133,10 +140,12 @@ void setup() {
   Serial.begin(115200);
 
   pinMode(BUILTIN_LED, OUTPUT); // turn built-in LED on
-  blink(3); // signal we're starting config
+  blink(3); // signal we're starting setup
 
+  // read persistent config
   SPIFFS.begin();
-  readConfig();
+  svrAddr = getSvrAddr();
+
   startPeripherals();
   startAP();
   printIPs();
@@ -369,14 +378,6 @@ void handle_wfchz() {
     ssid.toCharArray(ssidchars, sizeof(ssid));
     key.toCharArray(keychars, sizeof(key));
     WiFi.begin(ssidchars, keychars);
-
-    // TODO causes reset in /wifistatus
-    /*
-    if(WiFi.hostname("waterelf"))
-      Serial.println("set hostname succeeded");
-    else
-      Serial.println("set hostname failed");
-    */
   }
 
   toSend += pageFooter;
@@ -392,6 +393,7 @@ String genServerConfForm() {
   f += "<br/>Local server IP address: ";
   f += "<input type='textarea' name='svraddr'><br/><br/> ";
   f += "Sharing on WeGrow.social: ";
+  // TODO set checked dependent on getCloudShare()
   f += "on <input type='radio' name='wegrow' value='on' checked>\n";
   f += "off <input type='radio' name='wegrow' value='off'><br/><br/>\n";
   f += "<input type='submit' value='Submit'></form></p>";
@@ -410,6 +412,7 @@ void handle_svrchz() {
   toSend += ": server configured";
   toSend += pageTop2;
 
+  boolean cloudShare = false;
   for(uint8_t i = 0; i < webServer.args(); i++) {
     if(webServer.argName(i) == "svraddr") {
       svrAddr = webServer.arg(i);
@@ -417,14 +420,18 @@ void handle_svrchz() {
       toSend += "<p>...at ";
       toSend += svrAddr;
       toSend += "</p>";
+    } else if(webServer.argName(i) == "key") {
+      if(webServer.arg(i) == "on")
+        cloudShare = true;
     }
-
-    // TODO else if got "wegrow" turn cloud server share on
   }
 
-  // TODO persist the config
+  // persist the config
+  if(svrAddr.length() > 0) setSvrAddr(svrAddr);
+  setCloudShare(cloudShare);
 
   // TODO some way of verifying if server config worked
+  // add srvstatus, or roll that into wifistatus, or...?
 
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
@@ -646,6 +653,42 @@ void getPH(float* pH) {
   Serial.print(*pH);
   Serial.println(" pH");
   return;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// config utils /////////////////////////////////////////////////////////////
+boolean getCloudShare() {
+  boolean b = false;
+  File f = SPIFFS.open("/cloudShare.txt", "r");
+  if(f) {
+    b = true;
+    f.close();
+  }
+  return b;
+}
+void setCloudShare(boolean b) {
+  if(b) {
+    File f = SPIFFS.open("/cloudShare.txt", "w");
+    f.println("");
+    f.close();
+  } else {
+    SPIFFS.remove("/cloudShare.txt");
+  }
+}
+String getSvrAddr() {
+  String s = "";
+  File f = SPIFFS.open("/svrAddr.txt", "r");
+  if(f) {
+    s = f.readString();
+    s.trim();
+    f.close();
+  }
+  return s;
+}
+void setSvrAddr(String s) {
+  File f = SPIFFS.open("/svrAddr.txt", "w");
+  f.println(s);
+  f.close();
 }
 
 /////////////////////////////////////////////////////////////////////////////
