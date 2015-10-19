@@ -447,13 +447,17 @@ void handle_actuate() {
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
   mySwitch.enableTransmit(13);   // RC Transmitter is connected to Pin #13
-  
+
+  if(GOT_TEMP_SENSOR){
   tempSensor.begin();     // Start the onewire temperature sensor
   tempSensor.getAddress(tempAddr, 0);
   tempSensor.setResolution(tempAddr, 12);    // set the resolution to 12 bit (DS18B20 goes from 9-12 bit)
-  
+  }
+
+  if(GOT_HUMID_SENSOR)
   dht.begin();    // Start the humidity and air temperature sensor
 
+  if(GOT_LIGHT_SENSOR){
   // You can change the gain of the light sensor on the fly, to adapt to brighter/dimmer light situations
   //tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
   tsl.setGain(TSL2591_GAIN_MED);      // 25x gain
@@ -469,6 +473,7 @@ void startPeripherals() {
   //tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS);  // longest integration time (dim light)
 
   tsl.begin();    // Start the light sensor
+  }
 }
 
 void updateSensorData(monitor_t *monitorData) {
@@ -517,18 +522,24 @@ void postSensorData(monitor_t *monitorData) {
 void printMonitorEntry(monitor_t m, String* buf) {
   buf->concat("timestamp: ");
   buf->concat(m.timestamp);
+  if(GOT_TEMP_SENSOR){
   buf->concat(", Water Temp: ");
   buf->concat(m.waterCelsius);
   buf->concat(" °C");
+  }
+  if(GOT_HUMID_SENSOR){  
   buf->concat(", Air Temp: ");
   buf->concat(m.airCelsius);
   buf->concat(" °C"); 
   buf->concat(", Humidity: ");
   buf->concat(m.airHumid);
-  buf->concat(" %RH"); 
+  buf->concat(" %RH");
+  }
+  if(GOT_LIGHT_SENSOR){
   buf->concat(", Light: ");
   buf->concat(m.lux);
-  buf->concat(" lux"); 
+  buf->concat(" lux");
+  }
 }
 void getTemperature(float* waterCelsius) {
   float _waterCelsius = *waterCelsius;
