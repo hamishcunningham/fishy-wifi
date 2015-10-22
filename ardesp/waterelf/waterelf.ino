@@ -172,12 +172,12 @@ void loop() {
     delay(500); // TODO a better way?!
   } 
   if(loopCounter == TICK_WIFI_DEBUG) {
-    Serial.print("SSID: "); Serial.print(apSSID);
-    Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
-    Serial.print("; AP="); Serial.println(WiFi.softAPIP());
+//    Serial.print("SSID: "); Serial.print(apSSID);
+//    Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
+//    Serial.print("; AP="); Serial.println(WiFi.softAPIP());
   }
   if(loopCounter == TICK_HEAP_DEBUG) {
-    Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
+//    Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
   }
 
   if(loopCounter++ == LOOP_ROLLOVER) loopCounter = 0;
@@ -547,7 +547,7 @@ void updateSensorData(monitor_t *monitorData) {
     monitorCursor = 0;
 }
 void postSensorData(monitor_t *monitorData) {
-  Serial.println("\npostSensorData");
+  //Serial.println("\npostSensorData");
 
   // create a JSON form
   String jsonBuf = "";
@@ -558,7 +558,7 @@ void postSensorData(monitor_t *monitorData) {
   envelope += jsonBuf.length();
   envelope += "\nConnection: close\n\n";
   envelope += jsonBuf;
-  Serial.println(envelope);
+  //Serial.println(envelope);
 
   //IPAddress couchServer(10,0,0,24);
   WiFiClient couchClient;
