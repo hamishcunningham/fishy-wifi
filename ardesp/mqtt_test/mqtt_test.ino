@@ -8,6 +8,8 @@
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 const char *ssid =	"UnionSt Coworking 4G1";		// cannot be longer than 32 characters!
 const char *pass =	"welcometounionst4g1";		//
@@ -21,6 +23,14 @@ void callback(const MQTT::Publish& pub) {
 
 WiFiClient wclient;
 PubSubClient client(wclient, server);
+
+/////////////////////////////////////////////////////////////////////////////
+// temperature sensor stuff /////////////////////////////////////////////////
+OneWire ds(2); // DS1820 on pin 2 (a 4.7K resistor is necessary)
+DallasTemperature tempSensor(&ds);  // pass through reference to library
+float waterCelsius;
+boolean GOT_TEMP_SENSOR = false; // we'll change later if we detect sensor
+DeviceAddress tempAddr; // array to hold device address
 
 void setup()
 {
@@ -45,15 +55,30 @@ void setup()
     Serial.println("WiFi connected");
     Serial.println(WiFi.localIP());
   }
-
-  if (client.connect("arduinoClient")) {
-    client.publish("outTopic","hello world!!");
-    client.subscribe("inTopic");
+  
+  tempSensor.begin();     // start the onewire temperature sensor
+  if(tempSensor.getDeviceCount()==1) {
+    GOT_TEMP_SENSOR = true;
+    tempSensor.getAddress(tempAddr, 0);
+    tempSensor.setResolution(tempAddr, 12); // 12 bit res (DS18B20 does 9-12)
   }
 }
 
 void loop()
 {
   client.loop();
+    tempSensor.requestTemperatures(); // send command to get temperatures
+  waterCelsius = tempSensor.getTempC(tempAddr);
+  Serial.print("Temp: ");
+  Serial.print(waterCelsius);
+  Serial.println(" C, ");
+  
+  if (client.connect("arduinoClient")) {
+    char BUFFER[10];
+    char *wc;
+    wc = dtostrf(waterCelsius,4,2,BUFFER);
+  client.publish("outTopic",wc);
+  }
+  delay(500);
 }
 
