@@ -9,11 +9,11 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-const char *ssid =	"bloogle";		// cannot be longer than 32 characters!
-const char *pass =	"2bigFish";		//
+const char *ssid =	"UnionSt Coworking 4G1";		// cannot be longer than 32 characters!
+const char *pass =	"welcometounionst4g1";		//
 
 // Update these with values suitable for your network.
-IPAddress server(10, 0, 0, 11);
+IPAddress server(192, 168, 1, 17);
 
 void callback(const MQTT::Publish& pub) {
   // handle message arrived
