@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chart</title>
+    <script src="js/jquery-1.11.3.min.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/couchr.js"></script>
+    <!--
+    <script src="js/d3.v3.js"></script>
+    <script src="js/rickshaw.js"></script>
+    -->
+    <script src="js/chartist.min.js"></script>
+    <!--
+    <link type="text/css" rel="stylesheet" href="css/rickshaw.min.css">
+    -->
+    <link type="text/css" rel="stylesheet" href="css/chartist.min.css">
+    <link type="text/css" rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <h1>Fishy Data</h1>
+    <div class="ct-chart ct-golden-section" id="chart1"></div>
+    
+    <div id="chart_container">
+      <div id="y_axis"></div>
+      <div id="chart"></div>
+    </div>
+    <div id="legend"></div>
+
+    <table id="tableData">
+      <thead>
+        <th>Sequence</th>
+        <th>Timestamp</th>
+        <th>Water temperature</th>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>
