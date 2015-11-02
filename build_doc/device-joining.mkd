@@ -9,21 +9,26 @@ Initialising Devices; Associating Devices with Users
 ## The procedure for getting a new WaterElf onto your local network
 
 - Get new sensor out of box, plug it in.
-- Join waterelf-xxxxxxx wifi network.
-- Open browser, goto waterelf page / 192.168.1.1
-- Select home wifi network and enter password. Also enter email address
-  (wegrow username) and wegrow password.
-- Device joins home network and authenticates with wegrow server using
-  credentials supplied.
-- On sucess, device issues page redirect, then shuts down it's access point,
-  throwing connected wifi device back to home network, hopefully in time for
-  redirect to get them to login to wegrow site, to device sucess page.
+- Go to your phone or laptop or etc. and join waterelf-xxxxxxx wifi network.
+- Open browser, goto 192.168.1.1 [hopefully when the captive DNS is working
+  again this step will change to "go to any page"].
+- Click on the "configure wifi network" link.
+- Select your wifi network and enter its pass key.
+- The WaterElf will then join your home network.
+- [TODO] On sucess, device issues page redirect, then shuts down it's access
+  point, throwing connected wifi device back to home network, hopefully in
+  time for redirect to get them to login to wegrow site, to device success
+  page.
 - On failure, device issues page refresh with wifi status report.
 
  
 ## Associating WaterElves with users on WeGrow
 
-When the user wishes to connect a new sensor to WeGrow.social, the site
-generates a short token for them to enter on the sensor. The sensor then pings
-the server with the token and gets a longer key in return. All future
-interactions with the server then use that key. The WeGrow site 
+When the user wishes to connect a new WaterElf sensor to WeGrow.social, the
+site generates a short token for them to enter on the sensor. (First they join
+their phone or etc. to the Elf's AP as above, then click on the "configure
+data sharing" link and enter the token -- a bit like 2-phase authentication on
+Google for example.) The Elf then pings WeGrow -- TODO using TLS -- with the
+token and gets a longer key in return, which it stores. All future
+interactions with the server then use that key. The WeGrow site associates
+interactions using that key with the user who initiated creation of the token.
