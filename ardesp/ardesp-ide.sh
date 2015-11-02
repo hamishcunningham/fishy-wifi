@@ -17,8 +17,8 @@ HPREFSDIR=${IDEBASE}/dot-arduino15-head
 X=
 STAGING=
 HEAD=
-STAGINGDIR=${IDEBASE}/arduino-1.6.5*
-HEADDIR=${IDEBASE}/arduino-1.6.6
+STAGINGDIR=${IDEBASE}/arduino-1.6.5-r5
+HEADDIR=${IDEBASE}/arduino-1.6.5-r5--local-esp
 
 # message & exit if exit num present
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
