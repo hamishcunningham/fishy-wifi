@@ -49,7 +49,7 @@ const char* pageDefault =
   "<h2>Control</h2>\n"
   "<p><ul>\n"
   "<li><a href='/wifi'>Join a wifi network</a></li>\n"
-  "<li><a href='/serverconf'>Configure server location</a></li>\n"
+  "<li><a href='/serverconf'>Configure data sharing</a></li>\n"
   "<li>\n"
     "<form method='POST' action='actuate'>\n"
     "External power: "
@@ -387,7 +387,7 @@ String genServerConfForm() {
   String f = pageTop;
   f += ": Server Config";
   f += pageTop2;
-  f += "<h2>Configure a server</h2><p>\n";
+  f += "<h2>Configure data sharing</h2><p>\n";
 
   f += "<form method='POST' action='svrchz'> ";
   f += "<br/>Local server IP address: ";
@@ -409,7 +409,7 @@ void handle_serverconf() {
 void handle_svrchz() {
   Serial.println("serving page at /svrchz");
   String toSend = pageTop;
-  toSend += ": server configured";
+  toSend += ": data sharing configured";
   toSend += pageTop2;
 
   boolean cloudShare = false;
