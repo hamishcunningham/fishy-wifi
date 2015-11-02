@@ -579,25 +579,20 @@ void jsonMonitorEntry(monitor_t *m, String* buf) {
   buf->concat("\"timestamp\": ");
   buf->concat(m->timestamp);
   if(GOT_TEMP_SENSOR){
-    buf->concat(", ");
-    buf->concat("\"waterTemp\": ");
+    buf->concat(", \"waterTemp\": ");
     buf->concat(m->waterCelsius);
   }
   if(GOT_HUMID_SENSOR){  
-    buf->concat(", ");
-    buf->concat("\"airTemp\": ");
+    buf->concat(", \"airTemp\": ");
     buf->concat(m->airCelsius);
-    buf->concat(", ");
-    buf->concat("\"humidity\": ");
+    buf->concat(", \"humidity\": ");
     buf->concat(m->airHumid);
   }
   if(GOT_LIGHT_SENSOR){
-    buf->concat(", ");
     buf->concat(", \"lux\": ");
     buf->concat(m->lux);
   }
   if(GOT_PH_SENSOR){
-    buf->concat(", ");
     buf->concat(", \"pH\": ");
     buf->concat(m->pH);
   }
