@@ -1,0 +1,35 @@
+Control Freak: a task management utility for the ESP8266 based on NodeMCU
+===
+
+[Hamish Cunningham](https://hamish.gate.ac.uk/), [Gareth
+Coleman](http://l0l.org.uk/) and [The.Crowd.Works](https://the.crowd.works)
+
+## Caveat :-(
+I've given up on this for now -- it doesn't really fit into the ESP's memory
+space... Suggestions for trimming it welcome!
+
+## Squeezing quarts into pint pots...
+A control utility to facilitate complex tasks in tight spaces on the ESP8266
+by allowing periodic restarts to reclaim memory.
+
+The job is split into a set of (sub)tasks, each represented by a Lua package
+that implements a `run` function.
+
+Freak loops over these functions, passing (small amounts!) of data along the
+pipeline. This data and a record of which task is due next is persisted to the
+filesystem during restarts.
+
+The sequence of tasks (and any precondition functions that must return true
+before they run) is static data that lives in the caller (e.g. `init.lua`).
+Runtime data for each task is stored as a (flat) table in
+`continuation.taskdata` keyed on the task name.
+
+## Usage
+    freak = require("freak")
+    tasks = { "joinme", "sense", "report", "act", 5000 }
+    freak.begin(tasks)
+
+Tasks can request that they are skipped in subsequent runs by adding `skipme`
+to their `taskdata`.
+
+Tasks that are numbers result in a sleep of that length.
