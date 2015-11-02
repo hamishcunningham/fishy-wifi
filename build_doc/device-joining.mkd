@@ -1,21 +1,27 @@
-New device joining procedure:
+Initialising Devices; Associating Devices with Users
 
-1	Get new sensor out of box, plug it in.
+## We have two system components
 
-2	Join waterelf-xxxxxxx wifi network.
+- **WaterElf** -- the wifi-connected sensor/actuator board.
+- **WeGrow.social** -- a website with DB, user managment, community data
+  sharing etc.
 
-3	Open browser, goto waterelf page / 192.168.1.1
+## The procedure for getting a new WaterElf onto your local network
 
-4	Select home wifi network and enter password. Also enter email address (wegrow username) and wegrow password.
-
-5	Device joins home network and authenticates with wegrow server using credentials supplied.
-
-6	On sucess, device issues page redirect, then shuts down it's access point, throwing connected wifi device back to home network, hopefully in time for redirect to get them to login to wegrow site, to device sucess page.
-
-7	On failure, device issues page refresh with wifi status report.
+- Get new sensor out of box, plug it in.
+- Join waterelf-xxxxxxx wifi network.
+- Open browser, goto waterelf page / 192.168.1.1
+- Select home wifi network and enter password. Also enter email address
+  (wegrow username) and wegrow password.
+- Device joins home network and authenticates with wegrow server using
+  credentials supplied.
+- On sucess, device issues page redirect, then shuts down it's access point,
+  throwing connected wifi device back to home network, hopefully in time for
+  redirect to get them to login to wegrow site, to device sucess page.
+- On failure, device issues page refresh with wifi status report.
 
  
-Associating sensors with users
+## Associating WaterElves with users on WeGrow
 
 When the user wishes to connect a new sensor to WeGrow.social, the site
 generates a short token for them to enter on the sensor. The sensor then pings
