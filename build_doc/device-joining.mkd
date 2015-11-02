@@ -15,3 +15,9 @@ New device joining procedure:
 7	On failure, device issues page refresh with wifi status report.
 
  
+Associating sensors with users
+
+When the user wishes to connect a new sensor to WeGrow.social, the site
+generates a short token for them to enter on the sensor. The sensor then pings
+the server with the token and gets a longer key in return. All future
+interactions with the server then use that key. The WeGrow site 

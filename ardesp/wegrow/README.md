@@ -6,8 +6,9 @@
 ## Running CouchDB
 
 - Install [docker][docker]
-- Install [docker-compose][docker-compose]
-- In this directory, run: "docker-compose up"
+- Install [docker-compose][docker-compose] (e.g. "pip install -U
+  docker-compose")
+- In this directory, run: "DOCKER_HOST=localhost sudo docker-compose up"
 
 ## Installing fishyapp on CouchDB
 
