@@ -1,0 +1,44 @@
+#chart1 {
+    width: 85%;
+    height: 400px;
+}
+
+/*
+#chart_container {
+	position: relative;
+	display: inline-block;
+	font-family: Arial, Helvetica, sans-serif;
+    margin-top: 20px;
+}
+
+#chart {
+	display: inline-block;
+	margin-left: 40px;
+    height: 320px;
+}
+
+#y_axis {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 40px;
+}
+
+#legend {
+	display: inline-block;
+	vertical-align: top;
+	margin: 0 0 0 10px;
+}
+*/
+
+#tableData {
+    margin: 20px;
+    border-spacing: 20px 0;
+    border-collapse: separate;
+}
+
+#tableData th,
+#tableData td {
+    text-align: left;
+    vertical-align: top;
+}

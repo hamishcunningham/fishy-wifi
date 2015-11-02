@@ -1,0 +1,4 @@
+couchdb:
+    build: "./couchdb"
+    ports:
+        - "5984:5984"
