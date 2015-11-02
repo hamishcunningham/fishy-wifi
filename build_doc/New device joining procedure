@@ -1,0 +1,17 @@
+New device joining procedure:
+
+1	Get new sensor out of box, plug it in.
+
+2	Join waterelf-xxxxxxx wifi network.
+
+3	Open browser, goto waterelf page / 192.168.1.1
+
+4	Select home wifi network and enter password. Also enter email address (wegrow username) and wegrow password.
+
+5	Device joins home network and authenticates with wegrow server using credentials supplied.
+
+6	On sucess, device issues page redirect, then shuts down it's access point, throwing connected wifi device back to home network, hopefully in time for redirect to get them to login to wegrow site, to device sucess page.
+
+7	On failure, device issues page refresh with wifi status report.
+
+ 
