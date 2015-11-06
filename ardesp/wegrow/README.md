@@ -19,8 +19,8 @@
 - cd fishyapp
 - start app with:
   couchapp push fishydata
-- the app reports a url to load e.g. [INFO] Visit your CouchApp here:
-  http://127.0.0.1:5984/fishydata/_design/fishyapp/index.html
+- the app reports a url to load e.g. http://127.0.0.1:5984/fishydata/_design/fishyapp/index.html
+- open browser and goto the url given to see the data
 
 [docker]: http://docs.docker.com/engine/installation/
 [docker-compose]: https://docs.docker.com/compose/install/
