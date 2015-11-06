@@ -10,7 +10,7 @@
 - Install functools32 (e.g. "sudo pip install -U functools32")
 - To start database, in this directory (wegrow), run:
   "DOCKER_HOST=localhost sudo docker-compose up"
-- when done press Control-C to stop database running
+- Leave db running to support fishyapp; when all done press Control-C to stop database running
 
 ## Installing fishyapp on CouchDB
 
@@ -18,9 +18,9 @@
   "sudo pip install couchapp" (make sure you're using python 2.7 e.g. "python -V")
 - cd fishyapp
 - start app with:
-  couchapp push fishydata
-- the app reports a url to load e.g. http://127.0.0.1:5984/fishydata/_design/fishyapp/index.html
-- open browser and goto the url given to see the data
+  "couchapp push fishydata"
+- the app reports a URL to load e.g. http://127.0.0.1:5984/fishydata/_design/fishyapp/index.html
+- open browser and load the URL given to see the data
 
 [docker]: http://docs.docker.com/engine/installation/
 [docker-compose]: https://docs.docker.com/compose/install/
