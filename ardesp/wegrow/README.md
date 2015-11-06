@@ -15,8 +15,7 @@
 - Install [couchapp][couchapp]:
   "sudo pip install couchapp" (make sure you're using python 2.7 e.g. "python -V)
 - cd fishyapp
-- couchapp push fishydata
-
+- couchapp push fishydata (will start app, reports url to load, when done press Control C to stop)
 
 [docker]: http://docs.docker.com/engine/installation/
 [docker-compose]: https://docs.docker.com/compose/install/
