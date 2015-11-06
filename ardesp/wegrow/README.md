@@ -8,8 +8,8 @@
 - Install [docker][docker]
 - Install [docker-compose][docker-compose] (e.g. "sudo pip install -U docker-compose")
 - Install functools32 (e.g. "sudo pip install -U functools32")
-- To start database, in this directory (wegrow), run:
-  "DOCKER_HOST=localhost sudo docker-compose up"
+- To start database, in this directory (wegrow), run: "docker-compose up", if you're not set up to run docker
+  as a regular user try "DOCKER_HOST=localhost sudo docker-compose up"
 - Leave db running to support fishyapp; when all done press Control-C to stop database running
 
 ## Installing fishyapp on CouchDB
