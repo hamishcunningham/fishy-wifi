@@ -14,6 +14,8 @@
 
 ## Installing fishyapp on CouchDB
 
+- Install python-dev:
+  "sudo apt-get update && sudo apt-get install python-dev"
 - Install [couchapp][couchapp]:
   "sudo pip install couchapp" (make sure you're using python 2.7 e.g. "python -V")
 - cd fishyapp
