@@ -6,8 +6,7 @@ https://github.com/esp8266/Arduino)
 - Install Arduino 1.6.4 or later from the Arduino website.
 - Start Arduino and open Preferences window.
 - Enter http://arduino.esp8266.com/staging/package_esp8266com_index.json into
-  Additional Board Manager URLs field. You can add multiple URLs, separating
-  them with commas.
+  Additional Board Manager URLs field.
   - Or, for the latest version, use a locally built version or the staging
     release -- see http://www.esp8266.com/viewtopic.php?f=26&t=3919
 - Open Boards Manager from Tools > Board menu and install esp8266 platform
