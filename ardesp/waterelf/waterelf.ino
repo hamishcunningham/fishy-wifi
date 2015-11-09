@@ -360,7 +360,7 @@ void handle_wfchz() {
   String key = "";
 
   for(uint8_t i = 0; i < webServer.args(); i++ ) {
-    // Serial.println(" " + webServer.argName(i) + ": " + webServer.arg(i));
+    //Serial.println(" " + webServer.argName(i) + ": " + webServer.arg(i));
     if(webServer.argName(i) == "ssid")
       ssid = webServer.arg(i);
     else if(webServer.argName(i) == "key")
@@ -373,10 +373,10 @@ void handle_wfchz() {
   } else {
     toSend += "<h2>Done! Now trying to join network...</h2>";
     toSend += "<p>Check <a href='/wifistatus'>wifi status here</a>.</p>";
-    char ssidchars[sizeof(ssid)];
-    char keychars[sizeof(key)];
-    ssid.toCharArray(ssidchars, sizeof(ssid));
-    key.toCharArray(keychars, sizeof(key));
+    char ssidchars[ssid.length()];
+    char keychars[key.length()];
+    ssid.toCharArray(ssidchars, ssid.length()+1);
+    key.toCharArray(keychars, key.length()+1);
     WiFi.begin(ssidchars, keychars);
   }
 
