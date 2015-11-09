@@ -263,8 +263,9 @@ String genAPForm() {
   String f = pageTop;
   f += ": Wifi Config";
   f += pageTop2;
-  f += "<h2>Choose a wifi access point to join</h2><p>\n";
-
+  f += "<h2>Choose a wifi access point to join</h2>\n";
+  f += "<h3>Signal strength in brackets, lower is better</h3><p>\n";
+  
   const char *checked = " checked";
 
   int n = WiFi.scanNetworks();
@@ -293,6 +294,9 @@ String genAPForm() {
       f.concat(checked);
       f.concat(">");
       f.concat(WiFi.SSID(i));
+      f.concat(" (");
+      f.concat(WiFi.RSSI(i));
+      f.concat(" dBm)");
       f.concat("<br/>\n");
       checked = "";
     }
@@ -392,11 +396,11 @@ String genServerConfForm() {
   f += "<form method='POST' action='svrchz'> ";
   f += "<br/>Local server IP address: ";
   f += "<input type='textarea' name='svraddr'><br/><br/> ";
-  f += "Sharing on WeGrow.social: ";
+  //f += "Sharing on WeGrow.social: ";
   // TODO set checked dependent on getCloudShare()
-  f += "on <input type='radio' name='wegrow' value='on' checked>\n";
-  f += "off <input type='radio' name='wegrow' value='off'><br/><br/>\n";
-  f += "<input type='submit' value='Submit'></form></p>";
+  //f += "on <input type='radio' name='wegrow' value='on' checked>\n";
+  //f += "off <input type='radio' name='wegrow' value='off'><br/><br/>\n";
+  //f += "<input type='submit' value='Submit'></form></p>";
 
   f += pageFooter;
   return f;
