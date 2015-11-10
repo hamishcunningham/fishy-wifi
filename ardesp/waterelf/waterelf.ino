@@ -400,7 +400,7 @@ String genServerConfForm() {
   // TODO set checked dependent on getCloudShare()
   //f += "on <input type='radio' name='wegrow' value='on' checked>\n";
   //f += "off <input type='radio' name='wegrow' value='off'><br/><br/>\n";
-  //f += "<input type='submit' value='Submit'></form></p>";
+  f += "<input type='submit' value='Submit'></form></p>";
 
   f += pageFooter;
   return f;
