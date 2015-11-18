@@ -42,7 +42,7 @@ const char* pageTop = pageTopStr.c_str();
 const char* pageTop2 = "</title>\n"
   "<meta charset=\"utf-8\">"
   "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-  "<style>body{background:#FFF;color: #000;font-family: sans-serif;font-size: 150%;}</style>"
+  "<style>body{background: #FFF url(\"water-elf-by-harumiyuki.jpg\") no-repeat;color: #000;font-family: sans-serif;font-size: 150%;}</style>"
   "</head><body>\n";
 const char* pageDefault =
   "<h2>Welcome to WaterElf</h2>\n"
@@ -66,6 +66,41 @@ const char* pageDefault =
 const char* pageFooter =
   "\n<p><a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;"
   "<a href='https://now.wegrow.social/'>WeGrow</a></p></body></html>";
+
+/////////////////////////////////////////////////////////////////////////////
+// file serving web-pages ////////////////////////////////////////////////////
+String getContentType(String filename){
+  if(webServer.hasArg("download")) return "application/octet-stream";
+  else if(filename.endsWith(".htm")) return "text/html";
+  else if(filename.endsWith(".html")) return "text/html";
+  else if(filename.endsWith(".css")) return "text/css";
+  else if(filename.endsWith(".js")) return "application/javascript";
+  else if(filename.endsWith(".png")) return "image/png";
+  else if(filename.endsWith(".gif")) return "image/gif";
+  else if(filename.endsWith(".jpg")) return "image/jpeg";
+  else if(filename.endsWith(".ico")) return "image/x-icon";
+  else if(filename.endsWith(".xml")) return "text/xml";
+  else if(filename.endsWith(".pdf")) return "application/x-pdf";
+  else if(filename.endsWith(".zip")) return "application/x-zip";
+  else if(filename.endsWith(".gz")) return "application/x-gzip";
+  return "text/plain";
+}
+
+bool handleFileRead(String path){
+  //Serial.println("handleFileRead: " + path);
+  if(path.endsWith("/")) path += "index.htm";
+  String contentType = getContentType(path);
+  String pathWithGz = path + ".gz";
+  if(SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)){
+    if(SPIFFS.exists(pathWithGz))
+      path += ".gz";
+    File file = SPIFFS.open(path, "r");
+    size_t sent = webServer.streamFile(file, contentType);
+    file.close();
+    return true;
+  }
+  return false;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
@@ -222,10 +257,15 @@ void startWebServer() {
   Serial.println("HTTP server started");
 }
 void handleNotFound() {
-  Serial.print("URI Not Found: ");
+  // This loads from SPIFFS if URL isn't defined above
+  if(!handleFileRead(webServer.uri())){
+    webServer.send(404, "text/plain", "FileNotFound");
+    Serial.print("File Not Found: ");
+    } else {
+      Serial.print("Served from SPIFFS: ");
+    }
   Serial.println(webServer.uri());
   // TODO send redirect to /? or just use handle_root?
-  webServer.send(200, "text/plain", "URI Not Found");
 }
 void handle_root() {
   Serial.println("serving page notionally at /");
