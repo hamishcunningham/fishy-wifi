@@ -211,7 +211,6 @@ void startWebServer() {
   webServer.on("/L2", handle_root);
   webServer.on("/ALL", handle_root);
   webServer.onNotFound(handleNotFound);
-
   webServer.on("/wifi", handle_wifi);
   webServer.on("/wifistatus", handle_wifistatus);
   webServer.on("/serverconf", handle_serverconf);
@@ -312,6 +311,7 @@ void handle_wifi() {
   String toSend = genAPForm();
   webServer.send(200, "text/html", toSend);
 }
+
 void handle_wifistatus() {
   Serial.println("serving page at /wifistatus");
 
@@ -563,8 +563,7 @@ void postSensorData(monitor_t *monitorData) {
   envelope += "\nConnection: close\n\n";
   envelope += jsonBuf;
   //Serial.println(envelope);
-
-  //IPAddress couchServer(10,0,0,24);
+  
   WiFiClient couchClient;
   if(couchClient.connect(svrAddr.c_str(), 5984)) {
     Serial.print(svrAddr);
