@@ -42,7 +42,7 @@ const char* pageTop = pageTopStr.c_str();
 const char* pageTop2 = "</title>\n"
   "<meta charset=\"utf-8\">"
   "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-  "<style>body{background: #FFF url(\"waterelf.jpg\") no-repeat;color: #000;font-family: sans-serif;font-size: 150%;}</style>"
+  "<style>body{padding: 20px;background: #FFF url(\"waterelf.jpg\") no-repeat;color: #000;font-family: sans-serif;font-size: 150%;}</style>"
   "</head><body>\n";
 const char* pageDefault =
   "<h2>Welcome to WaterElf</h2>\n"
