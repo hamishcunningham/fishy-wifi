@@ -42,7 +42,7 @@ const char* pageTop = pageTopStr.c_str();
 const char* pageTop2 = "</title>\n"
   "<meta charset=\"utf-8\">"
   "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-  "<style>body{background: #FFF url(\"water-elf-by-harumiyuki.jpg\") no-repeat;color: #000;font-family: sans-serif;font-size: 150%;}</style>"
+  "<style>body{background: #FFF url(\"waterelf.jpg\") no-repeat;color: #000;font-family: sans-serif;font-size: 150%;}</style>"
   "</head><body>\n";
 const char* pageDefault =
   "<h2>Welcome to WaterElf</h2>\n"
@@ -69,6 +69,7 @@ const char* pageFooter =
 
 /////////////////////////////////////////////////////////////////////////////
 // file serving web-pages ////////////////////////////////////////////////////
+File fsUploadFile;
 String getContentType(String filename){
   if(webServer.hasArg("download")) return "application/octet-stream";
   else if(filename.endsWith(".htm")) return "text/html";
@@ -100,6 +101,82 @@ bool handleFileRead(String path){
     return true;
   }
   return false;
+}
+
+void handleFileUpload(){
+  if(webServer.uri() != "/edit") return;
+  HTTPUpload& upload = webServer.upload();
+  if(upload.status == UPLOAD_FILE_START){
+    String filename = upload.filename;
+    if(!filename.startsWith("/")) filename = "/"+filename;
+    Serial.print("handleFileUpload Name: "); Serial.println(filename);
+    fsUploadFile = SPIFFS.open(filename, "w");
+    filename = String();
+  } else if(upload.status == UPLOAD_FILE_WRITE){
+    //Serial.print("handleFileUpload Data: "); Serial.println(upload.currentSize);
+    if(fsUploadFile)
+      fsUploadFile.write(upload.buf, upload.currentSize);
+  } else if(upload.status == UPLOAD_FILE_END){
+    if(fsUploadFile)
+      fsUploadFile.close();
+    Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
+  }
+}
+
+void handleFileDelete(){
+  if(webServer.args() == 0) return webServer.send(500, "text/plain", "BAD ARGS");
+  String path = webServer.arg(0);
+  Serial.println("handleFileDelete: " + path);
+  if(path == "/")
+    return webServer.send(500, "text/plain", "BAD PATH");
+  if(!SPIFFS.exists(path))
+    return webServer.send(404, "text/plain", "FileNotFound");
+  SPIFFS.remove(path);
+  webServer.send(200, "text/plain", "");
+  path = String();
+}
+
+void handleFileCreate(){
+  if(webServer.args() == 0)
+    return webServer.send(500, "text/plain", "BAD ARGS");
+  String path = webServer.arg(0);
+  Serial.println("handleFileCreate: " + path);
+  if(path == "/")
+    return webServer.send(500, "text/plain", "BAD PATH");
+  if(SPIFFS.exists(path))
+    return webServer.send(500, "text/plain", "FILE EXISTS");
+  File file = SPIFFS.open(path, "w");
+  if(file)
+    file.close();
+  else
+    return webServer.send(500, "text/plain", "CREATE FAILED");
+  webServer.send(200, "text/plain", "");
+  path = String();
+}
+
+void handleFileList() {
+  if(!webServer.hasArg("dir")) {webServer.send(500, "text/plain", "BAD ARGS"); return;}
+  
+  String path = webServer.arg("dir");
+  Serial.println("handleFileList: " + path);
+  Dir dir = SPIFFS.openDir(path);
+  path = String();
+
+  String output = "[";
+  while(dir.next()){
+    File entry = dir.openFile("r");
+    if (output != "[") output += ',';
+    bool isDir = false;
+    output += "{\"type\":\"";
+    output += (isDir)?"dir":"file";
+    output += "\",\"name\":\"";
+    output += String(entry.name()).substring(1);
+    output += "\"}";
+    entry.close();
+  }
+  
+  output += "]";
+  webServer.send(200, "text/json", output);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -246,6 +323,19 @@ void startWebServer() {
   webServer.on("/L2", handle_root);
   webServer.on("/ALL", handle_root);
   webServer.onNotFound(handleNotFound);
+  webServer.on("/list", HTTP_GET, handleFileList);
+  webServer.on("/edit", HTTP_GET, [](){
+    if(!handleFileRead("/edit.htm")) webServer.send(404, "text/plain", "FileNotFound");
+  });
+  //create file
+  webServer.on("/edit", HTTP_PUT, handleFileCreate);
+  //delete file
+  webServer.on("/edit", HTTP_DELETE, handleFileDelete);
+  //called after file upload
+  webServer.on("/edit", HTTP_POST, [](){ webServer.send(200, "text/plain", ""); });
+  //called when a file is received inside POST data
+  webServer.onFileUpload(handleFileUpload);
+
   webServer.on("/wifi", handle_wifi);
   webServer.on("/wifistatus", handle_wifistatus);
   webServer.on("/serverconf", handle_serverconf);
