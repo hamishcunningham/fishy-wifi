@@ -210,7 +210,7 @@ DeviceAddress tempAddr; // array to hold device address
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
-DHT dht(12, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
+DHT dht(13, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
 boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -507,10 +507,23 @@ void handle_wfchz() {
   } else {
     toSend += "<h2>Done! Now trying to join network...</h2>";
     toSend += "<p>Check <a href='/wifistatus'>wifi status here</a>.</p>";
+    ssid.replace("+", " ");
     char ssidchars[ssid.length()];
     char keychars[key.length()];
     ssid.toCharArray(ssidchars, ssid.length()+1);
+  if(ssidchars == "") {
+    toSend += "<h2>Ooops, no SSID...?</h2>";
+    toSend += "<p>Looks like a bug :-(</p>";
+  }
     key.toCharArray(keychars, key.length()+1);
+    Serial.print("ssid: ");
+    Serial.println(ssid);
+    Serial.print("key: ");
+    Serial.println(key);
+    Serial.print("ssidshars: ");
+    Serial.println(ssidchars);
+    Serial.print("keyshars: ");
+    Serial.println(keychars);
     WiFi.begin(ssidchars, keychars);
   }
 
@@ -605,7 +618,7 @@ void handle_actuate() {
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
   Serial.println("startPeripherals");
-  mySwitch.enableTransmit(13);   // RC transmitter is connected to Pin 13
+  mySwitch.enableTransmit(12);   // RC transmitter is connected to Pin 13
 
   tempSensor.begin();     // start the onewire temperature sensor
   if(tempSensor.getDeviceCount()==1) {
@@ -734,7 +747,7 @@ void jsonMonitorEntry(monitor_t *m, String* buf) {
 void getTemperature(float* waterCelsius) {
   tempSensor.requestTemperatures(); // send command to get temperatures
   (*waterCelsius) = tempSensor.getTempC(tempAddr);
-  Serial.print("Temp: ");
+  Serial.print("Water Temp: ");
   Serial.print(*waterCelsius);
   Serial.println(" C, ");
   return;
