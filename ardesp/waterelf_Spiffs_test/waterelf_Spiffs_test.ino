@@ -786,6 +786,8 @@ void getPH(float* pH) {
   adc_low = Wire.read();       // ...them
   // now assemble them, remembering byte maths; a Union works well here too
   adc_result = (adc_high * 256) + adc_low;
+  Serial.print("Raw result: ");
+  Serial.println(adc_result);
   // we have a our Raw pH reading from the ADC; now figure out what the pH is  
   float miliVolts = (((float)adc_result/4096)*vRef)*1000;
   float temp = ((((vRef*(float)pH7Cal)/4096)*1000)- miliVolts)/opampGain;
