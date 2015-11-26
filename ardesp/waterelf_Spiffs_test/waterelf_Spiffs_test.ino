@@ -636,7 +636,7 @@ void startPeripherals() {
     GOT_HUMID_SENSOR = true;
   }
 
-  Wire.begin();
+  Wire.begin((4,5));
   byte error;
   Wire.beginTransmission(0x29);
   error = Wire.endTransmission();
@@ -660,7 +660,7 @@ void startPeripherals() {
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS); // longest (dim)
   }
   
-  //Wire.begin();
+  Wire.begin((4,5));
   Wire.beginTransmission(pH_Add);
   error = Wire.endTransmission();
   if(error==0){
@@ -764,6 +764,7 @@ void getHumidity(float* airCelsius, float* airHumid) {
   return;
 }
 void getLight(uint16_t* lux) {
+  Wire.begin();
   sensors_event_t event;
   tsl.getEvent(&event);
   (*lux) = event.light; 
@@ -773,6 +774,7 @@ void getLight(uint16_t* lux) {
   return;
 }
 void getPH(float* pH) {
+  Wire.begin();
   // this is our I2C ADC interface section
   // assign 2 BYTES variables to capture the LSB & MSB (or Hi Low in this case)
   byte adc_high;
