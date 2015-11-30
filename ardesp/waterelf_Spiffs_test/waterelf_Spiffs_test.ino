@@ -25,9 +25,9 @@ const int TICK_HEAP_DEBUG = 1000;
 /////////////////////////////////////////////////////////////////////////////
 // wifi management stuff ////////////////////////////////////////////////////
 const byte DNS_PORT = 53;
+DNSServer dnsServer;
 IPAddress apIP(192, 168, 99, 1);
 IPAddress netMsk(255, 255, 255, 0);
-DNSServer dnsServer;
 ESP8266WebServer webServer(80);
 String apSSIDStr = "WaterElf-" + String(ESP.getChipId());
 const char* apSSID = apSSIDStr.c_str();
@@ -220,12 +220,10 @@ boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // pH sensor stuff //////////////////////////////////////////////////////////
-const byte pH_Add = 0x4D;  // change this to match ph ADC address
-int pH7Cal = 2048; // assume ideal probe and amp conditions 1/2 of 4096
-int pH4Cal = 1286; // ideal probe slope -> this many 12bit units on 4 scale
-float pHStep = 59.16; // ideal probe slope
-const float vRef = 4.096; // our vRef into the ADC wont be exact
-// since you can run VCC lower than Vref its best to measure and adjust here
+byte pH_Add = 0; // loaded from SensorConfig.txt
+int pH4Cal = 0,pH7Cal = 0; // loaded from SensorConfig.txt
+float vRef = 0; // loaded from SensorConfig.txt
+const float pHStep = 59.16; // ideal probe slope
 const float opampGain = 5.25; //what is our Op-Amps gain (stage 1)
 boolean GOT_PH_SENSOR = false; // we'll change later if we detect sensor
 
@@ -239,7 +237,20 @@ boolean getCloudShare();
 void setCloudShare(boolean b);
 String getSvrAddr();
 void setSvrAddr(String s);
-
+void getSensorConfig(byte* pH_Add, int* pH4Cal, int* pH7Cal, float* vRef) {
+  File f = SPIFFS.open("/SensorConfig.txt", "r");
+  if(f) {
+    *pH_Add=strtol(&f.readStringUntil('/')[0], NULL, 16);
+    String comment1 = f.readStringUntil('\n');
+    *pH4Cal=strtol(&f.readStringUntil('/')[0], NULL, 10);
+    String comment2 = f.readStringUntil('\n');
+    *pH7Cal=strtol(&f.readStringUntil('/')[0], NULL, 10);
+    String comment3 = f.readStringUntil('\n');
+    *vRef = f.readStringUntil('/').toFloat();
+    String comment4 = f.readStringUntil('\n');
+    f.close();
+  }
+}
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
 void ledOn();
@@ -250,13 +261,14 @@ String ip2str(IPAddress address);
 // setup ////////////////////////////////////////////////////////////////////
 void setup() {
   Serial.begin(115200);
-
+  Serial.println(); // start on new line
   pinMode(BUILTIN_LED, OUTPUT); // turn built-in LED on
   blink(3); // signal we're starting setup
 
   // read persistent config
   SPIFFS.begin();
   svrAddr = getSvrAddr();
+  getSensorConfig(&pH_Add,&pH4Cal,&pH7Cal,&vRef);
 
   startPeripherals();
   startAP();
@@ -281,7 +293,7 @@ void loop() {
 
   if(loopCounter == TICK_MONITOR) {
     updateSensorData(monitorData);
-    delay(500); // TODO a better way?!
+    delay(5); // TODO a better way?!
   } 
   if(loopCounter == TICK_WIFI_DEBUG) {
 //    Serial.print("SSID: "); Serial.print(apSSID);
@@ -623,6 +635,7 @@ void startPeripherals() {
   tempSensor.begin();     // start the onewire temperature sensor
   if(tempSensor.getDeviceCount()==1) {
     GOT_TEMP_SENSOR = true;
+    Serial.println("found waterproof temperature sensor");
     tempSensor.getAddress(tempAddr, 0);
     tempSensor.setResolution(tempAddr, 12); // 12 bit res (DS18B20 does 9-12)
   }
@@ -633,15 +646,17 @@ void startPeripherals() {
   if (isnan(airHumid) || isnan(airCelsius)) {
     Serial.println("failed to find humidity sensor");
   } else {
+    Serial.println("found humidity sensor");
     GOT_HUMID_SENSOR = true;
   }
 
-  Wire.begin((4,5));
+  Wire.begin(4,5);
   byte error;
   Wire.beginTransmission(0x29);
   error = Wire.endTransmission();
   if(error==0){
     GOT_LIGHT_SENSOR = true;
+    Serial.println("Found light sensor");
     tsl.begin();  // startup light sensor
     // can change gain of light sensor on the fly, to adapt 
     // brighter/dimmer light situations
@@ -660,7 +675,6 @@ void startPeripherals() {
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS); // longest (dim)
   }
   
-  Wire.begin((4,5));
   Wire.beginTransmission(pH_Add);
   error = Wire.endTransmission();
   if(error==0){
@@ -795,8 +809,7 @@ void getPH(float* pH) {
   float temp = ((((vRef*(float)pH7Cal)/4096)*1000)- miliVolts)/opampGain;
   (*pH) = 7-(temp/pHStep); 
   Serial.print("pH: ");
-  Serial.print(*pH);
-  Serial.println(" pH");
+  Serial.println(*pH);
   return;
 }
 
