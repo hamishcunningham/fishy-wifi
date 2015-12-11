@@ -4,7 +4,7 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <PubSubClient.h>
-#include <DNSServer.h>
+#include "./DNSServer.h"      // Patched lib
 #include <FS.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -528,8 +528,8 @@ void handle_wfchz() {
     toSend += "<h2>Done! Now trying to join network...</h2>";
     toSend += "<p>Check <a href='/wifistatus'>wifi status here</a>.</p>";
     ssid.replace("+", " ");
-    char ssidchars[ssid.length()];
-    char keychars[key.length()];
+    char ssidchars[ssid.length()+1];
+    char keychars[key.length()+1];
     ssid.toCharArray(ssidchars, ssid.length()+1);
   if(ssidchars == "") {
     toSend += "<h2>Ooops, no SSID...?</h2>";
@@ -746,21 +746,35 @@ void postSensorData(monitor_t *monitorData) {
 void sendSensorData(monitor_t *monitorData) {
   Serial.println("\nsendSensorData");
   WiFiClient wclient;
-  PubSubClient client(wclient, apIP);
+  PubSubClient client(wclient, svrAddr);
   client.set_callback(callback); // Register MQTT callback
-  if(GOT_TEMP_SENSOR){
-    client.publish("WaterTemp",waterCelsius);
+  if (client.connect("arduinoClient")) {
+    if(GOT_TEMP_SENSOR){
+      String wc;
+      wc.concat(monitorData->waterCelsius);
+      client.publish("WaterTemp",wc);
+    }
+    if(GOT_HUMID_SENSOR){
+      String ac,hm;
+      ac.concat(monitorData->airCelsius);
+      hm.concat(monitorData->airHumid);
+      client.publish("AirTemp",ac);
+      client.publish("Humidity",hm);
+    }  
+    if(GOT_LIGHT_SENSOR){
+      String lx;
+      lx.concat(monitorData->lux);
+      client.publish("Light",lx);
+    }
+    if(GOT_PH_SENSOR){
+      String ph;
+      ph.concat(monitorData->pH);
+      client.publish("pH",ph);
+    }
   }
-  if(GOT_HUMID_SENSOR){
-  }  
-  if(GOT_LIGHT_SENSOR){
-  }
-  if(GOT_PH_SENSOR){
-  }
-
-  Serial.println("");
   return;
 }
+
 void jsonMonitorEntry(monitor_t *m, String* buf) {
   buf->concat("{ ");
   buf->concat("\"timestamp\": ");

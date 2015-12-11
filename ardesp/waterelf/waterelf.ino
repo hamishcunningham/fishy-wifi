@@ -3,7 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include <DNSServer.h>
+#include "./DNSServer.h"      // Patched lib
 #include <FS.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -377,8 +377,8 @@ void handle_wfchz() {
   } else {
     toSend += "<h2>Done! Now trying to join network...</h2>";
     toSend += "<p>Check <a href='/wifistatus'>wifi status here</a>.</p>";
-    char ssidchars[ssid.length()];
-    char keychars[key.length()];
+    char ssidchars[ssid.length()+1];
+    char keychars[key.length()+1];
     ssid.toCharArray(ssidchars, ssid.length()+1);
     key.toCharArray(keychars, key.length()+1);
     WiFi.begin(ssidchars, keychars);

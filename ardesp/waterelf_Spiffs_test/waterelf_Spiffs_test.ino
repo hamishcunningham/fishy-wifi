@@ -3,7 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include <DNSServer.h>
+#include "./DNSServer.h"                  // Patched lib
 #include <FS.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
