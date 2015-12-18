@@ -4,7 +4,7 @@ Scripts, notes and the odd fish for the ESP8266
 [Hamish Cunningham](https://hamish.gate.ac.uk/),
 [Gareth Coleman](http://l0l.org.uk/),
 [Caolan McMahon](https://twitter.com/caolan) and
-[Crowds.Work](https://www.crowds.work)
+[Crowds.Work](http://www.crowds.work)
 
 ## A small corner of The Commons
 
