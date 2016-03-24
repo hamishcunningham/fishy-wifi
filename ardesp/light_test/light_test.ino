@@ -45,8 +45,8 @@ void displaySensorDetails(void)
 void configureSensor(void)
 {
   // You can change the gain on the fly, to adapt to brighter/dimmer light situations
-  //tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
-  tsl.setGain(TSL2591_GAIN_MED);      // 25x gain
+  tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
+  //tsl.setGain(TSL2591_GAIN_MED);      // 25x gain
   //tsl.setGain(TSL2591_GAIN_HIGH);   // 428x gain
   
   // Changing the integration time gives you a longer time over which to sense light

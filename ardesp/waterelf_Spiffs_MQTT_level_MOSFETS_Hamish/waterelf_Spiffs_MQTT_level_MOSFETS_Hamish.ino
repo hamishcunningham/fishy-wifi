@@ -15,6 +15,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_TSL2591.h>
 #include <RCSwitch.h>
+#include "Adafruit_MCP23008.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
@@ -44,6 +45,10 @@ void callback(const MQTT::Publish& pub) {
 }
 
 /////////////////////////////////////////////////////////////////////////////
+// MCP23008 stuff ///////////////////////////////////////////////////////////
+Adafruit_MCP23008 mcp; // Create object for MCP23008
+
+/////////////////////////////////////////////////////////////////////////////
 // OTA update stuff /////////////////////////////////////////////////////////
 // const uint16_t aport = 8266;
 // WiFiServer TelnetServer(aport);
@@ -70,6 +75,27 @@ const char* pageDefault =
   "<li>\n"
     "<form method='POST' action='actuate'>\n"
     "External power: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off' checked>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>\n"
+  "<li>\n"
+    "<form method='POST' action='pump1'>\n"
+    "Water Pump 1: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off' checked>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>\n"
+  "<li>\n"
+    "<form method='POST' action='pump2'>\n"
+    "Water Pump 2: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off' checked>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>\n"
+  "<li>\n"
+    "<form method='POST' action='pump3'>\n"
+    "Water Pump 3: "
     "on <input type='radio' name='state' value='on'>\n"
     "off <input type='radio' name='state' value='off' checked>\n"
     "<input type='submit' value='Submit'></form>\n"
@@ -198,10 +224,11 @@ void handleFileList() {
 
 /////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
-const boolean SEND_COUCH = true;  // turn on/off posting of data to couchdb
+const boolean SEND_COUCH = false;  // turn on/off posting of data to couchdb
 const int MONITOR_POINTS = 60; // number of data points to store
 struct monitor_t {
   unsigned long timestamp;
+  long waterLevel;
   float waterCelsius;
   float airCelsius;
   float airHumid;
@@ -219,6 +246,11 @@ void printMonitorEntry(monitor_t m, String* buf);
 void jsonMonitorEntry(monitor_t *m, String* buf);
 
 /////////////////////////////////////////////////////////////////////////////
+// level sensing stuff //////////////////////////////////////////////////////
+const int levelTriggerPin=14;
+const int levelEchoPin=16;
+boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
+/////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
 OneWire ds(2); // DS1820 on pin 2 (a 4.7K resistor is necessary)
 DallasTemperature tempSensor(&ds);  // pass through reference to library
@@ -228,7 +260,7 @@ DeviceAddress tempAddr; // array to hold device address
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
-DHT dht(13, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
+DHT dht(0, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
 boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -299,7 +331,10 @@ void setup() {
 //  OTA.begin(aport);
 //  TelnetServer.begin();
 //  TelnetServer.setNoDelay(true);
-  
+    mcp.begin();      // use default address 0 for mcp23008
+    mcp.pinMode(0, OUTPUT);
+    mcp.pinMode(4, OUTPUT);
+    mcp.pinMode(7, OUTPUT);    
   if(WiFi.hostname("waterelf"))
     Serial.println("set hostname succeeded");
   else
@@ -444,6 +479,9 @@ void startWebServer() {
   webServer.on("/svrchz", handle_svrchz);
   webServer.on("/data", handle_data);
   webServer.on("/actuate", handle_actuate);
+  webServer.on("/pump1", handle_pump1);
+  webServer.on("/pump2", handle_pump2);
+  webServer.on("/pump3", handle_pump3);
   webServer.begin();
   Serial.println("HTTP server started");
 }
@@ -684,6 +722,7 @@ void handle_svrchz() {
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
 }
+
 void handle_actuate() {
   Serial.println("serving page at /actuate");
   String toSend = pageTop;
@@ -715,12 +754,107 @@ void handle_actuate() {
   webServer.send(200, "text/html", toSend);
 }
 
+void handle_pump1() {
+  Serial.println("serving page at /pump1");
+  String toSend = pageTop;
+  toSend += ": Setting Water Pump 1";
+  toSend += pageTop2;
+
+  boolean newState = false;
+  for(uint8_t i = 0; i < webServer.args(); i++ ) {
+    if(webServer.argName(i) == "state") {
+      if(webServer.arg(i) == "on")
+        newState = true;
+    }
+  }
+
+  // now we trigger MOSFETs off or on
+  if(newState == true){
+    mcp.digitalWrite(0, HIGH);
+    Serial.println("Water Pump 1 on");
+  } else {
+    mcp.digitalWrite(0, LOW);
+    Serial.println("Water Pump 1 off");
+  }
+
+  toSend += "<h2>Water Pump 1 triggered</h2>\n";
+  toSend += "<p>(New state is ";
+  toSend += (newState) ? "on" : "off";
+  toSend += ".)</p>\n";
+  toSend += pageFooter;
+  webServer.send(200, "text/html", toSend);
+}
+
+void handle_pump2() {
+  Serial.println("serving page at /pump2");
+  String toSend = pageTop;
+  toSend += ": Setting Water Pump 2";
+  toSend += pageTop2;
+
+  boolean newState = false;
+  for(uint8_t i = 0; i < webServer.args(); i++ ) {
+    if(webServer.argName(i) == "state") {
+      if(webServer.arg(i) == "on")
+        newState = true;
+    }
+  }
+
+  // now we trigger MOSFETs off or on
+  if(newState == true){
+    mcp.digitalWrite(4, HIGH);
+    Serial.println("Water Pump 2 on");
+  } else {
+    mcp.digitalWrite(4, LOW);
+    Serial.println("Water Pump 2 off");
+  }
+
+  toSend += "<h2>Water Pump 2 triggered</h2>\n";
+  toSend += "<p>(New state is ";
+  toSend += (newState) ? "on" : "off";
+  toSend += ".)</p>\n";
+  toSend += pageFooter;
+  webServer.send(200, "text/html", toSend);
+}
+
+void handle_pump3() {
+  Serial.println("serving page at /pump3");
+  String toSend = pageTop;
+  toSend += ": Setting Water Pump 3";
+  toSend += pageTop2;
+
+  boolean newState = false;
+  for(uint8_t i = 0; i < webServer.args(); i++ ) {
+    if(webServer.argName(i) == "state") {
+      if(webServer.arg(i) == "on")
+        newState = true;
+    }
+  }
+
+  // now we trigger MOSFETs off or on
+  if(newState == true){
+    mcp.digitalWrite(7, HIGH);
+    Serial.println("Water Pump 3 on");
+  } else {
+    mcp.digitalWrite(7, LOW);
+    Serial.println("Water Pump 3 off");
+  }
+
+  toSend += "<h2>Water Pump 3 triggered</h2>\n";
+  toSend += "<p>(New state is ";
+  toSend += (newState) ? "on" : "off";
+  toSend += ".)</p>\n";
+  toSend += pageFooter;
+  webServer.send(200, "text/html", toSend);
+}
 /////////////////////////////////////////////////////////////////////////////
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
   Serial.println("startPeripherals");
-  mySwitch.enableTransmit(12);   // RC transmitter is connected to Pin 12
-
+  pinMode(levelTriggerPin, OUTPUT);
+  pinMode(levelEchoPin, INPUT);
+  GOT_LEVEL_SENSOR = true;
+  
+  mySwitch.enableTransmit(15);   // RC transmitter is connected to Pin 15
   tempSensor.begin();     // start the onewire temperature sensor
   if(tempSensor.getDeviceCount()==1) {
     GOT_TEMP_SENSOR = true;
@@ -749,15 +883,15 @@ void startPeripherals() {
     tsl.begin();  // startup light sensor
     // can change gain of light sensor on the fly, to adapt 
     // brighter/dimmer light situations
-    // tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
-    tsl.setGain(TSL2591_GAIN_MED);       // 25x gain
+    tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
+    // tsl.setGain(TSL2591_GAIN_MED);       // 25x gain
     // tsl.setGain(TSL2591_GAIN_HIGH);   // 428x gain
   
     // changing the integration time gives you a longer time over which to
     // sense light longer timelines are slower, but are good in very low light
     // situtations!
-    // tsl.setTiming(TSL2591_INTEGRATIONTIME_100MS); // shortest (bright)
-    tsl.setTiming(TSL2591_INTEGRATIONTIME_200MS);
+    tsl.setTiming(TSL2591_INTEGRATIONTIME_100MS); // shortest (bright)
+    // tsl.setTiming(TSL2591_INTEGRATIONTIME_200MS);
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_300MS);
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_400MS);
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
@@ -779,9 +913,12 @@ void updateSensorData(monitor_t *monitorData) {
   if(monitorSize < MONITOR_POINTS)
     monitorSize++;
   now->timestamp = millis();
+  if(GOT_LEVEL_SENSOR)
+    getLevel(&(now->waterLevel));
+    
   if(GOT_TEMP_SENSOR)
     getTemperature(&(now->waterCelsius));
-
+    
   if(GOT_HUMID_SENSOR)
     getHumidity(&now->airCelsius, &now->airHumid);
     
@@ -830,6 +967,11 @@ void sendSensorData(monitor_t *monitorData) {
   PubSubClient client(wclient, svrAddr);
   client.set_callback(callback); // Register MQTT callback
   if (client.connect("arduinoClient")) {
+    if(GOT_LEVEL_SENSOR){
+      String lv;
+      lv.concat(monitorData->waterLevel);
+      client.publish("WaterLevel",lv);
+    }
     if(GOT_TEMP_SENSOR){
       String wc;
       wc.concat(monitorData->waterCelsius);
@@ -860,6 +1002,10 @@ void jsonMonitorEntry(monitor_t *m, String* buf) {
   buf->concat("{ ");
   buf->concat("\"timestamp\": ");
   buf->concat(m->timestamp);
+  if(GOT_LEVEL_SENSOR){
+    buf->concat(", \"waterLevel\": ");
+    buf->concat(m->waterLevel);
+  }
   if(GOT_TEMP_SENSOR){
     buf->concat(", \"waterTemp\": ");
     buf->concat(m->waterCelsius);
@@ -880,6 +1026,26 @@ void jsonMonitorEntry(monitor_t *m, String* buf) {
   }
   buf->concat(" }");
 }
+void getLevel(long* waterLevel) {
+  long duration;
+  digitalWrite(levelTriggerPin, LOW);  // prepare for ping
+  delayMicroseconds(2);
+  digitalWrite(levelTriggerPin, HIGH); // start ping
+  delayMicroseconds(10); // Allow 10ms ping
+  digitalWrite(levelTriggerPin, LOW);  // stop ping
+  duration = pulseIn(levelEchoPin, HIGH); //wait for response
+  (*waterLevel) = (duration/2) / 29.1;
+  Serial.print("Water Level: ");
+  if ((*waterLevel) >= 200 || (*waterLevel) <= 0){
+    Serial.println("is out of range!");
+  }
+  else {
+    Serial.print(*waterLevel);
+    Serial.println(" cm, ");
+  }
+  return;
+}
+
 void getTemperature(float* waterCelsius) {
   tempSensor.requestTemperatures(); // send command to get temperatures
   (*waterCelsius) = tempSensor.getTempC(tempAddr);
@@ -900,7 +1066,6 @@ void getHumidity(float* airCelsius, float* airHumid) {
   return;
 }
 void getLight(uint16_t* lux) {
-  Wire.begin();
   sensors_event_t event;
   tsl.getEvent(&event);
   (*lux) = event.light; 
@@ -910,7 +1075,6 @@ void getLight(uint16_t* lux) {
   return;
 }
 void getPH(float* pH) {
-  Wire.begin();
   // this is our I2C ADC interface section
   // assign 2 BYTES variables to capture the LSB & MSB (or Hi Low in this case)
   byte adc_high;

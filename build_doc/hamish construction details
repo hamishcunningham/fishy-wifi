@@ -1,0 +1,25 @@
+waterelf details:
+
+echo sensor HC-SR04
+
+Colour code for Cat5 wire:
+
+Pin	Wire colour			Function
+1	Orange+Orange/White	VCC
+2	Green+Green/White	Trig
+3	Blue+Blue/White		Echo
+4	Brown+Brown/White	Gnd
+
+pins on header connector, looking from above, tab at top
+pins on board, looking from sensor side, connections at bottom
+
+esp8266 pins
+0  air temp/humid
+2  water temp
+4  i2c
+5  i2c
+12 water level echo2
+13 water level echo3
+14 water level transmit 
+15 433 transmit
+16 water level echo1
