@@ -247,8 +247,8 @@ void jsonMonitorEntry(monitor_t *m, String* buf);
 
 /////////////////////////////////////////////////////////////////////////////
 // level sensing stuff //////////////////////////////////////////////////////
-const int levelTriggerPin=14;
-const int levelEchoPin=16;
+const int levelTriggerPin=12;
+const int levelEchoPin=13;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
@@ -333,7 +333,7 @@ void setup() {
 //  TelnetServer.setNoDelay(true);
     mcp.begin();      // use default address 0 for mcp23008
     mcp.pinMode(0, OUTPUT);
-    mcp.pinMode(4, OUTPUT);
+    mcp.pinMode(3, OUTPUT);
     mcp.pinMode(7, OUTPUT);    
   if(WiFi.hostname("waterelf"))
     Serial.println("set hostname succeeded");
@@ -801,10 +801,10 @@ void handle_pump2() {
 
   // now we trigger MOSFETs off or on
   if(newState == true){
-    mcp.digitalWrite(4, HIGH);
+    mcp.digitalWrite(3, HIGH);
     Serial.println("Water Pump 2 on");
   } else {
-    mcp.digitalWrite(4, LOW);
+    mcp.digitalWrite(3, LOW);
     Serial.println("Water Pump 2 off");
   }
 

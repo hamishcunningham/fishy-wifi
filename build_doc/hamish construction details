@@ -1,14 +1,39 @@
 waterelf details:
 
+Colour code for 6 pin connector
+Pin	Wire Colour			Function
+1	Orange+Orange/White	VCC (5v)
+2	Green/White			Trig
+3	Blue/White			Echo
+4	Brown+Brown/White	Gnd
+5	Green				Pump
+6	Blue				Solenoid
+
 echo sensor HC-SR04
 
 Colour code for Cat5 wire:
 
 Pin	Wire colour			Function
-1	Orange+Orange/White	VCC
+1	Orange+Orange/White	VCC (5v)
 2	Green+Green/White	Trig
 3	Blue+Blue/White		Echo
 4	Brown+Brown/White	Gnd
+
+Temp sensor DS18B20
+
+Colour code for 3 core wire / 3 pin connector:
+
+Pin	Wire colour			Function
+1	Black				Gnd
+2	Red					VCC (3.3v)
+3	Yellow				Signal
+
+AM2302 Temp/Humidity Sensor
+Pin	Wire Colour			Function
+1	Red					Vcc (3.3v)
+2	Brown				Data
+3	NC
+4	Black				Gnd
 
 pins on header connector, looking from above, tab at top
 pins on board, looking from sensor side, connections at bottom
@@ -18,8 +43,8 @@ esp8266 pins
 2  water temp
 4  i2c
 5  i2c
-12 water level echo2
-13 water level echo3
-14 water level transmit 
+12 water level transmit
+13 water level echo1
+14 water level echo2
 15 433 transmit
-16 water level echo1
+16 water level echo3
