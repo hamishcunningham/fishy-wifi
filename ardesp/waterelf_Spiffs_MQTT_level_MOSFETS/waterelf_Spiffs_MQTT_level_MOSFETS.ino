@@ -240,9 +240,8 @@ void jsonMonitorEntry(monitor_t *m, String* buf);
 
 /////////////////////////////////////////////////////////////////////////////
 // level sensing stuff //////////////////////////////////////////////////////
-//const int levelTriggerPin=15;
-const int levelTriggerPin=2;
-const int levelEchoPin=14;
+const int levelTriggerPin=12;
+const int levelEchoPin=13;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -255,7 +254,7 @@ DeviceAddress tempAddr; // array to hold device address
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
-DHT dht(12, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
+DHT dht(0, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
 boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -328,8 +327,8 @@ void setup() {
 //  TelnetServer.setNoDelay(true);
   mcp.begin();      // use default address 0 for mcp23008
   mcp.pinMode(0, OUTPUT);
-  mcp.pinMode(5, OUTPUT);
-  mcp.pinMode(6, OUTPUT);    
+  mcp.pinMode(3, OUTPUT);
+  mcp.pinMode(7, OUTPUT);    
   if(WiFi.hostname("waterelf"))
     Serial.println("set hostname succeeded");
   else
@@ -794,10 +793,10 @@ void handle_rightpump() {
 
   // now we trigger the mcp23008 to turn MOSFETs off or on
   if(newState == true){
-    mcp.digitalWrite(5, HIGH);
+    mcp.digitalWrite(3, HIGH);
     Serial.println("Right Water Pump on");
   } else {
-    mcp.digitalWrite(5, LOW);
+    mcp.digitalWrite(3, LOW);
     Serial.println("Right Water Pump off");
   }
 
@@ -818,7 +817,7 @@ void startPeripherals() {
   pinMode(levelEchoPin, INPUT);
   GOT_LEVEL_SENSOR = true;
 
-  mySwitch.enableTransmit(13);   // RC transmitter is connected to Pin 12
+  mySwitch.enableTransmit(15);   // RC transmitter is connected to Pin 12
   tempSensor.begin();     // start the onewire temperature sensor
   if(tempSensor.getDeviceCount()==1) {
     GOT_TEMP_SENSOR = true;
