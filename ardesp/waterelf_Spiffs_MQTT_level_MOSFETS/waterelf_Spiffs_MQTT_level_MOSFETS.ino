@@ -39,7 +39,7 @@ String svrAddr = ""; // address of a local server
 
 /////////////////////////////////////////////////////////////////////////////
 // MQTT stuff ///////////////////////////////////////////////////////////////
-const boolean SEND_MQTT = true;  // turn on/off posting of data to couchdb
+const boolean SEND_MQTT = false;  // turn on/off posting of data to couchdb
 void callback(const MQTT::Publish& pub) {
   // handle message arrived
 }
