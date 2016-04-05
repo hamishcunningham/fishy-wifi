@@ -12,6 +12,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_TSL2591.h>
 #include <RCSwitch.h>
+#include "Adafruit_MCP23008.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
@@ -53,6 +54,27 @@ const char* pageDefault =
   "<li>\n"
     "<form method='POST' action='actuate'>\n"
     "External power: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off'>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>\n"
+  "<li>\n"
+    "<form method='POST' action='pump1'>\n"
+    "Water Pump 1: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off' checked>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>\n"
+  "<li>\n"
+    "<form method='POST' action='pump2'>\n"
+    "Water Pump 2: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off' checked>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>\n"
+  "<li>\n"
+    "<form method='POST' action='pump3'>\n"
+    "Water Pump 3: "
     "on <input type='radio' name='state' value='on'>\n"
     "off <input type='radio' name='state' value='off' checked>\n"
     "<input type='submit' value='Submit'></form>\n"
@@ -98,7 +120,7 @@ DeviceAddress tempAddr; // array to hold device address
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
-DHT dht(12, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
+DHT dht(0, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
 boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -120,6 +142,12 @@ boolean GOT_PH_SENSOR = false; // we'll change later if we detect sensor
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
 RCSwitch mySwitch = RCSwitch();
+const int RCSW_CHANNEL = 2; // which 433 channel to use
+const int RCSW_HEATER = 2;  // which 433 device to switch
+
+/////////////////////////////////////////////////////////////////////////////
+// MCP23008 stuff ///////////////////////////////////////////////////////////
+Adafruit_MCP23008 mcp; // Create object for MCP23008
 
 /////////////////////////////////////////////////////////////////////////////
 // config utils /////////////////////////////////////////////////////////////
@@ -153,6 +181,11 @@ void setup() {
 
   startWebServer();
 
+  mcp.begin();      // use default address 0 for mcp23008
+  mcp.pinMode(0, OUTPUT);
+  mcp.pinMode(3, OUTPUT);
+  mcp.pinMode(7, OUTPUT);    
+
   if(WiFi.hostname("waterelf"))
     Serial.println("set hostname succeeded");
   else
@@ -177,7 +210,7 @@ void loop() {
 //    Serial.print("; AP="); Serial.println(WiFi.softAPIP());
   }
   if(loopCounter == TICK_HEAP_DEBUG) {
-//    Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
+    Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
   }
 
   if(loopCounter++ == LOOP_ROLLOVER) loopCounter = 0;
@@ -456,15 +489,15 @@ void handle_actuate() {
 
   // now we trigger the 433 transmitter
   if(newState == true){
-    mySwitch.switchOn(4, 2);
+    mySwitch.switchOn(RCSW_CHANNEL, RCSW_HEATER);
     Serial.println("Actuator on");
   } else {
-    mySwitch.switchOff(4, 2);
+    mySwitch.switchOff(RCSW_CHANNEL, RCSW_HEATER);
     Serial.println("Actuator off");
   }
 
   toSend += "<h2>Actuator triggered</h2>\n";
-  toSend += "<p>(New state is ";
+  toSend += "<p>(New state should be ";
   toSend += (newState) ? "on" : "off";
   toSend += ".)</p>\n";
   toSend += pageFooter;
@@ -475,7 +508,7 @@ void handle_actuate() {
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
   Serial.println("startPeripherals");
-  mySwitch.enableTransmit(13);   // RC transmitter is connected to Pin 13
+  mySwitch.enableTransmit(15);   // RC transmitter is connected to Pin 15
 
   tempSensor.begin();     // start the onewire temperature sensor
   if(tempSensor.getDeviceCount()==1) {
