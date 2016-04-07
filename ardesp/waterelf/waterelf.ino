@@ -100,6 +100,9 @@ struct monitor_t {
   float airHumid;
   uint16_t lux;
   float pH;
+  long waterLevel1;
+  long waterLevel2;
+  long waterLevel3;
 };
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
@@ -151,6 +154,14 @@ Adafruit_MCP23008 mcp; // Create object for MCP23008
 const int PUMP1_MCP_PIN = 0;
 const int PUMP2_MCP_PIN = 3;
 const int PUMP3_MCP_PIN = 7;
+
+/////////////////////////////////////////////////////////////////////////////
+// level sensing stuff //////////////////////////////////////////////////////
+const int LEVEL_TRIG_PIN=12;
+const int LEVEL_ECHO_PIN1=13;
+const int LEVEL_ECHO_PIN2=14;
+const int LEVEL_ECHO_PIN3=16;
+boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // config utils /////////////////////////////////////////////////////////////
@@ -205,6 +216,7 @@ void loop() {
 
   if(loopCounter == TICK_MONITOR) {
     updateSensorData(monitorData);
+    // TODO pump logic
     delay(500); // TODO a better way?!
   } 
   if(loopCounter == TICK_WIFI_DEBUG) {
@@ -562,7 +574,7 @@ void startPeripherals() {
     tempSensor.setResolution(tempAddr, 12); // 12 bit res (DS18B20 does 9-12)
   }
   
-  dht.begin();    // Start the humidity and air temperature sensor
+  dht.begin();    // start the humidity and air temperature sensor
   float airHumid = dht.readHumidity();
   float airCelsius = dht.readTemperature();
   if (isnan(airHumid) || isnan(airCelsius)) {
@@ -570,6 +582,13 @@ void startPeripherals() {
   } else {
     GOT_HUMID_SENSOR = true;
   }
+
+  // configure the level sensors
+  pinMode(LEVEL_TRIG_PIN, OUTPUT);
+  pinMode(LEVEL_ECHO_PIN1, INPUT);
+  pinMode(LEVEL_ECHO_PIN2, INPUT);
+  pinMode(LEVEL_ECHO_PIN3, INPUT);
+  GOT_LEVEL_SENSOR = true;
 
   Wire.begin();
   byte error;
@@ -612,7 +631,7 @@ void updateSensorData(monitor_t *monitorData) {
     monitorSize++;
   now->timestamp = millis();
   if(GOT_TEMP_SENSOR)
-    getTemperature(&(now->waterCelsius));
+    getTemperature(&now->waterCelsius);
 
   if(GOT_HUMID_SENSOR)
     getHumidity(&now->airCelsius, &now->airHumid);
@@ -622,6 +641,12 @@ void updateSensorData(monitor_t *monitorData) {
 
   if(GOT_PH_SENSOR)
     getPH(&now->pH);
+
+  if(GOT_LEVEL_SENSOR) {
+    getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);
+    getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);
+    getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);
+  }
     
   if(SEND_DATA) postSensorData(&monitorData[monitorCursor]);
     
@@ -728,6 +753,28 @@ void getPH(float* pH) {
   Serial.print("pH: ");
   Serial.print(*pH);
   Serial.println(" pH");
+  return;
+}
+void getLevel(int echoPin, long* waterLevel) {
+  long duration;
+  int TIMEOUT = 15000;                          // how long to wait for pulse
+
+  digitalWrite(LEVEL_TRIG_PIN, LOW);            // prepare for ping
+  delayMicroseconds(2);
+  digitalWrite(LEVEL_TRIG_PIN, HIGH);           // start ping
+  delayMicroseconds(10);                        // allow 10ms ping
+  digitalWrite(LEVEL_TRIG_PIN, LOW);            // stop ping
+  duration = pulseIn(echoPin, HIGH, TIMEOUT);   // wait for response
+
+  (*waterLevel) = (duration/2) / 29.1;
+
+  Serial.print("Water Level: ");
+  if ((*waterLevel) >= 200 || (*waterLevel) <= 0){
+    Serial.println("is out of range!");
+  } else {
+    Serial.print(*waterLevel);
+    Serial.println(" cm, ");
+  }
   return;
 }
 
