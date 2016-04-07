@@ -240,8 +240,8 @@ void jsonMonitorEntry(monitor_t *m, String* buf);
 
 /////////////////////////////////////////////////////////////////////////////
 // level sensing stuff //////////////////////////////////////////////////////
-const int levelTriggerPin=14;
-const int levelEchoPin=15;
+const int levelTriggerPin=12;
+const int levelEchoPin=16;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -254,7 +254,7 @@ DeviceAddress tempAddr; // array to hold device address
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
-DHT dht(12, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
+DHT dht(0, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
 boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -816,7 +816,7 @@ void startPeripherals() {
   pinMode(levelEchoPin, INPUT);
   GOT_LEVEL_SENSOR = true;
 
-  mySwitch.enableTransmit(13);   // RC transmitter is connected to Pin 12
+  mySwitch.enableTransmit(15);   // RC transmitter is connected to Pin 15
 
   tempSensor.begin();     // start the onewire temperature sensor
   if(tempSensor.getDeviceCount()==1) {
