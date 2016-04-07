@@ -769,12 +769,8 @@ void getLevel(int echoPin, long* waterLevel) {
   (*waterLevel) = (duration/2) / 29.1;
 
   Serial.print("Water Level: ");
-  if ((*waterLevel) >= 200 || (*waterLevel) <= 0){
-    Serial.println("is out of range!");
-  } else {
-    Serial.print(*waterLevel);
-    Serial.println(" cm, ");
-  }
+  Serial.print(*waterLevel);
+  Serial.println(" cm, ");
   return;
 }
 
