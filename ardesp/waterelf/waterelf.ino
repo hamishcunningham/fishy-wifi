@@ -12,6 +12,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_TSL2591.h>
 #include <RCSwitch.h>
+#include "Adafruit_MCP23008.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
@@ -54,7 +55,28 @@ const char* pageDefault =
     "<form method='POST' action='actuate'>\n"
     "External power: "
     "on <input type='radio' name='state' value='on'>\n"
-    "off <input type='radio' name='state' value='off' checked>\n"
+    "off <input type='radio' name='state' value='off'>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>\n"
+  "<li>\n"
+    "<form method='POST' action='pump1'>\n"
+    "Growbed valve pump 1: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off'>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>\n"
+  "<li>\n"
+    "<form method='POST' action='pump2'>\n"
+    "Growbed valve pump 2: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off'>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>\n"
+  "<li>\n"
+    "<form method='POST' action='pump3'>\n"
+    "Growbed valve pump 3: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off'>\n"
     "<input type='submit' value='Submit'></form>\n"
   "</li>\n"
   "</ul></p>\n"
@@ -120,6 +142,15 @@ boolean GOT_PH_SENSOR = false; // we'll change later if we detect sensor
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
 RCSwitch mySwitch = RCSwitch();
+const int RCSW_CHANNEL = 2; // which 433 channel to use
+const int RCSW_HEATER = 2;  // which 433 device to switch
+
+/////////////////////////////////////////////////////////////////////////////
+// MCP23008 stuff ///////////////////////////////////////////////////////////
+Adafruit_MCP23008 mcp; // Create object for MCP23008
+const int PUMP1_MCP_PIN = 0;
+const int PUMP2_MCP_PIN = 3;
+const int PUMP3_MCP_PIN = 7;
 
 /////////////////////////////////////////////////////////////////////////////
 // config utils /////////////////////////////////////////////////////////////
@@ -153,6 +184,11 @@ void setup() {
 
   startWebServer();
 
+  mcp.begin();      // use default address 0 for mcp23008
+  mcp.pinMode(0, OUTPUT);
+  mcp.pinMode(3, OUTPUT);
+  mcp.pinMode(7, OUTPUT);    
+
   if(WiFi.hostname("waterelf"))
     Serial.println("set hostname succeeded");
   else
@@ -177,7 +213,7 @@ void loop() {
 //    Serial.print("; AP="); Serial.println(WiFi.softAPIP());
   }
   if(loopCounter == TICK_HEAP_DEBUG) {
-//    Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
+    Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
   }
 
   if(loopCounter++ == LOOP_ROLLOVER) loopCounter = 0;
@@ -218,6 +254,9 @@ void startWebServer() {
   webServer.on("/svrchz", handle_svrchz);
   webServer.on("/data", handle_data);
   webServer.on("/actuate", handle_actuate);
+  webServer.on("/pump1", handle_pump1);
+  webServer.on("/pump2", handle_pump2);
+  webServer.on("/pump3", handle_pump3);
   webServer.begin();
   Serial.println("HTTP server started");
 }
@@ -456,15 +495,54 @@ void handle_actuate() {
 
   // now we trigger the 433 transmitter
   if(newState == true){
-    mySwitch.switchOn(4, 2);
+    mySwitch.switchOn(RCSW_CHANNEL, RCSW_HEATER);
     Serial.println("Actuator on");
   } else {
-    mySwitch.switchOff(4, 2);
+    mySwitch.switchOff(RCSW_CHANNEL, RCSW_HEATER);
     Serial.println("Actuator off");
   }
 
   toSend += "<h2>Actuator triggered</h2>\n";
-  toSend += "<p>(New state is ";
+  toSend += "<p>(New state should be ";
+  toSend += (newState) ? "on" : "off";
+  toSend += ".)</p>\n";
+  toSend += pageFooter;
+  webServer.send(200, "text/html", toSend);
+}
+void handle_pump1() { handle_pump(1, PUMP1_MCP_PIN); }
+void handle_pump2() { handle_pump(2, PUMP2_MCP_PIN); }
+void handle_pump3() { handle_pump(3, PUMP3_MCP_PIN); }
+void handle_pump(int pumpNum, int mcpPin) {
+  Serial.print("serving page at /pump");
+  Serial.println(pumpNum);
+  String toSend = pageTop;
+  toSend += ": Setting Water Pump ";
+  toSend += pumpNum;
+  toSend += pageTop2;
+
+  boolean newState = false;
+  for(uint8_t i = 0; i < webServer.args(); i++ ) {
+    if(webServer.argName(i) == "state") {
+      if(webServer.arg(i) == "on")
+        newState = true;
+    }
+  }
+
+  // now we trigger MOSFETs off or on
+  Serial.print("Growbed Valve Air Pump ");
+  Serial.print(pumpNum);
+  if(newState == true){
+    mcp.digitalWrite(mcpPin, HIGH);
+    Serial.println(" on");
+  } else {
+    mcp.digitalWrite(mcpPin, LOW);
+    Serial.println(" off");
+  }
+
+  toSend += "<h2>Water Pump ";
+  toSend += pumpNum;
+  toSend += " triggered</h2>\n";
+  toSend += "<p>(New state should be ";
   toSend += (newState) ? "on" : "off";
   toSend += ".)</p>\n";
   toSend += pageFooter;
@@ -475,7 +553,7 @@ void handle_actuate() {
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
   Serial.println("startPeripherals");
-  mySwitch.enableTransmit(13);   // RC transmitter is connected to Pin 13
+  mySwitch.enableTransmit(15);   // RC transmitter is connected to Pin 15
 
   tempSensor.begin();     // start the onewire temperature sensor
   if(tempSensor.getDeviceCount()==1) {
