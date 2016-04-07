@@ -216,13 +216,14 @@ void loop() {
 
   if(loopCounter == TICK_MONITOR) {
     updateSensorData(monitorData);
+    // TODO yeild() here?
     // TODO pump logic
     delay(500); // TODO a better way?!
   } 
   if(loopCounter == TICK_WIFI_DEBUG) {
-//    Serial.print("SSID: "); Serial.print(apSSID);
-//    Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
-//    Serial.print("; AP="); Serial.println(WiFi.softAPIP());
+    Serial.print("SSID: "); Serial.print(apSSID);
+    Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
+    Serial.print("; AP="); Serial.println(WiFi.softAPIP());
   }
   if(loopCounter == TICK_HEAP_DEBUG) {
     Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
@@ -630,22 +631,27 @@ void updateSensorData(monitor_t *monitorData) {
   if(monitorSize < MONITOR_POINTS)
     monitorSize++;
   now->timestamp = millis();
-  if(GOT_TEMP_SENSOR)
+  if(GOT_TEMP_SENSOR) {
     getTemperature(&now->waterCelsius);
-
-  if(GOT_HUMID_SENSOR)
+    // TODO yeild();
+  }
+  if(GOT_HUMID_SENSOR) {
     getHumidity(&now->airCelsius, &now->airHumid);
-    
-  if(GOT_LIGHT_SENSOR)
+    // TODO yeild();
+  }
+  if(GOT_LIGHT_SENSOR) {
     getLight(&now->lux);
-
-  if(GOT_PH_SENSOR)
+    // TODO yeild();
+  }
+  if(GOT_PH_SENSOR) {
     getPH(&now->pH);
-
+    // TODO yeild();
+  }
   if(GOT_LEVEL_SENSOR) {
     getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);
     getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);
     getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);
+    // TODO yeild();
   }
     
   if(SEND_DATA) postSensorData(&monitorData[monitorCursor]);
@@ -733,8 +739,8 @@ void getLight(uint16_t* lux) {
   return;
 }
 void getPH(float* pH) {
-  // this is our I2C ADC interface section
-  // assign 2 BYTES variables to capture the LSB & MSB (or Hi Low in this case)
+// this is our I2C ADC interface section
+// assign 2 BYTES variables to capture the LSB & MSB (or Hi Low in this case)
   byte adc_high;
   byte adc_low;
   // we'll assemble the 2 in this variable
@@ -747,8 +753,8 @@ void getPH(float* pH) {
   // now assemble them, remembering byte maths; a Union works well here too
   adc_result = (adc_high * 256) + adc_low;
   // we have a our Raw pH reading from the ADC; now figure out what the pH is  
-  float miliVolts = (((float)adc_result/4096)*vRef)*1000;
-  float temp = ((((vRef*(float)pH7Cal)/4096)*1000)- miliVolts)/opampGain;
+  float milliVolts = (((float)adc_result/4096)*vRef)*1000;
+  float temp = ((((vRef*(float)pH7Cal)/4096)*1000) - milliVolts) / opampGain;
   (*pH) = 7-(temp/pHStep); 
   Serial.print("pH: ");
   Serial.print(*pH);
