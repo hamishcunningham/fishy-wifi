@@ -93,7 +93,7 @@ const char* pageFooter =
 // data monitoring stuff ////////////////////////////////////////////////////
 const boolean SEND_DATA = true;  // turn off posting of data if required here
 const int MONITOR_POINTS = 60; // number of data points to store
-struct monitor_t {
+typedef struct {
   unsigned long timestamp;
   float waterCelsius;
   float airCelsius;
@@ -103,7 +103,7 @@ struct monitor_t {
   long waterLevel1;
   long waterLevel2;
   long waterLevel3;
-};
+} monitor_t;
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
 int monitorSize = 0;
@@ -214,12 +214,34 @@ void loop() {
   dnsServer.processNextRequest();
   webServer.handleClient();
 
-  if(loopCounter == TICK_MONITOR) {
-    updateSensorData(monitorData);
-    // TODO yeild() here?
-    // TODO pump logic
-    delay(500); // TODO a better way?!
-  } 
+  if(loopCounter == TICK_MONITOR) { // monitor levels, valve logic, push data
+    monitor_t* now = &monitorData[monitorCursor];
+    if(monitorSize < MONITOR_POINTS)
+      monitorSize++;
+    now->timestamp = millis();
+    if(GOT_TEMP_SENSOR) {
+      getTemperature(&now->waterCelsius);               yield();
+    }
+    if(GOT_HUMID_SENSOR) {
+      getHumidity(&now->airCelsius, &now->airHumid);    yield();
+    }
+    if(GOT_LIGHT_SENSOR) { getLight(&now->lux);         yield(); }
+    if(GOT_PH_SENSOR) { getPH(&now->pH);                yield(); }
+    if(GOT_LEVEL_SENSOR) {
+      getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);     yield();
+      getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);     yield();
+      getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
+    }
+
+    doValveLogic(); yield(); // set pumps on and off etc.
+// TODO    doValveLogic(now, &flowState); yield(); // set pumps on and off etc.
+    if(SEND_DATA) { postSensorData(&monitorData[monitorCursor]); yield(); }
+      
+    if(++monitorCursor == MONITOR_POINTS)
+      monitorCursor = 0;
+    // delay(500);
+  }
+
   if(loopCounter == TICK_WIFI_DEBUG) {
     Serial.print("SSID: "); Serial.print(apSSID);
     Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
@@ -230,6 +252,13 @@ void loop() {
   }
 
   if(loopCounter++ == LOOP_ROLLOVER) loopCounter = 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// pump and valve cycle management stuff ////////////////////////////////////
+void doValveLogic() { // set pumps on and off etc.
+  /*
+  */
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -565,7 +594,7 @@ void handle_pump(int pumpNum, int mcpPin) {
 /////////////////////////////////////////////////////////////////////////////
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
-  Serial.println("startPeripherals");
+  Serial.println("\nstartPeripherals...");
   mySwitch.enableTransmit(15);   // RC transmitter is connected to Pin 15
 
   tempSensor.begin();     // start the onewire temperature sensor
@@ -622,42 +651,6 @@ void startPeripherals() {
     GOT_PH_SENSOR = true;
     Serial.println("Found pH sensor");
   }
-}
-void updateSensorData(monitor_t *monitorData) {
-  // Serial.print("monitorCursor = "); Serial.print(monitorCursor);
-  // Serial.print(" monitorSize = ");  Serial.println(monitorSize);
-
-  monitor_t* now = &monitorData[monitorCursor];
-  if(monitorSize < MONITOR_POINTS)
-    monitorSize++;
-  now->timestamp = millis();
-  if(GOT_TEMP_SENSOR) {
-    getTemperature(&now->waterCelsius);
-    // TODO yeild();
-  }
-  if(GOT_HUMID_SENSOR) {
-    getHumidity(&now->airCelsius, &now->airHumid);
-    // TODO yeild();
-  }
-  if(GOT_LIGHT_SENSOR) {
-    getLight(&now->lux);
-    // TODO yeild();
-  }
-  if(GOT_PH_SENSOR) {
-    getPH(&now->pH);
-    // TODO yeild();
-  }
-  if(GOT_LEVEL_SENSOR) {
-    getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);
-    getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);
-    getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);
-    // TODO yeild();
-  }
-    
-  if(SEND_DATA) postSensorData(&monitorData[monitorCursor]);
-    
-  if(++monitorCursor == MONITOR_POINTS)
-    monitorCursor = 0;
 }
 void postSensorData(monitor_t *monitorData) {
   //Serial.println("\npostSensorData");
