@@ -59,21 +59,21 @@ const char* pageDefault =
     "<input type='submit' value='Submit'></form>\n"
   "</li>\n"
   "<li>\n"
-    "<form method='POST' action='pump1'>\n"
+    "<form method='POST' action='valve1'>\n"
     "Growbed valve pump 1: "
     "on <input type='radio' name='state' value='on'>\n"
     "off <input type='radio' name='state' value='off'>\n"
     "<input type='submit' value='Submit'></form>\n"
   "</li>\n"
   "<li>\n"
-    "<form method='POST' action='pump2'>\n"
+    "<form method='POST' action='valve2'>\n"
     "Growbed valve pump 2: "
     "on <input type='radio' name='state' value='on'>\n"
     "off <input type='radio' name='state' value='off'>\n"
     "<input type='submit' value='Submit'></form>\n"
   "</li>\n"
   "<li>\n"
-    "<form method='POST' action='pump3'>\n"
+    "<form method='POST' action='valve3'>\n"
     "Growbed valve pump 3: "
     "on <input type='radio' name='state' value='on'>\n"
     "off <input type='radio' name='state' value='off'>\n"
@@ -151,9 +151,9 @@ const int RCSW_HEATER = 2;  // which 433 device to switch (1-4)
 /////////////////////////////////////////////////////////////////////////////
 // MCP23008 stuff ///////////////////////////////////////////////////////////
 Adafruit_MCP23008 mcp; // Create object for MCP23008
-const int PUMP1_MCP_PIN = 0;
-const int PUMP2_MCP_PIN = 3;
-const int PUMP3_MCP_PIN = 7;
+const int V1_MCP_PIN = 0;
+const int V2_MCP_PIN = 3;
+const int V3_MCP_PIN = 7;
 
 /////////////////////////////////////////////////////////////////////////////
 // level sensing stuff //////////////////////////////////////////////////////
@@ -233,8 +233,8 @@ void loop() {
       getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
     }
 
-    doValveLogic(); yield(); // set pumps on and off etc.
-// TODO    doValveLogic(now, &flowState); yield(); // set pumps on and off etc.
+    valveLogic(); yield(); // set valves on and off etc.
+// TODO    valveLogic(now, &flowState); yield(); // set valves on and off...
     if(SEND_DATA) { postSensorData(&monitorData[monitorCursor]); yield(); }
       
     if(++monitorCursor == MONITOR_POINTS)
@@ -256,7 +256,7 @@ void loop() {
 
 /////////////////////////////////////////////////////////////////////////////
 // pump and valve cycle management stuff ////////////////////////////////////
-void doValveLogic() { // set pumps on and off etc.
+void valveLogic() { // set valves on and off etc.
   /*
   */
 }
@@ -296,9 +296,9 @@ void startWebServer() {
   webServer.on("/svrchz", handle_svrchz);
   webServer.on("/data", handle_data);
   webServer.on("/actuate", handle_actuate);
-  webServer.on("/pump1", handle_pump1);
-  webServer.on("/pump2", handle_pump2);
-  webServer.on("/pump3", handle_pump3);
+  webServer.on("/valve1", handle_valve1);
+  webServer.on("/valve2", handle_valve2);
+  webServer.on("/valve3", handle_valve3);
   webServer.begin();
   Serial.println("HTTP server started");
 }
@@ -551,15 +551,15 @@ void handle_actuate() {
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
 }
-void handle_pump1() { handle_pump(1, PUMP1_MCP_PIN); }
-void handle_pump2() { handle_pump(2, PUMP2_MCP_PIN); }
-void handle_pump3() { handle_pump(3, PUMP3_MCP_PIN); }
-void handle_pump(int pumpNum, int mcpPin) {
-  Serial.print("serving page at /pump");
-  Serial.println(pumpNum);
+void handle_valve1() { handle_valve(1, V1_MCP_PIN); }
+void handle_valve2() { handle_valve(2, V2_MCP_PIN); }
+void handle_valve3() { handle_valve(3, V3_MCP_PIN); }
+void handle_valve(int valveNum, int mcpPin) {
+  Serial.print("serving page at /valve");
+  Serial.println(valveNum);
   String toSend = pageTop;
-  toSend += ": Setting Water Pump ";
-  toSend += pumpNum;
+  toSend += ": Setting Water Valve ";
+  toSend += valveNum;
   toSend += pageTop2;
 
   boolean newState = false;
@@ -571,10 +571,10 @@ void handle_pump(int pumpNum, int mcpPin) {
   }
 
   // now we trigger MOSFETs off or on
-  swapPumpState(pumpNum, newState, mcpPin);
+  swapValveState(valveNum, newState, mcpPin);
 
-  toSend += "<h2>Water Pump ";
-  toSend += pumpNum;
+  toSend += "<h2>Water Valve ";
+  toSend += valveNum;
   toSend += " triggered</h2>\n";
   toSend += "<p>(New state should be ";
   toSend += (newState) ? "on" : "off";
@@ -582,9 +582,9 @@ void handle_pump(int pumpNum, int mcpPin) {
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
 }
-void swapPumpState(int pumpNum, boolean newState, int mcpPin) {
+void swapValveState(int valveNum, boolean newState, int mcpPin) {
   Serial.print("Growbed Valve Air Pump ");
-  Serial.print(pumpNum);
+  Serial.print(valveNum);
 
   if(newState == true){
     mcp.digitalWrite(mcpPin, HIGH);
