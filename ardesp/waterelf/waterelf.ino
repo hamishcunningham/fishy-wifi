@@ -571,15 +571,7 @@ void handle_pump(int pumpNum, int mcpPin) {
   }
 
   // now we trigger MOSFETs off or on
-  Serial.print("Growbed Valve Air Pump ");
-  Serial.print(pumpNum);
-  if(newState == true){
-    mcp.digitalWrite(mcpPin, HIGH);
-    Serial.println(" on");
-  } else {
-    mcp.digitalWrite(mcpPin, LOW);
-    Serial.println(" off");
-  }
+  swapPumpState(pumpNum, newState, mcpPin);
 
   toSend += "<h2>Water Pump ";
   toSend += pumpNum;
@@ -589,6 +581,18 @@ void handle_pump(int pumpNum, int mcpPin) {
   toSend += ".)</p>\n";
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
+}
+void swapPumpState(int pumpNum, boolean newState, int mcpPin) {
+  Serial.print("Growbed Valve Air Pump ");
+  Serial.print(pumpNum);
+
+  if(newState == true){
+    mcp.digitalWrite(mcpPin, HIGH);
+    Serial.println(" on");
+  } else {
+    mcp.digitalWrite(mcpPin, LOW);
+    Serial.println(" off");
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -701,6 +705,7 @@ void jsonMonitorEntry(monitor_t *m, String* buf) {
     buf->concat(", \"pH\": ");
     buf->concat(m->pH);
   }
+  // TODO add water levels
   buf->concat(" }");
 }
 void getTemperature(float* waterCelsius) {
@@ -811,7 +816,7 @@ void setSvrAddr(String s) {
 
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
-void ledOn() { digitalWrite(BUILTIN_LED, LOW); }
+void ledOn()  { digitalWrite(BUILTIN_LED, LOW); }
 void ledOff() { digitalWrite(BUILTIN_LED, HIGH); }
 void blink(int times) {
   ledOff();
