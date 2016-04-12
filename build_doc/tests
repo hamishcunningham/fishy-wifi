@@ -1,0 +1,10 @@
+Tests
+
+1	Water Temp		- 	Expect something around 20, more if you hold it
+2	Air Temp		-	Expect something around 20, more if you blow on it
+3	Humidity		-	Expect something around 40-50, more if you blow on it
+4	pH				-	Expect 11.10 without probe, 7 if shorted
+5	lux				-	Expect 100-1000 in daylight
+6	Water levels	-	Expect few cm depending on distance, right angle only
+7	Pumps			-	Expect them to turn on and off
+8	Remote Power	-	Expect it to trigger on and off from <1m away
