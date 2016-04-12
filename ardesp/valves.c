@@ -44,7 +44,7 @@ void valveLogic(monitor_t *m, flowState_t *s) {
       }
 
       if(v->state == V_FILLING) { // we're filling; if full swap to drain
-        if(TODO)
+        if(/* TODO */)
           valveStateChange(v, i, V_DRAINING);
       } else { // we're draining; if we waited long enough, swap to fill
         if(t - V_DRAIN_MILLIS > v->lastStateChange)
