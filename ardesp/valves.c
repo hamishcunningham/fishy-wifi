@@ -12,7 +12,8 @@ int IN_THE_BEGINNING = -1;
 typedef struct {
   long readingTime = -1;
   long prevReadingTime = -1;
-  int state = -1;
+  int state = IN_THE_BEGINNING;
+  int fillingValve = -1;
 
   bool v1on = false;
   bool v2on = false;
@@ -27,6 +28,17 @@ flowState_t flowState;
 void doValveLogic(monitor_t *m, flowState_t *s) {
   s->prevReadingTime = s->readingTime;
   s->readingTime = millis();
+
+  if(s->state == IN_THE_BEGINNING) { // assume we just booted
+    choose a valve at random and set it to filling; turn the valve on
+    set the other valves to draining and turn them off; set their drain cycle start timestamps to now
+  } else {
+    if fillingValve is full; set it to draining and turn off
+      set its drain cycle start timestamp to now
+      set fillingValve to next valve
+    
+  }
+
 
   choose a pump
     if we're filling
