@@ -571,7 +571,7 @@ void handle_valve(int valveNum, int mcpPin) {
   }
 
   // now we trigger MOSFETs off or on
-  swapValveState(valveNum, newState, mcpPin);
+  valveStateChange(valveNum, newState, mcpPin);
 
   toSend += "<h2>Water Valve ";
   toSend += valveNum;
@@ -582,7 +582,7 @@ void handle_valve(int valveNum, int mcpPin) {
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
 }
-void swapValveState(int valveNum, boolean newState, int mcpPin) {
+void valveStateChange(int valveNum, boolean newState, int mcpPin) {
   Serial.print("Growbed Valve Air Pump ");
   Serial.print(valveNum);
 
