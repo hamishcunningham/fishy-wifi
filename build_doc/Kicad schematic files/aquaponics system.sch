@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Fri 15 Apr 2016 12:30:55 BST
+EESchema Schematic File Version 2  date Fri 15 Apr 2016 14:33:55 BST
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -400,7 +400,7 @@ L C C?
 U 1 1 570CAB2B
 P 3500 2550
 F 0 "C?" H 3550 2450 50  0000 L CNN
-F 1 "100n" H 3550 2650 50  0000 L CNN
+F 1 "100nF" H 3550 2650 50  0000 L CNN
 	1    3500 2550
 	-1   0    0    1   
 $EndComp
