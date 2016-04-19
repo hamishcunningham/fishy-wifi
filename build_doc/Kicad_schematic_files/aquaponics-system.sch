@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Fri 15 Apr 2016 14:33:55 BST
+EESchema Schematic File Version 2  date Tue 19 Apr 2016 15:55:54 BST
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -28,23 +28,31 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-LIBS:ESP8266
 LIBS:waterelf
-LIBS:aquaponics system-cache
+LIBS:aquaponics-system-cache
 EELAYER 25  0
 EELAYER END
 $Descr A4 11700 8267
 encoding utf-8
 Sheet 1 1
 Title "Aquaponics System"
-Date "15 apr 2016"
-Rev "1.3"
+Date "19 apr 2016"
+Rev "1.4"
 Comp ""
 Comment1 ""
 Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
+$Comp
+L MAX31820 U?
+U 1 1 571645C2
+P 9600 4650
+F 0 "U?" H 9450 4900 50  0000 C CNN
+F 1 "MAX31820/DS18B20" H 9750 4400 50  0000 C CNN
+	1    9600 4650
+	1    0    0    -1  
+$EndComp
 Connection ~ 2700 1100
 Wire Wire Line
 	8850 1100 2450 1100
@@ -581,15 +589,6 @@ P 9650 3900
 F 0 "U?" H 9500 4200 60  0000 C CNN
 F 1 "AM2302" H 9550 3600 60  0000 C CNN
 	1    9650 3900
-	1    0    0    -1  
-$EndComp
-$Comp
-L DS18B20 U?
-U 1 1 57078EA3
-P 9600 4650
-F 0 "U?" H 9450 4900 50  0000 C CNN
-F 1 "DS18B20" H 9600 4400 50  0000 C CNN
-	1    9600 4650
 	1    0    0    -1  
 $EndComp
 $Comp

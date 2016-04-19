@@ -1,4 +1,4 @@
-update=Fri 15 Apr 2016 12:25:16 BST
+update=Tue 19 Apr 2016 15:54:56 BST
 version=1
 last_client=eeschema
 [cvpcb]
@@ -41,7 +41,7 @@ LibDir=
 LibName1=w_conn_av
 [eeschema]
 version=1
-LibDir=/home/enduser/kicad/libraries/modules;/home/enduser/kicad/libraries;/home/enduser/kicad/libraries/library;/home/enduser/fishy-wifi/build_doc/Kicad schematic files/libraries
+LibDir=libraries
 NetFmt=1
 HPGLSpd=20
 HPGLDm=15
@@ -100,5 +100,4 @@ LibName26=opto
 LibName27=atmel
 LibName28=contrib
 LibName29=valves
-LibName30=kicad-ESP8266/ESP8266
-LibName31=waterelf
+LibName30=waterelf
