@@ -16,7 +16,7 @@ class WaterElfCollector:
     def __init__(self):
         self.file_ext = "txt"
         # Set this to validate incoming data for particular key
-        # eg [KEY_TIMESTAMP, KEY_WATER_TEMP, KEY_AIR]
+        # eg [self.KEY_TIMESTAMP, self.KEY_WATER_TEMP, self.KEY_AIR]
         # No validation is currently set
         self.required_keys = None
 
