@@ -16,6 +16,7 @@ AUTHOR_FEED_RSS = None
 DEFAULT_PAGINATION = 10
 
 MARKUP = ('rst', 'md', 'html')
+IGNORE_FILES=[ '*.mkd' ]
 STATIC_PATHS = ['images', 'pages/images', '.htaccess', '.htpasswd']
 FILENAME_METADATA = ('(?P<date>\d{4}-\d{2}-\d{2}).*')
 PAGE_EXCLUDES = ([])
