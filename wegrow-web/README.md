@@ -6,7 +6,7 @@ WeGrow.social: Web Tree
 
 # Implementation
 
-- Pelican + PelicanBootStrap + a Makefile from
+- Pelican + PelicanBootStrap + Pandoc + GATEWiki YAM + a Makefile from
   https://github.com/hamishcunningham/pi-gate
 - if you want to add style rules put them at the end of
   theming/pelican-bootstrap3/static/css/style.css
