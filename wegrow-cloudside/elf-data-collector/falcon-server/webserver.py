@@ -5,14 +5,24 @@ import os
 
 
 class WaterElfCollector:
-    # These must be the same as the keys output by the WaterElf
-    # Used for validation
+    # The keys be the same as the keys output by the WaterElf
+    # Used for validation and processing
     KEY_TIMESTAMP = "timestamp"
     KEY_WATER_TEMP = "waterTemp"
     KEY_AIR_TEMP= "airTemp"
     KEY_PH = "pH"
     KEY_HUMIDITY = "humidity"
     KEY_LUX = "lux"
+    # There's probably a more elegant way to do this.
+    # I am sorry.
+    TYPES = dict()
+    TYPES[KEY_TIMESTAMP] = int
+    TYPES[KEY_WATER_TEMP] = float
+    TYPES[KEY_AIR_TEMP] = float
+    TYPES[KEY_PH] = float
+    TYPES[KEY_HUMIDITY] = float
+    TYPES[KEY_LUX] = int
+    
     def __init__(self):
         self.file_ext = "txt"
         # Set this to validate incoming data for particular key
@@ -25,6 +35,7 @@ class WaterElfCollector:
         data = req.params
 
         self.check_data(data)
+        data = self.process_data(data)
         output_path = self.generate_path(uuid)
         self.write_data_line(output_path, json.dumps(data)) 
 
@@ -58,9 +69,15 @@ class WaterElfCollector:
     def check_data(self, data):
         # Check that keys specified at the top exist in the data
         if self.required_keys is not None:
-            for param in self.required_keys:
-                if param not in data.keys():
-                    raise falcon.HTTPMissingParam(param)
+            for key in self.required_keys:
+                if key[0] not in data.keys():
+                    raise falcon.HTTPMissingParam(key[0])
+
+    def process_data(self, data):
+        output = dict()
+        for key, val in data.iteritems():
+            output[key] = self.TYPES[key](val)            
+        return output
 
 
 api = falcon.API(middleware=[])
