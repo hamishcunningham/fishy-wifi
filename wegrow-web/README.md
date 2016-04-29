@@ -8,7 +8,7 @@ WeGrow.social: Web Tree
 
 - pages (as opposed to articles) must be listed in Makefile.local
 - you can write in markdown (`.mkd`),
-  (YAM)[https://gate.ac.uk/gatewiki/cow/doc/gatewiki.html#section-3.8.]
+  [YAM](https://gate.ac.uk/gatewiki/cow/doc/gatewiki.html#section-3.8.)
   (`.yam`) or JINJA (`.jinja`, which gets translated into markdown)
 
 # Implementation Notes
