@@ -1,8 +1,4 @@
 Pages
 
-- %(books.html, Books)
-- %(phds.html, PhDs)
-- %(download.html, Downloads)
 - %(contact.html, Contact)
 - %(/pages/about/, About)
-- %(/pages/about/vitae/, CV)
