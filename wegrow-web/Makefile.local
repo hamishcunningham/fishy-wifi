@@ -5,7 +5,7 @@ SITE=wegrow.social
 
 # list of pages etc. ########################################################
 STANDARD_PAGES=\
-about.html index.html
+about.html contact.html index.html
 NO_META_PAGES=
 DRAFT_PAGES=
 
