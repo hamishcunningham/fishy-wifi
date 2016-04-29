@@ -2,7 +2,7 @@ WeGrow.social: Web Tree
 =======
 
 **NOTE:** you probably don't want to be here, unless you're developing the
-[](https://wegrow.social) website...
+[wegrow.social](https://wegrow.social) website...
 
 # Implementation
 
