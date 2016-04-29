@@ -1,0 +1,36 @@
+# Makefile.local
+
+# site parameterisation #####################################################
+SITE=wegrow.social
+
+# list of pages etc. ########################################################
+STANDARD_PAGES=\
+about.html index.html
+NO_META_PAGES=
+DRAFT_PAGES=
+
+# prepare stuff specific to this site
+local-prepare:
+	:
+
+# any more mangling goes here... ############################################
+local-finalise:
+	TMPF=/tmp/pi-gate-$$$$; \
+       	echo '<p align="center"> <iframe width="650" height="600" src="https://gate.ac.uk/g8/contact?r=hc&subject=Contact+WeGrow&t=Contact+WeGrow&b=1&h=%20" frameborder="1" ></iframe> </p>'  >$${TMPF}; \
+        sed -i \
+          -e "/CONTACT FORM HERE/ r $${TMPF}" \
+            `find output -name '*.html'`; \
+        rm $${TMPF}
+
+# make any necessary local mods to the print tree
+local-print:
+	@cd $(OUTPUTDIR); for f in `find . -name '*.html'`; do \
+          mkdir -p print/`dirname $${f}`; \
+          sed -n \
+	      -e '1,/<body>/p' \
+              -e '/<!-- start main content -->/,/<section class="comments" id="comments">/p' \
+              -e '/<!-- end of head -->/i\
+<style> @media print { a[href]:after { content: none; } } </style>' \
+            $${f} \
+            >print/$${f}; \
+        done
