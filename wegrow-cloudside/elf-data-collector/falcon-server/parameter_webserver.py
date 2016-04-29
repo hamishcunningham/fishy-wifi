@@ -5,7 +5,7 @@ import os
 
 
 class WaterElfCollector:
-    # The keys be the same as the keys output by the WaterElf
+    # The keys should be the same as the keys output by the WaterElf
     # Used for validation and processing
     KEY_TIMESTAMP = "timestamp"
     KEY_WATER_TEMP = "waterTemp"
@@ -70,8 +70,8 @@ class WaterElfCollector:
         # Check that keys specified at the top exist in the data
         if self.required_keys is not None:
             for key in self.required_keys:
-                if key[0] not in data.keys():
-                    raise falcon.HTTPMissingParam(key[0])
+                if key not in data.keys():
+                    raise falcon.HTTPMissingParam(key)
 
     def process_data(self, data):
         output = dict()
