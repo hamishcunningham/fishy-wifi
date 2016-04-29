@@ -25,15 +25,19 @@ YEAR_ARCHIVE_SAVE_AS = 'posts/{date:%Y}/index.html'
 ARTICLE_URL = 'posts/{date:%Y}/{date:%m}/{date:%d}/{slug}/'
 ARTICLE_SAVE_AS = 'posts/{date:%Y}/{date:%m}/{date:%d}/{slug}/index.html'
 SHOW_ARTICLE_AUTHOR = True
+MENUITEMS = (
+  ( 'About', "/pages/about.html" ),
+  ( 'Contact', "/pages/contact.html" ),
+)
 
 #THEME = 'theming/original'
 THEME='theming/pelican-bootstrap3'
-#BOOTSTRAP_THEME='united'
+BOOTSTRAP_THEME='united'
 #BOOTSTRAP_THEME='cyborg'
 #BOOTSTRAP_THEME='darkly'
 #BOOTSTRAP_THEME='readable'
 #BOOTSTRAP_THEME='cerulean'
-BOOTSTRAP_THEME='superhero'
+#BOOTSTRAP_THEME='superhero'
 FAVICON='favicon.ico'
 DISPLAY_PAGES_ON_MENU = False
 DISPLAY_CATEGORIES_ON_MENU = False
