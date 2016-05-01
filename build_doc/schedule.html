@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="eyes-and-ears-sensor-board-build-schedule">Eyes-and-ears Sensor Board: Build Schedule</h1>
+<p>Elements: - sensors - water temperature - air temperature and humidity (on board) - photo-active radiation (or at least light; on board) - water levels (5) - actuator: 433MHz transmitter</p>
+<p>BoM: - waterproof DS18B20 temperature sensor http://www.ebay.co.uk/itm/381291985482 - 4.7K resistor for DS18B20 - DHT22 humidity and air temperature sensor http://www.ebay.co.uk/itm/291503542862 - TSL2561 lux sensor breakout board - http://www.adafruit.com/products/439 or TSL2591 Wide range lux sensor - http://www.adafruit.com/products/1980 - water sensing (or ultrasonics with HC-SR04?) http://www.ebay.co.uk/itm/271897325457 - 5x Water level switch http://uk.rs-online.com/web/p/level-sensors-switches/7259852/ £10 or http://www.ebay.co.uk/itm/351251750862 £2 - 5x 10k resistor - pH sensing (£12!) - pH sensing circuit - see https://github.com/SparkysWidgets/IsoIonHW for ideal circuit - could use proven one instead https://github.com/SparkysWidgets/MinipHHW - pH probe (£8 individual price) http://www.ebay.co.uk/itm/361305900387 - 433 MHz transmitter module http://www.ebay.co.uk/itm/261941609347 - ESP-12 module http://www.ebay.co.uk/itm/111706552490 - custom PCB made by us ;-) (ebay links are cheapest UK stockist on 2nd July 2015)</p>
+<p>Development environment: - USB to serial adaptor (for programming) - Arduino environment with ESP board installed (for programming) - Olimex ESP8266 development board</p>
+</body>
+</html>

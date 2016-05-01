@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="initialising-devices-associating-devices-with-users">Initialising Devices; Associating Devices with Users</h1>
+<h2 id="we-have-two-system-components">We have two system components</h2>
+<ul>
+<li><strong>WaterElf</strong> – the wifi-connected sensor/actuator board.</li>
+<li><strong>WeGrow.social</strong> – a website with DB, user managment, community data sharing etc.</li>
+</ul>
+<h2 id="the-procedure-for-getting-a-new-waterelf-onto-your-local-network">The procedure for getting a new WaterElf onto your local network</h2>
+<p>1 Get new sensor out of box, plug it in. 1 Go to your phone or laptop or etc. and join waterelf-xxxxxxx wifi network. 1 Open browser, goto 192.168.1.1 [hopefully when the captive DNS is working again this step will change to “go to any page”]. 1 Click on the “configure wifi network” link. 1 Select your wifi network and enter its pass key. 1 The WaterElf will then join your home network. 1 [TODO] On sucess, device issues page redirect, then shuts down it’s access point, throwing connected wifi device back to home network, hopefully in time for redirect to get them to login to wegrow site, to device success page. 1 On failure, device issues page refresh with wifi status report.</p>
+<h2 id="associating-waterelves-with-users-on-wegrow">Associating WaterElves with users on WeGrow</h2>
+<p>When the user wishes to connect a new WaterElf sensor to WeGrow.social, the site generates a short token for them to enter on the sensor. (First they join their phone or etc. to the Elf’s AP as above, then click on the “configure data sharing” link and enter the token – a bit like 2-phase authentication on Google for example.) The Elf then pings WeGrow – TODO using TLS – with the token and gets a longer key in return, which it stores. All future interactions with the server then use that key. The WeGrow site associates interactions using that key with the user who initiated creation of the token.</p>
+</body>
+</html>
