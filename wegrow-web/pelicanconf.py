@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 AUTHOR = u'Hamish Cunningham'
 SITENAME = u'WeGrow WaterElf: Local Food, Global Community'
+WEGROW_TAGLINE = u'Local Food, Global Community'
 SITEURL = ''
 PATH = 'content'
 TIMEZONE = 'Europe/London'
