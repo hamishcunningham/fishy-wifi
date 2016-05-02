@@ -1,0 +1,7 @@
+output
+*.pyc
+drafts/*.html
+content/*.html
+content/*/*.html
+cache
+s3upload-files.txt

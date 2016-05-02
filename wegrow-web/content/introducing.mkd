@@ -1,0 +1,9 @@
+---
+title: Introducing WeGrow and WaterElf
+summary: TODO
+tags: TODO
+date: Fri Apr 29 16:56:36 BST 2016
+---
+
+TODO: supply better versions of introducing.jpg and  thumbs/introducing.jpg in
+/home/hamish/fishy-wifi/wegrow-web/content/images/articles
