@@ -2,7 +2,8 @@ import falcon
 import json
 import datetime
 import os
-from logger import write_change_flag
+from change_flagging import write_change_flag
+import errno
 
 
 class ParameterWaterElfCollector:

@@ -1,4 +1,5 @@
 import os
+import errno
 
 
 def _generate_changes_path(file_path, uuid):
