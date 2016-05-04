@@ -226,3 +226,7 @@ figure.floatcenter, .align-center {
 .collapse {
   font-size: x-large;
 }
+.blockquote {
+  font-size: 100%;
+}
+  

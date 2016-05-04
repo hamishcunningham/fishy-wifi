@@ -9,66 +9,49 @@ More info at: http://goo.gl/kJ8Gl
 Original code improvements to the Ping sketch sourced from Trollmaker.com
 Some code and wiring inspired by http://en.wikiversity.org/wiki/User:Dstaub/robotcar
 */
+#include "Adafruit_MCP23008.h"
+#include "Wire.h"
 
-#define trigPin 14
-#define echoPin1 12
-#define echoPin2 13
-#define echoPin3 16
+#define trigPin1 12
+#define echoPin1 13
+#define trigPin2 0
+#define echoPin2 14
+
+Adafruit_MCP23008 mcp; // Create object for MCP23008
 
 void setup() {
   Serial.begin (115200);
-  pinMode(trigPin, OUTPUT);
+
+  pinMode(trigPin1, OUTPUT);
   pinMode(echoPin1, INPUT);
   pinMode(echoPin2, INPUT);
-  pinMode(echoPin3, INPUT);
+      
+  mcp.begin();      // use default address 0 for mcp23008
+  mcp.pinMode(trigPin2, OUTPUT);
 }
 
 void loop() {
-  long duration1, distance1, duration2, distance2, duration3, distance3;
-  digitalWrite(trigPin, LOW);  // Added this line
+  long duration1, distance1, duration2, distance2;
+  digitalWrite(trigPin1, LOW);  // Added this line
   delayMicroseconds(2); // Added this line
-  digitalWrite(trigPin, HIGH);
+  digitalWrite(trigPin1, HIGH);
   delayMicroseconds(10); // Added this line
-  digitalWrite(trigPin, LOW);
-  duration1 = pulseIn(echoPin1, HIGH);
+  digitalWrite(trigPin1, LOW);
+  duration1 = pulseIn(echoPin1, HIGH,20000);
   distance1 = (duration1/2) / 29.1;
-  if (distance1 >= 200 || distance1 <= 0){
-    Serial.println("1: Out of range");
-  }
-  else {
-    Serial.print(distance1);
-    Serial.println(" cm (1)");
-  }
-delay(100);
-  digitalWrite(trigPin, LOW);  // Added this line
-  delayMicroseconds(2); // Added this line
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10); // Added this line
-  digitalWrite(trigPin, LOW);
-  duration2 = pulseIn(echoPin2, HIGH);
-  distance2 = (duration2/2) / 29.1;
-  if (distance2 >= 200 || distance2 <= 0){
-    Serial.println("2: Out of range");
-  }
-  else {
-    Serial.print(distance2);
-    Serial.println(" cm (2)");
-  }
-delay(100);
-  digitalWrite(trigPin, LOW);  // Added this line
-  delayMicroseconds(2); // Added this line
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10); // Added this line
-  digitalWrite(trigPin, LOW);
-  duration3 = pulseIn(echoPin3, HIGH);
-  distance3 = (duration3/2) / 29.1;
-  if (distance3 >= 200 || distance3 <= 0){
-    Serial.println("3: Out of range");
-  }
-  else {
-    Serial.print(distance3);
-    Serial.println(" cm (3)");
-  }
   
-  delay(100);
+  mcp.digitalWrite(trigPin2, LOW);  // Added this line
+  delayMicroseconds(2); // Added this line
+  mcp.digitalWrite(trigPin2, HIGH);
+  delayMicroseconds(10); // Added this line
+  mcp.digitalWrite(trigPin2, LOW);
+  duration2 = pulseIn(echoPin2, HIGH,20000);
+  distance2 = (duration2/2) / 29.1;
+
+  Serial.print(distance1);
+  Serial.print(" cm (1)  ");
+  Serial.print(distance2);
+  Serial.println(" cm (2)");
+    
+  delay(250);
 }

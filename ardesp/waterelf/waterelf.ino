@@ -57,28 +57,49 @@ const char* pageDefault =
     "on <input type='radio' name='state' value='on'>\n"
     "off <input type='radio' name='state' value='off'>\n"
     "<input type='submit' value='Submit'></form>\n"
-  "</li>\n"
-  "<li>\n"
+  "</li>"
+  "<li>"
     "<form method='POST' action='valve1'>\n"
     "Growbed valve pump 1: "
     "on <input type='radio' name='state' value='on'>\n"
     "off <input type='radio' name='state' value='off'>\n"
     "<input type='submit' value='Submit'></form>\n"
-  "</li>\n"
-  "<li>\n"
+  "</li>"
+  "<li>"
+    "<form method='POST' action='valve4'>\n"
+    "Growbed solenoid 1: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off'>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>"
+  "<li>"
     "<form method='POST' action='valve2'>\n"
     "Growbed valve pump 2: "
     "on <input type='radio' name='state' value='on'>\n"
     "off <input type='radio' name='state' value='off'>\n"
     "<input type='submit' value='Submit'></form>\n"
-  "</li>\n"
-  "<li>\n"
+  "</li>"
+   "<li>"
+    "<form method='POST' action='valve5'>\n"
+    "Growbed solenoid 2: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off'>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>"
+  "<li>"
     "<form method='POST' action='valve3'>\n"
     "Growbed valve pump 3: "
     "on <input type='radio' name='state' value='on'>\n"
     "off <input type='radio' name='state' value='off'>\n"
     "<input type='submit' value='Submit'></form>\n"
-  "</li>\n"
+  "</li>"
+   "<li>"
+    "<form method='POST' action='valve6'>\n"
+    "Growbed solenoid 3: "
+    "on <input type='radio' name='state' value='on'>\n"
+    "off <input type='radio' name='state' value='off'>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>"
   "</ul></p>\n"
   "<h2>Monitor</h2>\n"
   "<p><ul>\n"
@@ -144,8 +165,8 @@ boolean GOT_PH_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
-RCSwitch mySwitch = RCSwitch();
-const int RCSW_CHANNEL = 2; // which 433 channel to use (I-IV)
+  RCSwitch mySwitch = RCSwitch();
+  const int RCSW_CHANNEL = 2; // which 433 channel to use (I-IV)
 const int RCSW_HEATER = 2;  // which 433 device to switch (1-4)
 
 /////////////////////////////////////////////////////////////////////////////
@@ -154,6 +175,9 @@ Adafruit_MCP23008 mcp; // Create object for MCP23008
 const int V1_MCP_PIN = 0;
 const int V2_MCP_PIN = 3;
 const int V3_MCP_PIN = 7;
+const int S1_MCP_PIN = 2;
+const int S2_MCP_PIN = 6;
+const int S3_MCP_PIN = 1;
 
 /////////////////////////////////////////////////////////////////////////////
 // level sensing stuff //////////////////////////////////////////////////////
@@ -196,9 +220,12 @@ void setup() {
   startWebServer();
 
   mcp.begin();      // use default address 0 for mcp23008
-  mcp.pinMode(0, OUTPUT);
-  mcp.pinMode(3, OUTPUT);
-  mcp.pinMode(7, OUTPUT);    
+  mcp.pinMode(V1_MCP_PIN, OUTPUT);
+  mcp.pinMode(V2_MCP_PIN, OUTPUT);
+  mcp.pinMode(V3_MCP_PIN, OUTPUT);
+  mcp.pinMode(S1_MCP_PIN, OUTPUT);
+  mcp.pinMode(S2_MCP_PIN, OUTPUT);
+  mcp.pinMode(S3_MCP_PIN, OUTPUT);    
 
   if(WiFi.hostname("waterelf"))
     Serial.println("set hostname succeeded");
@@ -299,6 +326,9 @@ void startWebServer() {
   webServer.on("/valve1", handle_valve1);
   webServer.on("/valve2", handle_valve2);
   webServer.on("/valve3", handle_valve3);
+  webServer.on("/valve4", handle_valve4);
+  webServer.on("/valve5", handle_valve5);
+  webServer.on("/valve6", handle_valve6);
   webServer.begin();
   Serial.println("HTTP server started");
 }
@@ -554,6 +584,9 @@ void handle_actuate() {
 void handle_valve1() { handle_valve(1, V1_MCP_PIN); }
 void handle_valve2() { handle_valve(2, V2_MCP_PIN); }
 void handle_valve3() { handle_valve(3, V3_MCP_PIN); }
+void handle_valve4() { handle_valve(4, S1_MCP_PIN); }
+void handle_valve5() { handle_valve(5, S2_MCP_PIN); }
+void handle_valve6() { handle_valve(6, S3_MCP_PIN); }
 void handle_valve(int valveNum, int mcpPin) {
   Serial.print("serving page at /valve");
   Serial.println(valveNum);
