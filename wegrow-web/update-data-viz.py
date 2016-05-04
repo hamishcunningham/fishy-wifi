@@ -67,7 +67,7 @@ def wipe_flags():
     for flag in flags:
         os.remove(flag)
 
-# HTML Writing
+# HTML Schemes
 
 def create_raw_data_htmls(changes_dir):
     """Create HTML file tables from all of the raw data files"""
@@ -75,12 +75,24 @@ def create_raw_data_htmls(changes_dir):
         path = _make_html_path(original_path)
         path = _add_filename_prefix(path, "table_")
         _create_path(path)
-        with open(path, "w") as f:
-            html = ""
-            html += table.get_html_string()
-            
-            html += "\n"
-            f.write(html)
+
+        html = table.get_html_string()
+        write_html_file(path, html)
+
+# HTML Writing
+
+def write_html_file(path, page_html, use_base=True):
+    # Input any base HTML here!
+    base_html = ""
+
+    html = ""
+    if use_base:
+        html += base_html
+    html += page_html
+    html += "\n" 
+    
+    with open(path, "w") as f:
+        f.write(html)
 
 def _add_filename_prefix(path, text):
     """Add text to the start of a filename in a path"""
@@ -99,7 +111,6 @@ def _make_html_path(input_path):
     return new_path
 
 def _create_path(filename):
-    print filename
     if not os.path.exists(os.path.dirname(filename)):
         try:
             os.makedirs(os.path.dirname(filename))
