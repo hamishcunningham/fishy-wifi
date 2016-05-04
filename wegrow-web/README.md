@@ -9,7 +9,9 @@ WeGrow.social: Web Tree
 - pages (as opposed to articles) must be listed in Makefile.local
 - you can write in markdown (`.mkd`),
   [YAM](https://gate.ac.uk/gatewiki/cow/doc/gatewiki.html#section-3.8.)
-  (`.yam`) or JINJA (`.jinja`, which gets translated into markdown)
+  (`.yam`)
+- visualisation of elf data will be pulled into output/data and included in
+  the pelican managed html via frames -- see `update-data-viz.py`
 
 # Implementation Notes
 
