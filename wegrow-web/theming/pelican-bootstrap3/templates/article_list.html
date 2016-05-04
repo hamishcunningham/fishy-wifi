@@ -3,6 +3,10 @@
     {% if articles %}
         {% for article in (articles_page.object_list if articles_page else articles) %}
             <article>
+              <a style="float: left; padding-right: 5px;" class="article-thumb"
+                 href="{{ SITEURL }}/images/articles/{{ article.slug }}.jpg"><img
+                 src="{{ SITEURL }}/images/articles/thumbs/{{ article.slug }}.jpg"
+                 height="75" width="75" alt="{{ article.slug }}"></a>
                 <h2><a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}</a></h2>
                 {% if DISPLAY_ARTICLE_INFO_ON_INDEX %}
                     <div class="well well-sm">
