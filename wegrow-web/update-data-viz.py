@@ -69,7 +69,7 @@ def wipe_flags():
 
 # HTML Schemes
 
-def create_raw_data_htmls(changes_dir):
+def create_data_table_htmls(changes_dir):
     """Create HTML file tables from all of the raw data files"""
     for original_path, data, table in yield_changed_file_objects(changes_dir):
         path = _make_html_path(original_path)
@@ -120,7 +120,7 @@ def _create_path(filename):
                 raise
 
 def main():
-    create_raw_data_htmls(changes_dir)
+    create_data_table_htmls(changes_dir)
     wipe_flags()
 
 if __name__ == "__main__":
