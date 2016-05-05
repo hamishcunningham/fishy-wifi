@@ -73,7 +73,7 @@ def create_raw_data_htmls(changes_dir):
     """Create HTML file tables from all of the raw data files"""
     for original_path, data, table in yield_changed_file_objects(changes_dir):
         path = _make_html_path(original_path)
-        path = _add_filename_prefix(path, "table_")
+        path = _add_filename_prefix(path, "table/table_")
         _create_path(path)
 
         html = table.get_html_string()
@@ -90,7 +90,8 @@ def write_html_file(path, page_html, use_base=True):
         html += base_html
     html += page_html
     html += "\n" 
-    
+     
+    print "Writing HTML to %s" % path
     with open(path, "w") as f:
         f.write(html)
 
