@@ -2,12 +2,12 @@ waterelf details:
 
 Colour code for 6 pin connector
 Pin	Wire Colour			Function
-1	Orange+Orange/White	VCC (5v)
-2	Green/White			Trig
-3	Blue/White			Echo
-4	Brown+Brown/White	Gnd
-5	Green				Pump
-6	Blue				Solenoid
+1	Orange+Orange/White	VCC (5v)	Red
+2	Green/White			Trig		Yellow
+3	Blue/White			Echo		White
+4	Brown+Brown/White	Gnd			Black
+5	Green				Pump		Green
+6	Blue				Solenoid	Blue
 
 echo sensor HC-SR04
 
