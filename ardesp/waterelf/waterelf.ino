@@ -33,6 +33,7 @@ ESP8266WebServer webServer(80);
 String apSSIDStr = "WaterElf-" + String(ESP.getChipId());
 const char* apSSID = apSSIDStr.c_str();
 String svrAddr = ""; // address of a local server
+const char* apPassword = "wegrowdotsocial"; // change this in production!!
 
 /////////////////////////////////////////////////////////////////////////////
 // page generation stuff ////////////////////////////////////////////////////
@@ -208,6 +209,7 @@ void getSensorConfig(byte* pH_Add, int* pH4Cal, int* pH7Cal, float* vRef) {
     f.close();
   }
 }
+
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
 void ledOn();
@@ -226,7 +228,7 @@ void setup() {
   SPIFFS.begin();
   svrAddr = getSvrAddr();
   getSensorConfig(&pH_Add,&pH4Cal,&pH7Cal,&vRef);
-
+  
   startPeripherals();
   startAP();
   printIPs();
@@ -308,7 +310,7 @@ void valveLogic() { // set valves on and off etc.
 void startAP() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(apSSID);
+  WiFi.softAP(apSSID,apPassword);
   Serial.println("Soft AP started");
 }
 void startDNS() {
