@@ -33,7 +33,6 @@ ESP8266WebServer webServer(80);
 String apSSIDStr = "WaterElf-" + String(ESP.getChipId());
 const char* apSSID = apSSIDStr.c_str();
 String svrAddr = ""; // address of a local server
-const char* apPassword = "wegrowdotsocial"; // change this in production!!
 
 /////////////////////////////////////////////////////////////////////////////
 // page generation stuff ////////////////////////////////////////////////////
@@ -155,12 +154,11 @@ boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // pH sensor stuff //////////////////////////////////////////////////////////
-//  default values of pH_Add, pH7Cal, pH4Cal and vRef updated by SensorConfig.txt
-byte pH_Add = 0x4D;  // change this to match ph ADC address
-int pH7Cal = 2048; //assume ideal probe and amp conditions 1/2 of 4096
+const byte pH_Add = 0x4D;  // change this to match ph ADC address
+int pH7Cal = 2048; // assume ideal probe and amp conditions 1/2 of 4096
 int pH4Cal = 1286; // ideal probe slope -> this many 12bit units on 4 scale
 float pHStep = 59.16; // ideal probe slope
-float vRef = 4.096; // our vRef into the ADC wont be exact
+const float vRef = 4.096; // our vRef into the ADC wont be exact
 // since you can run VCC lower than Vref its best to measure and adjust here
 const float opampGain = 5.25; //what is our Op-Amps gain (stage 1)
 boolean GOT_PH_SENSOR = false; // we'll change later if we detect sensor
@@ -195,20 +193,6 @@ boolean getCloudShare();
 void setCloudShare(boolean b);
 String getSvrAddr();
 void setSvrAddr(String s);
-void getSensorConfig(byte* pH_Add, int* pH4Cal, int* pH7Cal, float* vRef) {
-  File f = SPIFFS.open("/SensorConfig.txt", "r");
-  if(f) {
-    *pH_Add=strtol(&f.readStringUntil('/')[0], NULL, 16);
-    String comment1 = f.readStringUntil('\n');
-    *pH4Cal=strtol(&f.readStringUntil('/')[0], NULL, 10);
-    String comment2 = f.readStringUntil('\n');
-    *pH7Cal=strtol(&f.readStringUntil('/')[0], NULL, 10);
-    String comment3 = f.readStringUntil('\n');
-    *vRef = f.readStringUntil('/').toFloat();
-    String comment4 = f.readStringUntil('\n');
-    f.close();
-  }
-}
 
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
@@ -227,8 +211,7 @@ void setup() {
   // read persistent config
   SPIFFS.begin();
   svrAddr = getSvrAddr();
-  getSensorConfig(&pH_Add,&pH4Cal,&pH7Cal,&vRef);
-  
+
   startPeripherals();
   startAP();
   printIPs();
@@ -310,7 +293,7 @@ void valveLogic() { // set valves on and off etc.
 void startAP() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(apSSID,apPassword);
+  WiFi.softAP(apSSID);
   Serial.println("Soft AP started");
 }
 void startDNS() {
