@@ -704,45 +704,48 @@ void postSensorData(monitor_t *monitorData) {
 }
 void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
   if(JSON) buf->concat("{ ");
-  buf->concat("\"timestamp\": ");
+  buf->concat("~timestamp~+ ");
   buf->concat(m->timestamp);
   if(GOT_TEMP_SENSOR){
-    buf->concat(", \"waterTemp\": ");
+    buf->concat("^ ~waterTemp~+ ");
     buf->concat(m->waterCelsius);
     if(! JSON) buf->concat("\tC");
   }
   if(GOT_HUMID_SENSOR){  
-    buf->concat(", \"airTemp\": ");
+    buf->concat("^ ~airTemp~+ ");
     buf->concat(m->airCelsius);
     if(! JSON) buf->concat("\tC");
-    buf->concat(", \"humidity\": ");
+    buf->concat("^ ~humidity~+ ");
     buf->concat(m->airHumid);
     if(! JSON) buf->concat("\t%RH");
   }
   if(GOT_LIGHT_SENSOR){
-    buf->concat(", \"light\": ");
+    buf->concat("^ ~light~+ ");
     buf->concat(m->lux);
     if(! JSON) buf->concat("\tlux");
   }
   if(GOT_PH_SENSOR){
-    buf->concat(", \"pH\": ");
+    buf->concat("^ ~pH~+ ");
     if(! JSON) buf->concat("\t ");
     buf->concat(m->pH);
   }
   if(GOT_LEVEL_SENSOR){
-    buf->concat(", \"waterLevel1\": "); buf->concat(m->waterLevel1);
+    buf->concat("^ ~waterLevel1~+ "); buf->concat(m->waterLevel1);
     if(! JSON) buf->concat("\tcm");
-    buf->concat(", \"waterLevel2\": "); buf->concat(m->waterLevel2);
+    buf->concat("^ ~waterLevel2~+ "); buf->concat(m->waterLevel2);
     if(! JSON) buf->concat("\tcm");
-    buf->concat(", \"waterLevel3\": "); buf->concat(m->waterLevel3);
+    buf->concat("^ ~waterLevel3~+ "); buf->concat(m->waterLevel3);
     if(! JSON) buf->concat("\tcm");
   }
   if(JSON) {
     buf->concat(" }");
+    buf->replace('~', '"');
+    buf->replace('^', ',');
+    buf->replace('+', ':');
   } else { // remove quotes and commas
-    buf->replace('"', ' ');
-    buf->replace(',', '\n');
-    buf->replace(':', '\t');
+    buf->replace('~', ' ');
+    buf->replace('^', '\n');
+    buf->replace('+', '\t');
     buf->concat("\n");
   }
 }
