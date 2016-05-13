@@ -724,7 +724,11 @@ void jsonMonitorEntry(monitor_t *m, String* buf) {
     buf->concat(", \"pH\": ");
     buf->concat(m->pH);
   }
-  // TODO add water levels
+  if(GOT_LEVEL_SENSOR){
+    buf->concat(", \"cm1\": "); buf->concat(m->waterLevel1);
+    buf->concat(", \"cm2\": "); buf->concat(m->waterLevel2);
+    buf->concat(", \"cm3\": "); buf->concat(m->waterLevel3);
+  }
   buf->concat(" }");
 }
 void getTemperature(float* waterCelsius) {
