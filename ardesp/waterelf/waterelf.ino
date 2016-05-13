@@ -107,11 +107,11 @@ typedef struct {
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
 int monitorSize = 0;
-const int DATA_ENTRIES = 30; // size of /data rpt; must be <= MONITOR_POINTS
+const int DATA_ENTRIES = 4; // size of /data rpt; must be <= MONITOR_POINTS
 void updateSensorData(monitor_t *monitorData);
 void postSensorData(monitor_t *monitorData);
 void printMonitorEntry(monitor_t m, String* buf);
-void jsonMonitorEntry(monitor_t *m, String* buf);
+void formatMonitorEntry(monitor_t *m, String* buf, bool JSON);
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
@@ -344,7 +344,7 @@ void handle_data() {
     j <= DATA_ENTRIES && j <= monitorSize;
     i--, j++
   ) {
-    jsonMonitorEntry(&monitorData[i], &toSend);
+    formatMonitorEntry(&monitorData[i], &toSend, false);
     toSend += "\n";
     if(i == 0)
       i = MONITOR_POINTS;
@@ -680,7 +680,7 @@ void postSensorData(monitor_t *monitorData) {
 
   // create a JSON form
   String jsonBuf = "";
-  jsonMonitorEntry(monitorData, &jsonBuf);
+  formatMonitorEntry(monitorData, &jsonBuf, true);
   String envelope = "POST /fishydata HTTP/1.1\n";
   envelope += "Content-Type: application/json\n";
   envelope += "Content-Length: " ;
@@ -702,34 +702,49 @@ void postSensorData(monitor_t *monitorData) {
   Serial.println("");
   return;
 }
-void jsonMonitorEntry(monitor_t *m, String* buf) {
-  buf->concat("{ ");
+void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
+  if(JSON) buf->concat("{ ");
   buf->concat("\"timestamp\": ");
   buf->concat(m->timestamp);
   if(GOT_TEMP_SENSOR){
     buf->concat(", \"waterTemp\": ");
     buf->concat(m->waterCelsius);
+    if(! JSON) buf->concat("\tC");
   }
   if(GOT_HUMID_SENSOR){  
     buf->concat(", \"airTemp\": ");
     buf->concat(m->airCelsius);
+    if(! JSON) buf->concat("\tC");
     buf->concat(", \"humidity\": ");
     buf->concat(m->airHumid);
+    if(! JSON) buf->concat("\t%RH");
   }
   if(GOT_LIGHT_SENSOR){
-    buf->concat(", \"lux\": ");
+    buf->concat(", \"light\": ");
     buf->concat(m->lux);
+    if(! JSON) buf->concat("\tlux");
   }
   if(GOT_PH_SENSOR){
     buf->concat(", \"pH\": ");
+    if(! JSON) buf->concat("\t ");
     buf->concat(m->pH);
   }
   if(GOT_LEVEL_SENSOR){
-    buf->concat(", \"cm1\": "); buf->concat(m->waterLevel1);
-    buf->concat(", \"cm2\": "); buf->concat(m->waterLevel2);
-    buf->concat(", \"cm3\": "); buf->concat(m->waterLevel3);
+    buf->concat(", \"waterLevel1\": "); buf->concat(m->waterLevel1);
+    if(! JSON) buf->concat("\tcm");
+    buf->concat(", \"waterLevel2\": "); buf->concat(m->waterLevel2);
+    if(! JSON) buf->concat("\tcm");
+    buf->concat(", \"waterLevel3\": "); buf->concat(m->waterLevel3);
+    if(! JSON) buf->concat("\tcm");
   }
-  buf->concat(" }");
+  if(JSON) {
+    buf->concat(" }");
+  } else { // remove quotes and commas
+    buf->replace('"', ' ');
+    buf->replace(',', '\n');
+    buf->replace(':', '\t');
+    buf->concat("\n");
+  }
 }
 void getTemperature(float* waterCelsius) {
   tempSensor.requestTemperatures(); // send command to get temperatures
