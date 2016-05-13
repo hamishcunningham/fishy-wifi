@@ -709,12 +709,12 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
   if(GOT_TEMP_SENSOR){
     buf->concat("^ ~waterTemp~+ ");
     buf->concat(m->waterCelsius);
-    if(! JSON) buf->concat("\tC");
+    if(! JSON) buf->concat("\t\u00B0C");
   }
   if(GOT_HUMID_SENSOR){  
     buf->concat("^ ~airTemp~+ ");
     buf->concat(m->airCelsius);
-    if(! JSON) buf->concat("\tC");
+    if(! JSON) buf->concat("\t\u00B0C");
     buf->concat("^ ~humidity~+ ");
     buf->concat(m->airHumid);
     if(! JSON) buf->concat("\t%RH");
