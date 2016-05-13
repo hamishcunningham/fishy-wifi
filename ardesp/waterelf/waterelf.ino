@@ -87,7 +87,7 @@ const char* pageDefault =
   "</ul></p>\n";
 const char* pageFooter =
   "\n<p><a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;"
-  "<a href='https://now.wegrow.social/'>WeGrow</a></p></body></html>";
+  "<a href='https://wegrow.social/'>WeGrow</a></p></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
