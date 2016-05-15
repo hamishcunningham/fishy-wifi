@@ -4,7 +4,7 @@ const int  V_ARITY                      = 3;  // how many valves?
 const long V_FILL_MILLIS                = 15000; // cycle...
 const long V_DRAIN_MILLIS               = 45000; // ...timings
 const long V_NEXT_CYCLE_DELAY_MILLIS    = 20000; // cycle staggering
-const long V_CYCLING                    = -2;    // we're now cycling
+const long V_CYCLING                    = -2;    // we're now cycling TODO ?why -2!
 const bool V_FILLING                    = true;  // valve...
 const bool V_DRAINING                   = false; // ...state
 
