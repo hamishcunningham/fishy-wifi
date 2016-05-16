@@ -1,7 +1,17 @@
 
 
+// maybe: fixed cycle time, irrespective of actual fill time, and the
+// differences are absorbed into the dry time?
+
+// working modes for both beds with overflows and without?
+
 class Valve { // each valve /////////////////////////////////////////////////
   char dryMins = 45;                // mins to leave bed drained per cycle
+                                    // in beds with overflows can be 0; else
+                                    // will be cycle time minus fill time
+
+  bool gotOverflow = false;         // does the growbed have an overflow?
+  char fillLevel = 5;               // cms below the level sensor: drain point
 }
 class FlowControl { // the set of valves and their config ///////////////////
   int numValves = 3;                // how many valves do we have?
@@ -15,7 +25,7 @@ class FlowControl { // the set of valves and their config ///////////////////
   FlowControl() { init(); }
   int getStaggerMillis() { return staggerMins * 60 * 1000; }
   void init() {
-    t = millis();
+    long t = millis();
     long nextCycleStart = t;
     for(int i = 0; i < valves.length; i++) {
       valves[i].startTime = nextCycleStart;
