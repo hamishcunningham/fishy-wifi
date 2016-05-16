@@ -1,0 +1,4 @@
+0x4D // The I2C address of the pH sensor
+1286 // The raw value when calibrating against pH 4.0
+2048 // The raw value when calibrating against pH 7.0
+4.096 // vRef of the ADC of pH sensor - for greater accuracy measure it and put actual value here
