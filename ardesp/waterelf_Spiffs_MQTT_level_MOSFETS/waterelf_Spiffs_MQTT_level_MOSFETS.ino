@@ -3,7 +3,10 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
+#include <PubSubClient.h>
 #include "./DNSServer.h"      // Patched lib
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
 #include <FS.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -26,13 +29,31 @@ const int TICK_HEAP_DEBUG = 1000;
 /////////////////////////////////////////////////////////////////////////////
 // wifi management stuff ////////////////////////////////////////////////////
 const byte DNS_PORT = 53;
+DNSServer dnsServer;
 IPAddress apIP(192, 168, 99, 1);
 IPAddress netMsk(255, 255, 255, 0);
-DNSServer dnsServer;
 ESP8266WebServer webServer(80);
 String apSSIDStr = "WaterElf-" + String(ESP.getChipId());
 const char* apSSID = apSSIDStr.c_str();
 String svrAddr = ""; // address of a local server
+
+/////////////////////////////////////////////////////////////////////////////
+// MQTT stuff ///////////////////////////////////////////////////////////////
+const boolean SEND_MQTT = false;  // turn on/off posting of data to couchdb
+void callback(const MQTT::Publish& pub) {
+  // handle message arrived
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// MCP23008 stuff ///////////////////////////////////////////////////////////
+Adafruit_MCP23008 mcp; // Create object for MCP23008
+
+/////////////////////////////////////////////////////////////////////////////
+// OTA update stuff /////////////////////////////////////////////////////////
+// const uint16_t aport = 8266;
+// WiFiServer TelnetServer(aport);
+// WiFiClient Telnet;
+// WiFiUDP OTA;
 
 /////////////////////////////////////////////////////////////////////////////
 // page generation stuff ////////////////////////////////////////////////////
@@ -43,7 +64,7 @@ const char* pageTop = pageTopStr.c_str();
 const char* pageTop2 = "</title>\n"
   "<meta charset=\"utf-8\">"
   "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-  "<style>body{background:#FFF;color: #000;font-family: sans-serif;font-size: 150%;}</style>"
+  "<style>body{padding: 20px;background: #FFF url(\"waterelf.jpg\") no-repeat;color: #000;font-family: sans-serif;font-size: 150%;}</style>"
   "</head><body>\n";
 const char* pageDefault =
   "<h2>Welcome to WaterElf</h2>\n"
@@ -55,51 +76,23 @@ const char* pageDefault =
     "<form method='POST' action='actuate'>\n"
     "External power: "
     "on <input type='radio' name='state' value='on'>\n"
-    "off <input type='radio' name='state' value='off'>\n"
+    "off <input type='radio' name='state' value='off' checked>\n"
     "<input type='submit' value='Submit'></form>\n"
-  "</li>"
-  "<li>"
-    "<form method='POST' action='valve1'>\n"
-    "Growbed valve pump 1: "
+  "</li>\n"
+  "<li>\n"
+    "<form method='POST' action='leftpump'>\n"
+    "Left Water Pump: "
     "on <input type='radio' name='state' value='on'>\n"
-    "off <input type='radio' name='state' value='off'>\n"
+    "off <input type='radio' name='state' value='off' checked>\n"
     "<input type='submit' value='Submit'></form>\n"
-  "</li>"
-  "<li>"
-    "<form method='POST' action='valve4'>\n"
-    "Growbed solenoid 1: "
+  "</li>\n"
+  "<li>\n"
+    "<form method='POST' action='rightpump'>\n"
+    "Right Water Pump: "
     "on <input type='radio' name='state' value='on'>\n"
-    "off <input type='radio' name='state' value='off'>\n"
+    "off <input type='radio' name='state' value='off' checked>\n"
     "<input type='submit' value='Submit'></form>\n"
-  "</li>"
-  "<li>"
-    "<form method='POST' action='valve2'>\n"
-    "Growbed valve pump 2: "
-    "on <input type='radio' name='state' value='on'>\n"
-    "off <input type='radio' name='state' value='off'>\n"
-    "<input type='submit' value='Submit'></form>\n"
-  "</li>"
-   "<li>"
-    "<form method='POST' action='valve5'>\n"
-    "Growbed solenoid 2: "
-    "on <input type='radio' name='state' value='on'>\n"
-    "off <input type='radio' name='state' value='off'>\n"
-    "<input type='submit' value='Submit'></form>\n"
-  "</li>"
-  "<li>"
-    "<form method='POST' action='valve3'>\n"
-    "Growbed valve pump 3: "
-    "on <input type='radio' name='state' value='on'>\n"
-    "off <input type='radio' name='state' value='off'>\n"
-    "<input type='submit' value='Submit'></form>\n"
-  "</li>"
-   "<li>"
-    "<form method='POST' action='valve6'>\n"
-    "Growbed solenoid 3: "
-    "on <input type='radio' name='state' value='on'>\n"
-    "off <input type='radio' name='state' value='off'>\n"
-    "<input type='submit' value='Submit'></form>\n"
-  "</li>"
+  "</li>\n"
   "</ul></p>\n"
   "<h2>Monitor</h2>\n"
   "<p><ul>\n"
@@ -111,28 +104,145 @@ const char* pageFooter =
   "<a href='https://now.wegrow.social/'>WeGrow</a></p></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////
+// file serving web-pages ////////////////////////////////////////////////////
+File fsUploadFile;
+String getContentType(String filename){
+  if(webServer.hasArg("download")) return "application/octet-stream";
+  else if(filename.endsWith(".htm")) return "text/html";
+  else if(filename.endsWith(".html")) return "text/html";
+  else if(filename.endsWith(".css")) return "text/css";
+  else if(filename.endsWith(".js")) return "application/javascript";
+  else if(filename.endsWith(".png")) return "image/png";
+  else if(filename.endsWith(".gif")) return "image/gif";
+  else if(filename.endsWith(".jpg")) return "image/jpeg";
+  else if(filename.endsWith(".ico")) return "image/x-icon";
+  else if(filename.endsWith(".xml")) return "text/xml";
+  else if(filename.endsWith(".pdf")) return "application/x-pdf";
+  else if(filename.endsWith(".zip")) return "application/x-zip";
+  else if(filename.endsWith(".gz")) return "application/x-gzip";
+  return "text/plain";
+}
+
+bool handleFileRead(String path){
+  //Serial.println("handleFileRead: " + path);
+  if(path.endsWith("/")) path += "index.htm";
+  String contentType = getContentType(path);
+  String pathWithGz = path + ".gz";
+  if(SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)){
+    if(SPIFFS.exists(pathWithGz))
+      path += ".gz";
+    File file = SPIFFS.open(path, "r");
+    size_t sent = webServer.streamFile(file, contentType);
+    file.close();
+    return true;
+  }
+  return false;
+}
+
+void handleFileUpload(){
+  if(webServer.uri() != "/edit") return;
+  HTTPUpload& upload = webServer.upload();
+  if(upload.status == UPLOAD_FILE_START){
+    String filename = upload.filename;
+    if(!filename.startsWith("/")) filename = "/"+filename;
+    Serial.print("handleFileUpload Name: "); Serial.println(filename);
+    fsUploadFile = SPIFFS.open(filename, "w");
+    filename = String();
+  } else if(upload.status == UPLOAD_FILE_WRITE){
+    //Serial.print("handleFileUpload Data: "); Serial.println(upload.currentSize);
+    if(fsUploadFile)
+      fsUploadFile.write(upload.buf, upload.currentSize);
+  } else if(upload.status == UPLOAD_FILE_END){
+    if(fsUploadFile)
+      fsUploadFile.close();
+    Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
+  }
+}
+
+void handleFileDelete(){
+  if(webServer.args() == 0) return webServer.send(500, "text/plain", "BAD ARGS");
+  String path = webServer.arg(0);
+  Serial.println("handleFileDelete: " + path);
+  if(path == "/")
+    return webServer.send(500, "text/plain", "BAD PATH");
+  if(!SPIFFS.exists(path))
+    return webServer.send(404, "text/plain", "FileNotFound");
+  SPIFFS.remove(path);
+  webServer.send(200, "text/plain", "");
+  path = String();
+}
+
+void handleFileCreate(){
+  if(webServer.args() == 0)
+    return webServer.send(500, "text/plain", "BAD ARGS");
+  String path = webServer.arg(0);
+  Serial.println("handleFileCreate: " + path);
+  if(path == "/")
+    return webServer.send(500, "text/plain", "BAD PATH");
+  if(SPIFFS.exists(path))
+    return webServer.send(500, "text/plain", "FILE EXISTS");
+  File file = SPIFFS.open(path, "w");
+  if(file)
+    file.close();
+  else
+    return webServer.send(500, "text/plain", "CREATE FAILED");
+  webServer.send(200, "text/plain", "");
+  path = String();
+}
+
+void handleFileList() {
+  if(!webServer.hasArg("dir")) {webServer.send(500, "text/plain", "BAD ARGS"); return;}
+  
+  String path = webServer.arg("dir");
+  Serial.println("handleFileList: " + path);
+  Dir dir = SPIFFS.openDir(path);
+  path = String();
+
+  String output = "[";
+  while(dir.next()){
+    File entry = dir.openFile("r");
+    if (output != "[") output += ',';
+    bool isDir = false;
+    output += "{\"type\":\"";
+    output += (isDir)?"dir":"file";
+    output += "\",\"name\":\"";
+    output += String(entry.name()).substring(1);
+    output += "\"}";
+    entry.close();
+  }
+  
+  output += "]";
+  webServer.send(200, "text/json", output);
+}
+
+/////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
-const boolean SEND_DATA = true;  // turn off posting of data if required here
+const boolean SEND_COUCH = false;  // turn on/off posting of data to couchdb
 const int MONITOR_POINTS = 60; // number of data points to store
-typedef struct {
+struct monitor_t {
   unsigned long timestamp;
+  long waterLevel;
   float waterCelsius;
   float airCelsius;
   float airHumid;
   uint16_t lux;
   float pH;
-  long waterLevel1;
-  long waterLevel2;
-  long waterLevel3;
-} monitor_t;
+};
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
 int monitorSize = 0;
 const int DATA_ENTRIES = 30; // size of /data rpt; must be <= MONITOR_POINTS
 void updateSensorData(monitor_t *monitorData);
 void postSensorData(monitor_t *monitorData);
+void sendSensorData(monitor_t *monitorData);
 void printMonitorEntry(monitor_t m, String* buf);
 void jsonMonitorEntry(monitor_t *m, String* buf);
+
+/////////////////////////////////////////////////////////////////////////////
+// level sensing stuff //////////////////////////////////////////////////////
+const int levelTriggerPin=12;
+const int levelEchoPin=13;
+boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
@@ -154,38 +264,16 @@ boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // pH sensor stuff //////////////////////////////////////////////////////////
-const byte pH_Add = 0x4D;  // change this to match ph ADC address
-int pH7Cal = 2048; // assume ideal probe and amp conditions 1/2 of 4096
-int pH4Cal = 1286; // ideal probe slope -> this many 12bit units on 4 scale
-float pHStep = 59.16; // ideal probe slope
-const float vRef = 4.096; // our vRef into the ADC wont be exact
-// since you can run VCC lower than Vref its best to measure and adjust here
+byte pH_Add = 0; // loaded from SensorConfig.txt
+int pH4Cal = 0,pH7Cal = 0; // loaded from SensorConfig.txt
+float vRef = 0; // loaded from SensorConfig.txt
+const float pHStep = 59.16; // ideal probe slope
 const float opampGain = 5.25; //what is our Op-Amps gain (stage 1)
 boolean GOT_PH_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
-  RCSwitch mySwitch = RCSwitch();
-  const int RCSW_CHANNEL = 2; // which 433 channel to use (I-IV)
-const int RCSW_HEATER = 2;  // which 433 device to switch (1-4)
-
-/////////////////////////////////////////////////////////////////////////////
-// MCP23008 stuff ///////////////////////////////////////////////////////////
-Adafruit_MCP23008 mcp; // Create object for MCP23008
-const int V1_MCP_PIN = 0;
-const int V2_MCP_PIN = 3;
-const int V3_MCP_PIN = 7;
-const int S1_MCP_PIN = 2;
-const int S2_MCP_PIN = 6;
-const int S3_MCP_PIN = 1;
-
-/////////////////////////////////////////////////////////////////////////////
-// level sensing stuff //////////////////////////////////////////////////////
-const int LEVEL_TRIG_PIN=12;
-const int LEVEL_ECHO_PIN1=13;
-const int LEVEL_ECHO_PIN2=14;
-const int LEVEL_ECHO_PIN3=16;
-boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
+RCSwitch mySwitch = RCSwitch();
 
 /////////////////////////////////////////////////////////////////////////////
 // config utils /////////////////////////////////////////////////////////////
@@ -193,7 +281,20 @@ boolean getCloudShare();
 void setCloudShare(boolean b);
 String getSvrAddr();
 void setSvrAddr(String s);
-
+void getSensorConfig(byte* pH_Add, int* pH4Cal, int* pH7Cal, float* vRef) {
+  File f = SPIFFS.open("/SensorConfig.txt", "r");
+  if(f) {
+    *pH_Add=strtol(&f.readStringUntil('/')[0], NULL, 16);
+    String comment1 = f.readStringUntil('\n');
+    *pH4Cal=strtol(&f.readStringUntil('/')[0], NULL, 10);
+    String comment2 = f.readStringUntil('\n');
+    *pH7Cal=strtol(&f.readStringUntil('/')[0], NULL, 10);
+    String comment3 = f.readStringUntil('\n');
+    *vRef = f.readStringUntil('/').toFloat();
+    String comment4 = f.readStringUntil('\n');
+    f.close();
+  }
+}
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
 void ledOn();
@@ -204,29 +305,30 @@ String ip2str(IPAddress address);
 // setup ////////////////////////////////////////////////////////////////////
 void setup() {
   Serial.begin(115200);
-
+  Serial.println(); // start on new line
   pinMode(BUILTIN_LED, OUTPUT); // turn built-in LED on
   blink(3); // signal we're starting setup
 
   // read persistent config
   SPIFFS.begin();
   svrAddr = getSvrAddr();
+  getSensorConfig(&pH_Add,&pH4Cal,&pH7Cal,&vRef);
 
   startPeripherals();
   startAP();
   printIPs();
   startDNS();
-
   startWebServer();
-
+  
+//  MDNS.begin(apSSID);
+//  MDNS.addService("arduino", "tcp", aport);
+//  OTA.begin(aport);
+//  TelnetServer.begin();
+//  TelnetServer.setNoDelay(true);
   mcp.begin();      // use default address 0 for mcp23008
-  mcp.pinMode(V1_MCP_PIN, OUTPUT);
-  mcp.pinMode(V2_MCP_PIN, OUTPUT);
-  mcp.pinMode(V3_MCP_PIN, OUTPUT);
-  mcp.pinMode(S1_MCP_PIN, OUTPUT);
-  mcp.pinMode(S2_MCP_PIN, OUTPUT);
-  mcp.pinMode(S3_MCP_PIN, OUTPUT);    
-
+  mcp.pinMode(0, OUTPUT);
+  mcp.pinMode(3, OUTPUT);
+  mcp.pinMode(7, OUTPUT);    
   if(WiFi.hostname("waterelf"))
     Serial.println("set hostname succeeded");
   else
@@ -240,59 +342,87 @@ void setup() {
 void loop() {
   dnsServer.processNextRequest();
   webServer.handleClient();
-  if (GOT_TEMP_SENSOR==FALSE) {
-  valveStateChange(1, TRUE, V1_MCP_PIN);
-  valveStateChange(4, TRUE, S1_MCP_PIN);
-  delay(10000);
-  valveStateChange(1, FALSE, V1_MCP_PIN);
-  valveStateChange(4, FALSE, S1_MCP_PIN);
-  delay(5000);
-  }
-  if(loopCounter == TICK_MONITOR) { // monitor levels, valve logic, push data
-    monitor_t* now = &monitorData[monitorCursor];
-    if(monitorSize < MONITOR_POINTS)
-      monitorSize++;
-    now->timestamp = millis();
-    if(GOT_TEMP_SENSOR) {
-      getTemperature(&now->waterCelsius);               yield();
-    }
-    if(GOT_HUMID_SENSOR) {
-      getHumidity(&now->airCelsius, &now->airHumid);    yield();
-    }
-    if(GOT_LIGHT_SENSOR) { getLight(&now->lux);         yield(); }
-    if(GOT_PH_SENSOR) { getPH(&now->pH);                yield(); }
-    if(GOT_LEVEL_SENSOR) {
-      getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);     yield();
-      getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);     yield();
-      getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
+/* if (OTA.parsePacket()) {
+    IPAddress remote = OTA.remoteIP();
+   int cmd  = OTA.parseInt();
+    int port = OTA.parseInt();
+    int size   = OTA.parseInt();
+
+    Serial.print("Update Start: ip:");
+    Serial.print(remote);
+    Serial.printf(", port:%d, size:%d\n", port, size);
+    uint32_t startTime = millis();
+
+    WiFiUDP::stopAll();
+
+    if(!Update.begin(size)){
+      Serial.println("Update Begin Error");
+      return;
     }
 
-    valveLogic(); yield(); // set valves on and off etc.
-// TODO    valveLogic(now, &flowState); yield(); // set valves on and off...
-    if(SEND_DATA) { postSensorData(&monitorData[monitorCursor]); yield(); }
-      
-    if(++monitorCursor == MONITOR_POINTS)
-      monitorCursor = 0;
-    // delay(500);
-  }
+    WiFiClient client;
+    if (client.connect(remote, port)) {
 
+      uint32_t written;
+      while(!Update.isFinished()){
+        written = Update.write(client);
+        if(written > 0) client.print(written, DEC);
+      }
+      Serial.setDebugOutput(false);
+
+      if(Update.end()){
+        client.println("OK");
+        Serial.printf("Update Success: %u\nRebooting...\n", millis() - startTime);
+        ESP.restart();
+      } else {
+        Update.printError(client);
+        Update.printError(Serial);
+      }
+    } else {
+      Serial.printf("Connect Failed: %u\n", millis() - startTime);
+    }
+  }
+  //IDE Monitor (connected to Serial)
+  if (TelnetServer.hasClient()){
+    if (!Telnet || !Telnet.connected()){
+      if(Telnet) Telnet.stop();
+      Telnet = TelnetServer.available();
+    } else {
+      WiFiClient toKill = TelnetServer.available();
+      toKill.stop();
+    }
+  }
+  if (Telnet && Telnet.connected() && Telnet.available()){
+    while(Telnet.available())
+      Serial.write(Telnet.read());
+  }
+  if(Serial.available()){
+    size_t len = Serial.available();
+    uint8_t * sbuf = (uint8_t *)malloc(len);
+    Serial.readBytes(sbuf, len);
+    if (Telnet && Telnet.connected()){
+      Telnet.write((uint8_t *)sbuf, len);
+      yield();
+    }
+    free(sbuf);
+  }
+  */
+  
+  delay(1);
+  if(loopCounter == TICK_MONITOR) {
+    updateSensorData(monitorData);
+    delay(5); // TODO a better way?!
+  } 
   if(loopCounter == TICK_WIFI_DEBUG) {
-    Serial.print("SSID: "); Serial.print(apSSID);
-    Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
-    Serial.print("; AP="); Serial.println(WiFi.softAPIP());
+//    Serial.print("SSID: "); Serial.print(apSSID);
+//    Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
+//    Serial.print("; AP="); Serial.println(WiFi.softAPIP());
   }
   if(loopCounter == TICK_HEAP_DEBUG) {
-    Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
+//    Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
   }
 
   if(loopCounter++ == LOOP_ROLLOVER) loopCounter = 0;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// pump and valve cycle management stuff ////////////////////////////////////
-void valveLogic() { // set valves on and off etc.
-  /*
-  */
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -323,6 +453,19 @@ void startWebServer() {
   webServer.on("/L2", handle_root);
   webServer.on("/ALL", handle_root);
   webServer.onNotFound(handleNotFound);
+  webServer.on("/list", HTTP_GET, handleFileList);
+  webServer.on("/edit", HTTP_GET, [](){
+    if(!handleFileRead("/edit.htm")) webServer.send(404, "text/plain", "FileNotFound");
+  });
+  //create file
+  webServer.on("/edit", HTTP_PUT, handleFileCreate);
+  //delete file
+  webServer.on("/edit", HTTP_DELETE, handleFileDelete);
+  //called after file upload
+  webServer.on("/edit", HTTP_POST, [](){ webServer.send(200, "text/plain", ""); });
+  //called when a file is received inside POST data
+  webServer.onFileUpload(handleFileUpload);
+
   webServer.on("/wifi", handle_wifi);
   webServer.on("/wifistatus", handle_wifistatus);
   webServer.on("/serverconf", handle_serverconf);
@@ -330,20 +473,21 @@ void startWebServer() {
   webServer.on("/svrchz", handle_svrchz);
   webServer.on("/data", handle_data);
   webServer.on("/actuate", handle_actuate);
-  webServer.on("/valve1", handle_valve1);
-  webServer.on("/valve2", handle_valve2);
-  webServer.on("/valve3", handle_valve3);
-  webServer.on("/valve4", handle_valve4);
-  webServer.on("/valve5", handle_valve5);
-  webServer.on("/valve6", handle_valve6);
+  webServer.on("/leftpump", handle_leftpump);
+  webServer.on("/rightpump", handle_rightpump);  
   webServer.begin();
   Serial.println("HTTP server started");
 }
 void handleNotFound() {
-  Serial.print("URI Not Found: ");
+  // This loads from SPIFFS if URL isn't defined above
+  if(!handleFileRead(webServer.uri())){
+    webServer.send(404, "text/plain", "FileNotFound");
+    Serial.print("File Not Found: ");
+    } else {
+      Serial.print("Served from SPIFFS: ");
+    }
   Serial.println(webServer.uri());
   // TODO send redirect to /? or just use handle_root?
-  webServer.send(200, "text/plain", "URI Not Found");
 }
 void handle_root() {
   Serial.println("serving page notionally at /");
@@ -495,10 +639,23 @@ void handle_wfchz() {
   } else {
     toSend += "<h2>Done! Now trying to join network...</h2>";
     toSend += "<p>Check <a href='/wifistatus'>wifi status here</a>.</p>";
+    ssid.replace("+", " ");
     char ssidchars[ssid.length()+1];
     char keychars[key.length()+1];
     ssid.toCharArray(ssidchars, ssid.length()+1);
+  if(ssidchars == "") {
+    toSend += "<h2>Ooops, no SSID...?</h2>";
+    toSend += "<p>Looks like a bug :-(</p>";
+  }
     key.toCharArray(keychars, key.length()+1);
+    Serial.print("ssid: ");
+    Serial.println(ssid);
+    Serial.print("key: ");
+    Serial.println(key);
+    Serial.print("ssidshars: ");
+    Serial.println(ssidchars);
+    Serial.print("keyshars: ");
+    Serial.println(keychars);
     WiFi.begin(ssidchars, keychars);
   }
 
@@ -574,32 +731,25 @@ void handle_actuate() {
 
   // now we trigger the 433 transmitter
   if(newState == true){
-    mySwitch.switchOn(RCSW_CHANNEL, RCSW_HEATER);
+    mySwitch.switchOn(4, 2);
     Serial.println("Actuator on");
   } else {
-    mySwitch.switchOff(RCSW_CHANNEL, RCSW_HEATER);
+    mySwitch.switchOff(4, 2);
     Serial.println("Actuator off");
   }
 
   toSend += "<h2>Actuator triggered</h2>\n";
-  toSend += "<p>(New state should be ";
+  toSend += "<p>(New state is ";
   toSend += (newState) ? "on" : "off";
   toSend += ".)</p>\n";
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
 }
-void handle_valve1() { handle_valve(1, V1_MCP_PIN); }
-void handle_valve2() { handle_valve(2, V2_MCP_PIN); }
-void handle_valve3() { handle_valve(3, V3_MCP_PIN); }
-void handle_valve4() { handle_valve(4, S1_MCP_PIN); }
-void handle_valve5() { handle_valve(5, S2_MCP_PIN); }
-void handle_valve6() { handle_valve(6, S3_MCP_PIN); }
-void handle_valve(int valveNum, int mcpPin) {
-  Serial.print("serving page at /valve");
-  Serial.println(valveNum);
+
+void handle_leftpump() {
+  Serial.println("serving page at /leftpump");
   String toSend = pageTop;
-  toSend += ": Setting Water Valve ";
-  toSend += valveNum;
+  toSend += ": Setting Left Water Pump";
   toSend += pageTop2;
 
   boolean newState = false;
@@ -610,91 +760,142 @@ void handle_valve(int valveNum, int mcpPin) {
     }
   }
 
-  // now we trigger MOSFETs off or on
-  valveStateChange(valveNum, newState, mcpPin);
+  // now we trigger the mcp23008 to turn MOSFETs off or on
+  if(newState == true){
+    mcp.digitalWrite(0, HIGH);
+    Serial.println("Left Water Pump on");
+  } else {
+    mcp.digitalWrite(0, LOW);
+    Serial.println("Left Water Pump off");
+  }
 
-  toSend += "<h2>Water Valve ";
-  toSend += valveNum;
-  toSend += " triggered</h2>\n";
-  toSend += "<p>(New state should be ";
+  toSend += "<h2>Left Water Pump triggered</h2>\n";
+  toSend += "<p>(New state is ";
   toSend += (newState) ? "on" : "off";
   toSend += ".)</p>\n";
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
 }
-void valveStateChange(int valveNum, boolean newState, int mcpPin) {
-  Serial.print("Growbed Valve Air Pump ");
-  Serial.print(valveNum);
 
-  if(newState == true){
-    mcp.digitalWrite(mcpPin, HIGH);
-    Serial.println(" on");
-  } else {
-    mcp.digitalWrite(mcpPin, LOW);
-    Serial.println(" off");
+void handle_rightpump() {
+  Serial.println("serving page at /rightpump");
+  String toSend = pageTop;
+  toSend += ": Setting Right Water Pump";
+  toSend += pageTop2;
+
+  boolean newState = false;
+  for(uint8_t i = 0; i < webServer.args(); i++ ) {
+    if(webServer.argName(i) == "state") {
+      if(webServer.arg(i) == "on")
+        newState = true;
+    }
   }
+
+  // now we trigger the mcp23008 to turn MOSFETs off or on
+  if(newState == true){
+    mcp.digitalWrite(3, HIGH);
+    Serial.println("Right Water Pump on");
+  } else {
+    mcp.digitalWrite(3, LOW);
+    Serial.println("Right Water Pump off");
+  }
+
+  toSend += "<h2>Right Water Pump triggered</h2>\n";
+  toSend += "<p>(New state is ";
+  toSend += (newState) ? "on" : "off";
+  toSend += ".)</p>\n";
+  toSend += pageFooter;
+  webServer.send(200, "text/html", toSend);
 }
 
 /////////////////////////////////////////////////////////////////////////////
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
-  Serial.println("\nstartPeripherals...");
-  mySwitch.enableTransmit(15);   // RC transmitter is connected to Pin 15
+  Serial.println("startPeripherals");
+  mcp.pinMode(levelTriggerPin, OUTPUT);
+  //pinMode(levelTriggerPin, OUTPUT);
+  pinMode(levelEchoPin, INPUT);
+  GOT_LEVEL_SENSOR = true;
 
+  mySwitch.enableTransmit(15);   // RC transmitter is connected to Pin 12
   tempSensor.begin();     // start the onewire temperature sensor
   if(tempSensor.getDeviceCount()==1) {
     GOT_TEMP_SENSOR = true;
+    Serial.println("Found waterproof temperature sensor");
     tempSensor.getAddress(tempAddr, 0);
     tempSensor.setResolution(tempAddr, 12); // 12 bit res (DS18B20 does 9-12)
   }
   
-  dht.begin();    // start the humidity and air temperature sensor
+  dht.begin();    // Start the humidity and air temperature sensor
   float airHumid = dht.readHumidity();
   float airCelsius = dht.readTemperature();
   if (isnan(airHumid) || isnan(airCelsius)) {
-    Serial.println("failed to find humidity sensor");
+    Serial.println("Failed to find humidity sensor");
   } else {
+    Serial.println("Found humidity sensor");
     GOT_HUMID_SENSOR = true;
   }
 
-  // configure the level sensors
-  pinMode(LEVEL_TRIG_PIN, OUTPUT);
-  pinMode(LEVEL_ECHO_PIN1, INPUT);
-  pinMode(LEVEL_ECHO_PIN2, INPUT);
-  pinMode(LEVEL_ECHO_PIN3, INPUT);
-  GOT_LEVEL_SENSOR = true;
-
-  Wire.begin();
+  Wire.begin(4,5);
   byte error;
   Wire.beginTransmission(0x29);
   error = Wire.endTransmission();
   if(error==0){
     GOT_LIGHT_SENSOR = true;
+    Serial.println("Found light sensor");
     tsl.begin();  // startup light sensor
     // can change gain of light sensor on the fly, to adapt 
     // brighter/dimmer light situations
-    // tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
-    tsl.setGain(TSL2591_GAIN_MED);       // 25x gain
+    tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
+    // tsl.setGain(TSL2591_GAIN_MED);       // 25x gain
     // tsl.setGain(TSL2591_GAIN_HIGH);   // 428x gain
   
     // changing the integration time gives you a longer time over which to
     // sense light longer timelines are slower, but are good in very low light
     // situtations!
-    // tsl.setTiming(TSL2591_INTEGRATIONTIME_100MS); // shortest (bright)
-    tsl.setTiming(TSL2591_INTEGRATIONTIME_200MS);
+    tsl.setTiming(TSL2591_INTEGRATIONTIME_100MS); // shortest (bright)
+    // tsl.setTiming(TSL2591_INTEGRATIONTIME_200MS);
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_300MS);
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_400MS);
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS); // longest (dim)
   }
   
-  //Wire.begin();
   Wire.beginTransmission(pH_Add);
   error = Wire.endTransmission();
   if(error==0){
     GOT_PH_SENSOR = true;
     Serial.println("Found pH sensor");
   }
+}
+void updateSensorData(monitor_t *monitorData) {
+  // Serial.print("monitorCursor = "); Serial.print(monitorCursor);
+  // Serial.print(" monitorSize = ");  Serial.println(monitorSize);
+
+  monitor_t* now = &monitorData[monitorCursor];
+  if(monitorSize < MONITOR_POINTS)
+    monitorSize++;
+  now->timestamp = millis();
+  if(GOT_LEVEL_SENSOR)
+    getLevel(&(now->waterLevel));
+
+  if(GOT_TEMP_SENSOR)
+    getTemperature(&(now->waterCelsius));
+    
+  if(GOT_HUMID_SENSOR)
+    getHumidity(&now->airCelsius, &now->airHumid);
+    
+  if(GOT_LIGHT_SENSOR)
+    getLight(&now->lux);
+
+  if(GOT_PH_SENSOR)
+    getPH(&now->pH);
+    
+  if(SEND_COUCH) postSensorData(&monitorData[monitorCursor]);
+  if(SEND_MQTT) sendSensorData(&monitorData[monitorCursor]);
+    
+  if(++monitorCursor == MONITOR_POINTS)
+    monitorCursor = 0;
 }
 void postSensorData(monitor_t *monitorData) {
   //Serial.println("\npostSensorData");
@@ -717,16 +918,57 @@ void postSensorData(monitor_t *monitorData) {
     couchClient.print(envelope);
   } else {
     Serial.print(svrAddr);
-    Serial.println(" - no couch server");
+    Serial.println(" - no couch server found!");
   }
 
   Serial.println("");
   return;
 }
+void sendSensorData(monitor_t *monitorData) {
+  Serial.println("\nsendSensorData");
+  WiFiClient wclient;
+  PubSubClient client(wclient, svrAddr);
+  client.set_callback(callback); // Register MQTT callback
+  if (client.connect("arduinoClient")) {
+    if(GOT_LEVEL_SENSOR){
+      String lv;
+      lv.concat(monitorData->waterLevel);
+      client.publish("WaterLevel",lv);
+    }
+    if(GOT_TEMP_SENSOR){
+      String wc;
+      wc.concat(monitorData->waterCelsius);
+      client.publish("WaterTemp",wc);
+    }
+    if(GOT_HUMID_SENSOR){
+      String ac,hm;
+      ac.concat(monitorData->airCelsius);
+      hm.concat(monitorData->airHumid);
+      client.publish("AirTemp",ac);
+      client.publish("Humidity",hm);
+    }  
+    if(GOT_LIGHT_SENSOR){
+      String lx;
+      lx.concat(monitorData->lux);
+      client.publish("Light",lx);
+    }
+    if(GOT_PH_SENSOR){
+      String ph;
+      ph.concat(monitorData->pH);
+      client.publish("pH",ph);
+    }
+  }
+  return;
+}
+
 void jsonMonitorEntry(monitor_t *m, String* buf) {
   buf->concat("{ ");
   buf->concat("\"timestamp\": ");
   buf->concat(m->timestamp);
+  if(GOT_LEVEL_SENSOR){
+    buf->concat(", \"waterLevel\": ");
+    buf->concat(m->waterLevel);
+  }
   if(GOT_TEMP_SENSOR){
     buf->concat(", \"waterTemp\": ");
     buf->concat(m->waterCelsius);
@@ -745,13 +987,35 @@ void jsonMonitorEntry(monitor_t *m, String* buf) {
     buf->concat(", \"pH\": ");
     buf->concat(m->pH);
   }
-  // TODO add water levels
   buf->concat(" }");
+}
+void getLevel(long* waterLevel) {
+  long duration;
+  //digitalWrite(levelTriggerPin, LOW);  // prepare for ping
+  mcp.digitalWrite(levelTriggerPin, LOW);  // prepare for ping
+  delayMicroseconds(2);
+  //digitalWrite(levelTriggerPin, HIGH); // start ping
+  mcp.digitalWrite(levelTriggerPin, HIGH); // start ping
+  delayMicroseconds(10); // Allow 10ms ping
+  //digitalWrite(levelTriggerPin, LOW);  // stop ping
+  mcp.digitalWrite(levelTriggerPin, LOW);  // stop ping
+  duration = pulseIn(levelEchoPin, HIGH); //wait for response
+  (*waterLevel) = (duration/2) / 29.1;
+  Serial.print("Water Level: ");
+  if ((*waterLevel) >= 200 || (*waterLevel) <= 0){
+    Serial.println("is out of range!");
+  }
+  else {
+    Serial.print(*waterLevel);
+    Serial.println(" cm, ");
+  }
+
+  return;
 }
 void getTemperature(float* waterCelsius) {
   tempSensor.requestTemperatures(); // send command to get temperatures
   (*waterCelsius) = tempSensor.getTempC(tempAddr);
-  Serial.print("Temp: ");
+  Serial.print("Water Temp: ");
   Serial.print(*waterCelsius);
   Serial.println(" C, ");
   return;
@@ -777,8 +1041,8 @@ void getLight(uint16_t* lux) {
   return;
 }
 void getPH(float* pH) {
-// this is our I2C ADC interface section
-// assign 2 BYTES variables to capture the LSB & MSB (or Hi Low in this case)
+  // this is our I2C ADC interface section
+  // assign 2 BYTES variables to capture the LSB & MSB (or Hi Low in this case)
   byte adc_high;
   byte adc_low;
   // we'll assemble the 2 in this variable
@@ -790,31 +1054,14 @@ void getPH(float* pH) {
   adc_low = Wire.read();       // ...them
   // now assemble them, remembering byte maths; a Union works well here too
   adc_result = (adc_high * 256) + adc_low;
+  Serial.print("Raw result: ");
+  Serial.println(adc_result);
   // we have a our Raw pH reading from the ADC; now figure out what the pH is  
-  float milliVolts = (((float)adc_result/4096)*vRef)*1000;
-  float temp = ((((vRef*(float)pH7Cal)/4096)*1000) - milliVolts) / opampGain;
+  float miliVolts = (((float)adc_result/4096)*vRef)*1000;
+  float temp = ((((vRef*(float)pH7Cal)/4096)*1000)- miliVolts)/opampGain;
   (*pH) = 7-(temp/pHStep); 
   Serial.print("pH: ");
-  Serial.print(*pH);
-  Serial.println(" pH");
-  return;
-}
-void getLevel(int echoPin, long* waterLevel) {
-  long duration;
-  int TIMEOUT = 15000;                          // how long to wait for pulse
-
-  digitalWrite(LEVEL_TRIG_PIN, LOW);            // prepare for ping
-  delayMicroseconds(2);
-  digitalWrite(LEVEL_TRIG_PIN, HIGH);           // start ping
-  delayMicroseconds(10);                        // allow 10ms ping
-  digitalWrite(LEVEL_TRIG_PIN, LOW);            // stop ping
-  duration = pulseIn(echoPin, HIGH, TIMEOUT);   // wait for response
-
-  (*waterLevel) = (duration/2) / 29.1;
-
-  Serial.print("Water Level: ");
-  Serial.print(*waterLevel);
-  Serial.println(" cm, ");
+  Serial.println(*pH);
   return;
 }
 
@@ -856,7 +1103,7 @@ void setSvrAddr(String s) {
 
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
-void ledOn()  { digitalWrite(BUILTIN_LED, LOW); }
+void ledOn() { digitalWrite(BUILTIN_LED, LOW); }
 void ledOff() { digitalWrite(BUILTIN_LED, HIGH); }
 void blink(int times) {
   ledOff();
