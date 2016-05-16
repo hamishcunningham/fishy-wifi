@@ -1,3 +1,40 @@
+
+
+class Valve { // each valve /////////////////////////////////////////////////
+  char dryMins = 45;                // mins to leave bed drained per cycle
+}
+class FlowControl { // the set of valves and their config ///////////////////
+  int numValves = 3;                // how many valves do we have?
+  char cycleMinutes = 60;           // how long is a flood/drain cycle?
+  char maxSimultaneousDrainers = 1; // how many beds can drain simultaneously
+  char minBedsWet = 1;              // min beds that are full or filling
+  char maxBedsWet = 2;              // max beds that are full or filling
+  char staggerMins = 10;            // gap to leave between valve startups
+  Valve valves[numValves];          // the valves and their states
+
+  FlowControl() { init(); }
+  int getStaggerMillis() { return staggerMins * 60 * 1000; }
+  void init() {
+    t = millis();
+    long nextCycleStart = t;
+    for(int i = 0; i < valves.length; i++) {
+      valves[i].startTime = nextCycleStart;
+      nextCycleStart += getStaggerMillis();
+    }
+  }
+}
+FlowControl flowController;
+
+
+
+
+
+
+
+
+
+
+// old version ////////////////////////////////////////////////////////////
 const int  V_IN_THE_BEGINNING           = -1; // flow...
 const int  V_ON_THE_GO                  = 0;  // ...state
 const int  V_ARITY                      = 3;  // how many valves?
