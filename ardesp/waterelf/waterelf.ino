@@ -112,6 +112,118 @@ const char* pageFooter =
   "<a href='https://now.wegrow.social/'>WeGrow</a></p></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////
+// file serving web-pages ////////////////////////////////////////////////////
+File fsUploadFile;
+String getContentType(String filename){
+  if(webServer.hasArg("download")) return "application/octet-stream";
+  else if(filename.endsWith(".htm")) return "text/html";
+  else if(filename.endsWith(".html")) return "text/html";
+  else if(filename.endsWith(".css")) return "text/css";
+  else if(filename.endsWith(".js")) return "application/javascript";
+  else if(filename.endsWith(".png")) return "image/png";
+  else if(filename.endsWith(".gif")) return "image/gif";
+  else if(filename.endsWith(".jpg")) return "image/jpeg";
+  else if(filename.endsWith(".ico")) return "image/x-icon";
+  else if(filename.endsWith(".xml")) return "text/xml";
+  else if(filename.endsWith(".pdf")) return "application/x-pdf";
+  else if(filename.endsWith(".zip")) return "application/x-zip";
+  else if(filename.endsWith(".gz")) return "application/x-gzip";
+  return "text/plain";
+}
+
+bool handleFileRead(String path){
+  //Serial.println("handleFileRead: " + path);
+  if(path.endsWith("/")) path += "index.htm";
+  String contentType = getContentType(path);
+  String pathWithGz = path + ".gz";
+  if(SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)){
+    if(SPIFFS.exists(pathWithGz))
+      path += ".gz";
+    File file = SPIFFS.open(path, "r");
+    size_t sent = webServer.streamFile(file, contentType);
+    file.close();
+    return true;
+  }
+  return false;
+}
+
+void handleFileUpload(){
+  if(webServer.uri() != "/edit") return;
+  HTTPUpload& upload = webServer.upload();
+  if(upload.status == UPLOAD_FILE_START){
+    String filename = upload.filename;
+    if(!filename.startsWith("/")) filename = "/"+filename;
+    Serial.print("handleFileUpload Name: "); Serial.println(filename);
+    fsUploadFile = SPIFFS.open(filename, "w");
+    filename = String();
+  } else if(upload.status == UPLOAD_FILE_WRITE){
+    //Serial.print("handleFileUpload Data: "); Serial.println(upload.currentSize);
+    if(fsUploadFile)
+      fsUploadFile.write(upload.buf, upload.currentSize);
+  } else if(upload.status == UPLOAD_FILE_END){
+    if(fsUploadFile)
+      fsUploadFile.close();
+    Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
+  }
+}
+
+void handleFileDelete(){
+  if(webServer.args() == 0) return webServer.send(500, "text/plain", "BAD ARGS");
+  String path = webServer.arg(0);
+  Serial.println("handleFileDelete: " + path);
+  if(path == "/")
+    return webServer.send(500, "text/plain", "BAD PATH");
+  if(!SPIFFS.exists(path))
+    return webServer.send(404, "text/plain", "FileNotFound");
+  SPIFFS.remove(path);
+  webServer.send(200, "text/plain", "");
+  path = String();
+}
+
+void handleFileCreate(){
+  if(webServer.args() == 0)
+    return webServer.send(500, "text/plain", "BAD ARGS");
+  String path = webServer.arg(0);
+  Serial.println("handleFileCreate: " + path);
+  if(path == "/")
+    return webServer.send(500, "text/plain", "BAD PATH");
+  if(SPIFFS.exists(path))
+    return webServer.send(500, "text/plain", "FILE EXISTS");
+  File file = SPIFFS.open(path, "w");
+  if(file)
+    file.close();
+  else
+    return webServer.send(500, "text/plain", "CREATE FAILED");
+  webServer.send(200, "text/plain", "");
+  path = String();
+}
+
+void handleFileList() {
+  if(!webServer.hasArg("dir")) {webServer.send(500, "text/plain", "BAD ARGS"); return;}
+  
+  String path = webServer.arg("dir");
+  Serial.println("handleFileList: " + path);
+  Dir dir = SPIFFS.openDir(path);
+  path = String();
+
+  String output = "[";
+  while(dir.next()){
+    File entry = dir.openFile("r");
+    if (output != "[") output += ',';
+    bool isDir = false;
+    output += "{\"type\":\"";
+    output += (isDir)?"dir":"file";
+    output += "\",\"name\":\"";
+    output += String(entry.name()).substring(1);
+    output += "\"}";
+    entry.close();
+  }
+  
+  output += "]";
+  webServer.send(200, "text/json", output);
+}
+
+/////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
 const boolean SEND_DATA = true;  // turn off posting of data if required here
 const int MONITOR_POINTS = 60; // number of data points to store
@@ -122,6 +234,7 @@ typedef struct {
   float airHumid;
   uint16_t lux;
   float pH;
+  int pHRaw;
   long waterLevel1;
   long waterLevel2;
   long waterLevel3;
@@ -270,7 +383,7 @@ void loop() {
       getHumidity(&now->airCelsius, &now->airHumid);    yield();
     }
     if(GOT_LIGHT_SENSOR) { getLight(&now->lux);         yield(); }
-    if(GOT_PH_SENSOR) { getPH(&now->pH);                yield(); }
+    if(GOT_PH_SENSOR) { getPH(&now->pH, &now->pHRaw);   yield(); }
     if(GOT_LEVEL_SENSOR) {
       getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);     yield();
       getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);     yield();
@@ -346,6 +459,19 @@ void startWebServer() {
   webServer.on("/valve4", handle_valve4);
   webServer.on("/valve5", handle_valve5);
   webServer.on("/valve6", handle_valve6);
+  
+  webServer.on("/list", HTTP_GET, handleFileList);
+  webServer.on("/edit", HTTP_GET, [](){
+    if(!handleFileRead("/edit.htm")) webServer.send(404, "text/plain", "FileNotFound");
+  });
+  //create file
+  webServer.on("/edit", HTTP_PUT, handleFileCreate);
+  //delete file
+  webServer.on("/edit", HTTP_DELETE, handleFileDelete);
+  //called after file upload
+  webServer.on("/edit", HTTP_POST, [](){ webServer.send(200, "text/plain", ""); });
+  //called when a file is received inside POST data
+  webServer.onFileUpload(handleFileUpload);
   webServer.begin();
   Serial.println("HTTP server started");
 }
@@ -353,8 +479,13 @@ void handleNotFound() {
   Serial.print("URI Not Found: ");
   Serial.println(webServer.uri());
   // TODO send redirect to /? or just use handle_root?
+  
+  // This loads from SPIFFS if URL isn't defined above
+  if(!handleFileRead(webServer.uri())){
   webServer.send(200, "text/plain", "URI Not Found");
+  }
 }
+
 void handle_root() {
   Serial.println("serving page notionally at /");
   String toSend = pageTop;
@@ -754,6 +885,8 @@ void jsonMonitorEntry(monitor_t *m, String* buf) {
   if(GOT_PH_SENSOR){
     buf->concat(", \"pH\": ");
     buf->concat(m->pH);
+    buf->concat(", \"pHRaw\": ");
+    buf->concat(m->pHRaw);    
   }
   // TODO add water levels
   buf->concat(" }");
@@ -786,7 +919,7 @@ void getLight(uint16_t* lux) {
   Serial.println(" Lux");
   return;
 }
-void getPH(float* pH) {
+void getPH(float* pH, int* pHRaw) {
 // this is our I2C ADC interface section
 // assign 2 BYTES variables to capture the LSB & MSB (or Hi Low in this case)
   byte adc_high;
@@ -800,11 +933,14 @@ void getPH(float* pH) {
   adc_low = Wire.read();       // ...them
   // now assemble them, remembering byte maths; a Union works well here too
   adc_result = (adc_high * 256) + adc_low;
+  (*pHRaw) = adc_result;
   // we have a our Raw pH reading from the ADC; now figure out what the pH is  
   float milliVolts = (((float)adc_result/4096)*vRef)*1000;
   float temp = ((((vRef*(float)pH7Cal)/4096)*1000) - milliVolts) / opampGain;
   (*pH) = 7-(temp/pHStep); 
-  Serial.print("pH: ");
+  Serial.print("pHRaw reading: ");
+  Serial.print(*pHRaw);
+  Serial.print("  pH: ");
   Serial.print(*pH);
   Serial.println(" pH");
   return;
