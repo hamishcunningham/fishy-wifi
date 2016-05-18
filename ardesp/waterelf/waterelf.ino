@@ -167,6 +167,69 @@ const int LEVEL_ECHO_PIN3=16;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
+// valves and flow control //////////////////////////////////////////////////
+
+/*
+user settable parameters:
+- per elf:
+  - number of (controlled) beds
+  - cycle length (minutes)
+  - max simultaneous drainers
+  - min beds wet
+  - max beds wet
+  - stagger minutes (default: cycle length / num beds)
+- per growbed:
+  - dry minutes
+  - got overflow
+  - fill level (cms below ultrasound sensor)
+*/
+
+// maybe: fixed cycle time, irrespective of actual fill time, and the
+// differences are absorbed into the dry time?
+
+class Valve { // each valve /////////////////////////////////////////////////
+  char dryMins = 45;                // mins to leave bed drained per cycle
+                                    // in beds with overflows can be 0; else
+                                    // will be cycle time minus fill time
+
+  bool gotOverflow = false;         // does the growbed have an overflow?
+  char fillLevel = 5;               // cms below the level sensor: drain point
+
+  public:
+  void step(monitor_t* now) {       // check conditions and adjust state
+  }
+};
+class FlowController { // the set of valves and their config ////////////////
+  int numValves = 3;                // WARNING! call init if resetting!
+  char cycleMinutes = 60;           // how long is a flood/drain cycle?
+  char maxSimultaneousDrainers = 1; // how many beds can drain simultaneously
+  char minBedsWet = 1;              // min beds that are full or filling
+  char maxBedsWet = 2;              // max beds that are full or filling
+  char staggerMins = 10;            // gap to leave between valve startups
+  Valve* valves = 0;                // the valves and their states
+
+  public:
+  FlowController() { init(); }
+  int getStaggerMillis() { return staggerMins * 60 * 1000; }
+  void init() {
+    if(valves != 0) delete(valves);
+    valves = new Valve[numValves];
+
+    long t = millis();
+    long nextCycleStart = t;
+    for(int i = 0; i < numValves; i++) {
+      // TODO valves[i].startTime = nextCycleStart;
+      // nextCycleStart += getStaggerMillis();
+    }
+  }
+  void step(monitor_t* now) {
+    for(int i = 0; i < numValves; i++)
+      valves[i].step(now);
+  }
+};
+FlowController flowController;
+
+/////////////////////////////////////////////////////////////////////////////
 // config utils /////////////////////////////////////////////////////////////
 boolean getCloudShare();
 void setCloudShare(boolean b);
@@ -220,8 +283,7 @@ void loop() {
   dnsServer.processNextRequest();
   webServer.handleClient();
 
-  // valve demo mode
-  // TODO remove?
+  // valve demo mode TODO remove?
   if (GOT_TEMP_SENSOR==FALSE) {
     valveStateChange(1, TRUE, P1_MCP_PIN, S1_MCP_PIN);
     delay(15000);
@@ -229,7 +291,7 @@ void loop() {
     delay(5000);
   }
 
-  if(loopCounter == TICK_MONITOR) { // monitor levels, valve logic, push data
+  if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
     monitor_t* now = &monitorData[monitorCursor];
     if(monitorSize < MONITOR_POINTS)
       monitorSize++;
@@ -248,13 +310,13 @@ void loop() {
       getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
     }
 
-    valveLogic(); yield(); // set valves on and off etc.
-// TODO    valveLogic(now, &flowState); yield(); // set valves on and off...
-    if(SEND_DATA) { postSensorData(&monitorData[monitorCursor]); yield(); }
+    flowController.step(now); yield();  // set valves on and off etc.
+    if(SEND_DATA) {                     // push data to the cloud
+      postSensorData(&monitorData[monitorCursor]); yield();
+    }
       
     if(++monitorCursor == MONITOR_POINTS)
       monitorCursor = 0;
-    // delay(500);
   }
 
   if(loopCounter == TICK_WIFI_DEBUG) {
@@ -267,13 +329,6 @@ void loop() {
   }
 
   if(loopCounter++ == LOOP_ROLLOVER) loopCounter = 0;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// pump and valve cycle management stuff ////////////////////////////////////
-void valveLogic() { // set valves on and off etc.
-  /*
-  */
 }
 
 /////////////////////////////////////////////////////////////////////////////

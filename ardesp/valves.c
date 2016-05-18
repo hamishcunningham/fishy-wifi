@@ -1,9 +1,27 @@
 
 
+
+MOVED INTO WATERELF.INO
+
+
+
+/*
+user settable parameters:
+- per elf:
+  - number of (controlled) beds
+  - cycle length (minutes)
+  - max simultaneous drainers
+  - min beds wet
+  - max beds wet
+  - stagger minutes (default: cycle length / num beds)
+- per growbed:
+  - dry minutes
+  - got overflow
+  - fill level (cms below ultrasound sensor)
+*/
+
 // maybe: fixed cycle time, irrespective of actual fill time, and the
 // differences are absorbed into the dry time?
-
-// working modes for both beds with overflows and without?
 
 class Valve { // each valve /////////////////////////////////////////////////
   char dryMins = 45;                // mins to leave bed drained per cycle
@@ -12,8 +30,11 @@ class Valve { // each valve /////////////////////////////////////////////////
 
   bool gotOverflow = false;         // does the growbed have an overflow?
   char fillLevel = 5;               // cms below the level sensor: drain point
+
+  void step(monitor_t* now) {       // check conditions and adjust state
+  }
 }
-class FlowControl { // the set of valves and their config ///////////////////
+class FlowController { // the set of valves and their config ////////////////
   int numValves = 3;                // how many valves do we have?
   char cycleMinutes = 60;           // how long is a flood/drain cycle?
   char maxSimultaneousDrainers = 1; // how many beds can drain simultaneously
@@ -32,9 +53,14 @@ class FlowControl { // the set of valves and their config ///////////////////
       nextCycleStart += getStaggerMillis();
     }
   }
+  void step(monitor_t* now) {
+    for(int i = 0; i < valves.length; i++)
+      valves[i].step(now);
+  }
 }
-FlowControl flowController;
-
+FlowController flowController;
+...
+flowController.step(now);
 
 
 
