@@ -822,7 +822,7 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
 void getTemperature(float* waterCelsius) {
   tempSensor.requestTemperatures(); // send command to get temperatures
   (*waterCelsius) = tempSensor.getTempC(tempAddr);
-  Serial.print("Temp: ");
+  Serial.print("Water temp: ");
   Serial.print(*waterCelsius);
   Serial.println(" C, ");
   return;
