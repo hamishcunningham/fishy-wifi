@@ -5,69 +5,6 @@ MOVED INTO WATERELF.INO
 
 
 
-/*
-user settable parameters:
-- per elf:
-  - number of (controlled) beds
-  - cycle length (minutes)
-  - max simultaneous drainers
-  - min beds wet
-  - max beds wet
-  - stagger minutes (default: cycle length / num beds)
-- per growbed:
-  - dry minutes
-  - got overflow
-  - fill level (cms below ultrasound sensor)
-*/
-
-// maybe: fixed cycle time, irrespective of actual fill time, and the
-// differences are absorbed into the dry time?
-
-class Valve { // each valve /////////////////////////////////////////////////
-  char dryMins = 45;                // mins to leave bed drained per cycle
-                                    // in beds with overflows can be 0; else
-                                    // will be cycle time minus fill time
-
-  bool gotOverflow = false;         // does the growbed have an overflow?
-  char fillLevel = 5;               // cms below the level sensor: drain point
-
-  void step(monitor_t* now) {       // check conditions and adjust state
-  }
-}
-class FlowController { // the set of valves and their config ////////////////
-  int numValves = 3;                // how many valves do we have?
-  char cycleMinutes = 60;           // how long is a flood/drain cycle?
-  char maxSimultaneousDrainers = 1; // how many beds can drain simultaneously
-  char minBedsWet = 1;              // min beds that are full or filling
-  char maxBedsWet = 2;              // max beds that are full or filling
-  char staggerMins = 10;            // gap to leave between valve startups
-  Valve valves[numValves];          // the valves and their states
-
-  FlowControl() { init(); }
-  int getStaggerMillis() { return staggerMins * 60 * 1000; }
-  void init() {
-    long t = millis();
-    long nextCycleStart = t;
-    for(int i = 0; i < valves.length; i++) {
-      valves[i].startTime = nextCycleStart;
-      nextCycleStart += getStaggerMillis();
-    }
-  }
-  void step(monitor_t* now) {
-    for(int i = 0; i < valves.length; i++)
-      valves[i].step(now);
-  }
-}
-FlowController flowController;
-...
-flowController.step(now);
-
-
-
-
-
-
-
 
 
 // old version ////////////////////////////////////////////////////////////
