@@ -177,9 +177,9 @@ user settable parameters:
 - per elf:
   - number of (controlled) beds
   - cycle length (minutes)
-  - max simultaneous drainers
-  - min beds wet
-  - max beds wet
+  - max simultaneous drainers (if there may be return pipe contention)
+  - min beds wet (to prevent sump overflow)
+  - max beds wet (to avoid dry pump)
   - stagger minutes (default: cycle length / num beds)
 - per growbed:
   - dry minutes
@@ -218,9 +218,9 @@ class Valve { // each valve /////////////////////////////////////////////////
       Serial.println(" off");
     }
   }
-  void on()  { stateChange(true); } // fill time
-  void off() { stateChange(false); }// drain time
-  void step(monitor_t* now) {       // check conditions and adjust state
+  void on()  { stateChange(true); }  // fill time
+  void off() { stateChange(false); } // drain time
+  void step(monitor_t* now) {        // check conditions and adjust state
     if(! running) {
       if(startTime >= millis())
         running = true;
@@ -229,17 +229,17 @@ class Valve { // each valve /////////////////////////////////////////////////
     }
   }
 };
-int Valve::counter = 1;             // definition (the above only declares)
+int Valve::counter = 1;         // definition (the above only declares)
 
 class FlowController { // the set of valves and their config ////////////////
   public:
-  int numValves = 3;                // WARNING! call init if resetting!
-  char cycleMinutes = 60;           // how long is a flood/drain cycle?
-  char maxSimultaneousDrainers = 1; // how many beds can drain simultaneously
-  char minBedsWet = 1;              // min beds that are full or filling
-  char maxBedsWet = 2;              // max beds that are full or filling
-  char staggerMins = 10;            // gap to leave between valve startups
-  Valve* valves = 0;                // the valves and their states
+  int numValves = 3;            // WARNING! call init if resetting!
+  char cycleMins = 60;          // how long is a flood/drain cycle?
+  char maxSimultDrainers = 1;   // how many beds can drain simultaneously?
+  char minBedsWet = 1;          // min beds that are full or filling
+  char maxBedsWet = 2;          // max beds that are full or filling
+  char staggerMins;             // gap to leave between valve startups
+  Valve* valves = 0;            // the valves and their states
 
   FlowController() { init(); }
   int getStaggerMillis() { return staggerMins * 60 * 1000; }
@@ -248,6 +248,8 @@ class FlowController { // the set of valves and their config ////////////////
     if(valves != 0) delete(valves);
     valves = new Valve[numValves];
 
+    // set up staggered valve starts
+    staggerMins = cycleMins / numValves;
     long t = millis();
     long nextCycleStart = t;
     for(int i = 0; i < numValves; i++) {
@@ -281,29 +283,31 @@ void setup() {
   Serial.begin(115200);
 
   pinMode(BUILTIN_LED, OUTPUT); // turn built-in LED on
-  blink(3); // signal we're starting setup
+  blink(3);                     // signal we're starting setup
 
   // read persistent config
   SPIFFS.begin();
   svrAddr = getSvrAddr();
 
+  // start the sensors, the DNS and webserver, etc.
   startPeripherals();
   startAP();
   printIPs();
   startDNS();
-
   startWebServer();
 
-  mcp.begin();      // use default address 0 for mcp23008
+  // initialise the MCP and the flow controller
+  flowController.init();
+  mcp.begin();                  // use default address 0 for mcp23008
   for(int i = 0; i < mcpPinsUsed; i++)
     mcp.pinMode(mcpPins[i], OUTPUT);
 
+  // try and set the host name
   if(WiFi.hostname("waterelf"))
     Serial.println("set hostname succeeded");
   else
     Serial.println("set hostname failed");
-
-  delay(300); blink(3); // signal we've finished config
+  delay(300); blink(3);         // signal we've finished config
 }
 
 /////////////////////////////////////////////////////////////////////////////
