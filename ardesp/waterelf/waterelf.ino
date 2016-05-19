@@ -172,7 +172,6 @@ boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // valves and flow control //////////////////////////////////////////////////
-
 /*
 user settable parameters:
 - per elf:
@@ -186,25 +185,24 @@ user settable parameters:
   - dry minutes
   - got overflow
   - fill level (cms below ultrasound sensor)
+
+maybe: fixed cycle time, irrespective of actual fill time, and the
+differences are absorbed into the dry time?
 */
-
-// maybe: fixed cycle time, irrespective of actual fill time, and the
-// differences are absorbed into the dry time?
-
 class Valve { // each valve /////////////////////////////////////////////////
   public:
-  static int counter;               // counter for setting valve number
-  int number;                       // id of this valve, counting from 1
-  char dryMins = 45;                // mins to leave bed drained per cycle
-                                    // in beds with overflows can be 0; else
-                                    // will be cycle time minus fill time
-
-  bool gotOverflow = false;         // does the growbed have an overflow?
-  char fillLevel = 5;               // cms below the level sensor: drain point
+  static int counter;           // counter for setting valve number
+  int number;                   // id of this valve, counting from 1
+  char dryMins = 45;            // mins to leave bed drained per cycle
+  // in beds with overflows can be 0; else will be cycle time minus fill time
+  long startTime = -1;          // when to start cycling (after boot)    
+  bool running = false;         // true when cycling started
+  bool gotOverflow = false;     // does the growbed have an overflow?
+  char fillLevel = 5;           // cms below the level sensor: drain point
 
   Valve() { number = counter++; }
   void stateChange(bool newState) { // turn on or off
-    Serial.print("Growbed Valve Air Pump ");
+    Serial.print("valve ");
     Serial.print(number);
     int pumpMcpPin = valvePinMap[number][0];
     int solenoidMcpPin = valvePinMap[number][1];
@@ -223,14 +221,12 @@ class Valve { // each valve /////////////////////////////////////////////////
   void on()  { stateChange(true); } // fill time
   void off() { stateChange(false); }// drain time
   void step(monitor_t* now) {       // check conditions and adjust state
-    /* TODO
     if(! running) {
-      if(startTime >= millis()) {
+      if(startTime >= millis())
         running = true;
-        ...
-      }
+      else
+        return;
     }
-    */
   }
 };
 int Valve::counter = 1;             // definition (the above only declares)
@@ -255,8 +251,8 @@ class FlowController { // the set of valves and their config ////////////////
     long t = millis();
     long nextCycleStart = t;
     for(int i = 0; i < numValves; i++) {
-      // TODO valves[i].startTime = nextCycleStart;
-      // nextCycleStart += getStaggerMillis();
+      valves[i].startTime = nextCycleStart;
+      nextCycleStart += getStaggerMillis();
     }
   }
   void step(monitor_t* now) {
@@ -315,14 +311,6 @@ void setup() {
 void loop() {
   dnsServer.processNextRequest();
   webServer.handleClient();
-
-  // valve demo mode TODO remove?
-  if (GOT_TEMP_SENSOR==FALSE) {
-    flowController.valves[0].on();
-    delay(15000);
-    flowController.valves[0].off();
-    delay(5000);
-  }
 
   if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
     monitor_t* now = &monitorData[monitorCursor];
