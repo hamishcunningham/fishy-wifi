@@ -3,6 +3,9 @@
 # script to rewrite output/data, an html tree that visualises WaterElf data
 # from ../../wegrow-data
 #
+# dependencies:
+# sudo pip install prettytable
+#
 # data files that have changed are listed in 
 #   ../../wegrow-data/changes/88888/elf-today-88888.txt
 # for each of these we read the corresponding data from
