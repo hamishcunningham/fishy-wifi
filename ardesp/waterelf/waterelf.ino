@@ -3,7 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include "./DNSServer.h"      // Patched lib
+#include "./DNSServer.h"      // patched lib
 #include <FS.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -45,36 +45,36 @@ const char* pageTop2 = "</title>\n"
   "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
   "<style>body{background:#FFF;color: #000;font-family: sans-serif;font-size: 150%;}</style>"
   "</head><body>\n";
-const char* pageDefault =
+const char* pageDefault = // TODO build the growbeds according to their num
   "<h2>Welcome to WaterElf</h2>\n"
   "<h2>Control</h2>\n"
   "<p><ul>\n"
   "<li><a href='/wifi'>Join a wifi network</a></li>\n"
   "<li><a href='/serverconf'>Configure data sharing</a></li>\n"
-  "<li>\n"
-    "<form method='POST' action='actuate'>\n"
-    "External power: "
-    "on <input type='radio' name='state' value='on'>\n"
-    "off <input type='radio' name='state' value='off'>\n"
-    "<input type='submit' value='Submit'></form>\n"
-  "</li>"
   "<li>"
     "<form method='POST' action='valve1'>\n"
-    "Growbed valve pump 1: "
-    "on <input type='radio' name='state' value='on'>\n"
-    "off <input type='radio' name='state' value='off'>\n"
+    "Growbed 1: "
+    "fill <input type='radio' name='state' value='on'>\n"
+    "drain <input type='radio' name='state' value='off'>\n"
     "<input type='submit' value='Submit'></form>\n"
   "</li>"
   "<li>"
     "<form method='POST' action='valve2'>\n"
-    "Growbed valve pump 2: "
-    "on <input type='radio' name='state' value='on'>\n"
-    "off <input type='radio' name='state' value='off'>\n"
+    "Growbed 2: "
+    "fill <input type='radio' name='state' value='on'>\n"
+    "drain <input type='radio' name='state' value='off'>\n"
     "<input type='submit' value='Submit'></form>\n"
   "</li>"
   "<li>"
     "<form method='POST' action='valve3'>\n"
-    "Growbed valve pump 3: "
+    "Growbed 3: "
+    "fill <input type='radio' name='state' value='on'>\n"
+    "drain <input type='radio' name='state' value='off'>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>"
+  "<li>\n"
+    "<form method='POST' action='actuate'>\n"
+    "Power: "
     "on <input type='radio' name='state' value='on'>\n"
     "off <input type='radio' name='state' value='off'>\n"
     "<input type='submit' value='Submit'></form>\n"
@@ -103,6 +103,8 @@ typedef struct {
   long waterLevel1;
   long waterLevel2;
   long waterLevel3;
+  // TODO add last reboot
+  // TODO add free memory?
 } monitor_t;
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
@@ -150,13 +152,15 @@ const int RCSW_HEATER = 2;  // which 433 device to switch (1-4)
 
 /////////////////////////////////////////////////////////////////////////////
 // MCP23008 stuff ///////////////////////////////////////////////////////////
-Adafruit_MCP23008 mcp; // Create object for MCP23008
-const int P1_MCP_PIN = 0;
-const int P2_MCP_PIN = 3;
-const int P3_MCP_PIN = 7;
-const int S1_MCP_PIN = 2;
-const int S2_MCP_PIN = 6;
-const int S3_MCP_PIN = 1;
+Adafruit_MCP23008 mcp; // create object for MCP23008
+const int mcpPins[] = { 0, 1, 2, 3, 6, 7, }; // pins to init in setup
+const int mcpPinsUsed = 6; // length of mcpPins array
+const int valvePinMap[][2] = {
+  { -1, -1 }, // there's no valve numbered 0...
+  { 0, 2 },   // valve 1: pump on pin 0, solenoid on pin 2
+  { 3, 6 },   // valve 2: ...
+  { 7, 1 },   // valve 3: ...
+};
 
 /////////////////////////////////////////////////////////////////////////////
 // level sensing stuff //////////////////////////////////////////////////////
@@ -165,6 +169,100 @@ const int LEVEL_ECHO_PIN1=13;
 const int LEVEL_ECHO_PIN2=14;
 const int LEVEL_ECHO_PIN3=16;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
+
+/////////////////////////////////////////////////////////////////////////////
+// valves and flow control //////////////////////////////////////////////////
+/*
+user settable parameters:
+- per elf:
+  - number of (controlled) beds
+  - cycle length (minutes)
+  - max simultaneous drainers (if there may be return pipe contention)
+  - min beds wet (to prevent sump overflow)
+  - max beds wet (to avoid dry pump)
+  - stagger minutes (default: cycle length / num beds)
+- per growbed:
+  - dry minutes
+  - got overflow
+  - fill level (cms below ultrasound sensor)
+
+maybe: fixed cycle time, irrespective of actual fill time, and the
+differences are absorbed into the dry time?
+*/
+class Valve { // each valve /////////////////////////////////////////////////
+  public:
+  static int counter;           // counter for setting valve number
+  int number;                   // id of this valve, counting from 1
+  char dryMins = 45;            // mins to leave bed drained per cycle
+  // in beds with overflows can be 0; else will be cycle time minus fill time
+  long startTime = -1;          // when to start cycling (after boot)    
+  bool running = false;         // true when cycling started
+  bool gotOverflow = false;     // does the growbed have an overflow?
+  char fillLevel = 5;           // cms below the level sensor: drain point
+
+  Valve() { number = counter++; }
+  void stateChange(bool newState) { // turn on or off
+    Serial.print("valve ");
+    Serial.print(number);
+    int pumpMcpPin = valvePinMap[number][0];
+    int solenoidMcpPin = valvePinMap[number][1];
+
+    // trigger MOSFETs via the MCP
+    if(newState == true){
+      mcp.digitalWrite(pumpMcpPin, HIGH);
+      mcp.digitalWrite(solenoidMcpPin, HIGH);
+      Serial.println(" on");
+    } else {
+      mcp.digitalWrite(pumpMcpPin, LOW);
+      mcp.digitalWrite(solenoidMcpPin, LOW);
+      Serial.println(" off");
+    }
+  }
+  void on()  { stateChange(true); }  // fill time
+  void off() { stateChange(false); } // drain time
+  void step(monitor_t* now) {        // check conditions and adjust state
+    if(! running) {
+      if(startTime >= millis())
+        running = true;
+      else
+        return;
+    }
+  }
+};
+int Valve::counter = 1;         // definition (the above only declares)
+
+class FlowController { // the set of valves and their config ////////////////
+  public:
+  int numValves = 3;            // WARNING! call init if resetting!
+  char cycleMins = 60;          // how long is a flood/drain cycle?
+  char maxSimultDrainers = 1;   // how many beds can drain simultaneously?
+  char minBedsWet = 1;          // min beds that are full or filling
+  char maxBedsWet = 2;          // max beds that are full or filling
+  char staggerMins;             // gap to leave between valve startups
+  Valve* valves = 0;            // the valves and their states
+
+  FlowController() { init(); }
+  int getStaggerMillis() { return staggerMins * 60 * 1000; }
+  void init() {
+    Valve::counter = 1;
+    if(valves != 0) delete(valves);
+    valves = new Valve[numValves];
+
+    // set up staggered valve starts
+    staggerMins = cycleMins / numValves;
+    long t = millis();
+    long nextCycleStart = t;
+    for(int i = 0; i < numValves; i++) {
+      valves[i].startTime = nextCycleStart;
+      nextCycleStart += getStaggerMillis();
+    }
+  }
+  void step(monitor_t* now) {
+    for(int i = 0; i < numValves; i++)
+      valves[i].step(now);
+  }
+};
+FlowController flowController;
 
 /////////////////////////////////////////////////////////////////////////////
 // config utils /////////////////////////////////////////////////////////////
@@ -185,33 +283,31 @@ void setup() {
   Serial.begin(115200);
 
   pinMode(BUILTIN_LED, OUTPUT); // turn built-in LED on
-  blink(3); // signal we're starting setup
+  blink(3);                     // signal we're starting setup
 
   // read persistent config
   SPIFFS.begin();
   svrAddr = getSvrAddr();
 
+  // start the sensors, the DNS and webserver, etc.
   startPeripherals();
   startAP();
   printIPs();
   startDNS();
-
   startWebServer();
 
-  mcp.begin();      // use default address 0 for mcp23008
-  mcp.pinMode(P1_MCP_PIN, OUTPUT);
-  mcp.pinMode(P2_MCP_PIN, OUTPUT);
-  mcp.pinMode(P3_MCP_PIN, OUTPUT);
-  mcp.pinMode(S1_MCP_PIN, OUTPUT);
-  mcp.pinMode(S2_MCP_PIN, OUTPUT);
-  mcp.pinMode(S3_MCP_PIN, OUTPUT);    
+  // initialise the MCP and the flow controller
+  flowController.init();
+  mcp.begin();                  // use default address 0 for mcp23008
+  for(int i = 0; i < mcpPinsUsed; i++)
+    mcp.pinMode(mcpPins[i], OUTPUT);
 
+  // try and set the host name
   if(WiFi.hostname("waterelf"))
     Serial.println("set hostname succeeded");
   else
     Serial.println("set hostname failed");
-
-  delay(300); blink(3); // signal we've finished config
+  delay(300); blink(3);         // signal we've finished config
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -220,16 +316,7 @@ void loop() {
   dnsServer.processNextRequest();
   webServer.handleClient();
 
-  // valve demo mode
-  // TODO remove?
-  if (GOT_TEMP_SENSOR==FALSE) {
-    valveStateChange(1, TRUE, P1_MCP_PIN, S1_MCP_PIN);
-    delay(15000);
-    valveStateChange(1, FALSE, P1_MCP_PIN, S1_MCP_PIN);
-    delay(5000);
-  }
-
-  if(loopCounter == TICK_MONITOR) { // monitor levels, valve logic, push data
+  if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
     monitor_t* now = &monitorData[monitorCursor];
     if(monitorSize < MONITOR_POINTS)
       monitorSize++;
@@ -248,13 +335,13 @@ void loop() {
       getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
     }
 
-    valveLogic(); yield(); // set valves on and off etc.
-// TODO    valveLogic(now, &flowState); yield(); // set valves on and off...
-    if(SEND_DATA) { postSensorData(&monitorData[monitorCursor]); yield(); }
+    flowController.step(now); yield();  // set valves on and off etc.
+    if(SEND_DATA) {                     // push data to the cloud
+      postSensorData(&monitorData[monitorCursor]); yield();
+    }
       
     if(++monitorCursor == MONITOR_POINTS)
       monitorCursor = 0;
-    // delay(500);
   }
 
   if(loopCounter == TICK_WIFI_DEBUG) {
@@ -267,13 +354,6 @@ void loop() {
   }
 
   if(loopCounter++ == LOOP_ROLLOVER) loopCounter = 0;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// pump and valve cycle management stuff ////////////////////////////////////
-void valveLogic() { // set valves on and off etc.
-  /*
-  */
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -566,15 +646,15 @@ void handle_actuate() {
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
 }
-void handle_valve1() { handle_valve(1, P1_MCP_PIN, S1_MCP_PIN); }
-void handle_valve2() { handle_valve(2, P2_MCP_PIN, S2_MCP_PIN); }
-void handle_valve3() { handle_valve(3, P3_MCP_PIN, S3_MCP_PIN); }
-void handle_valve(int valveNum, int pumpMcpPin, int solenoidMcpPin) {
+void handle_valve1() { handle_valve(0); } // valves in the UI are...
+void handle_valve2() { handle_valve(1); } // ...numbered from 1, but...
+void handle_valve3() { handle_valve(2); } // ...from 0 in the FlowController
+void handle_valve(int valveNum) {
   Serial.print("serving page at /valve");
-  Serial.println(valveNum);
+  Serial.println(valveNum + 1);
   String toSend = pageTop;
   toSend += ": Setting Water Valve ";
-  toSend += valveNum;
+  toSend += valveNum + 1;
   toSend += pageTop2;
 
   boolean newState = false;
@@ -584,34 +664,16 @@ void handle_valve(int valveNum, int pumpMcpPin, int solenoidMcpPin) {
         newState = true;
     }
   }
-
-  // now we trigger MOSFETs off or on
-  valveStateChange(valveNum, newState, pumpMcpPin, solenoidMcpPin);
+  flowController.valves[valveNum].stateChange(newState);
 
   toSend += "<h2>Water Valve ";
-  toSend += valveNum;
+  toSend += valveNum + 1;
   toSend += " triggered</h2>\n";
   toSend += "<p>(New state should be ";
   toSend += (newState) ? "on" : "off";
   toSend += ".)</p>\n";
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
-}
-void valveStateChange(
-  int valveNum, boolean newState, int pumpMcpPin, int solenoidMcpPin
-) {
-  Serial.print("Growbed Valve Air Pump ");
-  Serial.print(valveNum);
-
-  if(newState == true){
-    mcp.digitalWrite(pumpMcpPin, HIGH);
-    mcp.digitalWrite(solenoidMcpPin, HIGH);
-    Serial.println(" on");
-  } else {
-    mcp.digitalWrite(pumpMcpPin, LOW);
-    mcp.digitalWrite(solenoidMcpPin, LOW);
-    Serial.println(" off");
-  }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -752,7 +814,7 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
 void getTemperature(float* waterCelsius) {
   tempSensor.requestTemperatures(); // send command to get temperatures
   (*waterCelsius) = tempSensor.getTempC(tempAddr);
-  Serial.print("Temp: ");
+  Serial.print("Water temp: ");
   Serial.print(*waterCelsius);
   Serial.println(" C, ");
   return;

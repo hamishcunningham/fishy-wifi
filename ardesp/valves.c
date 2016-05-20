@@ -1,3 +1,13 @@
+
+
+
+MOVED INTO WATERELF.INO
+
+
+
+
+
+// old version ////////////////////////////////////////////////////////////
 const int  V_IN_THE_BEGINNING           = -1; // flow...
 const int  V_ON_THE_GO                  = 0;  // ...state
 const int  V_ARITY                      = 3;  // how many valves?
