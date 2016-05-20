@@ -3,6 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
+#include <PubSubClient.h>
 #include "./DNSServer.h"      // patched lib
 #include <FS.h>
 #include <OneWire.h>
@@ -33,6 +34,13 @@ ESP8266WebServer webServer(80);
 String apSSIDStr = "WaterElf-" + String(ESP.getChipId());
 const char* apSSID = apSSIDStr.c_str();
 String svrAddr = ""; // address of a local server
+
+/////////////////////////////////////////////////////////////////////////////
+// MQTT stuff ///////////////////////////////////////////////////////////////
+const boolean SEND_MQTT = true;  // turn on/off posting of data to MQTT
+void callback(const MQTT::Publish& pub) {
+  // handle message arrived
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // page generation stuff ////////////////////////////////////////////////////
@@ -91,7 +99,7 @@ const char* pageFooter =
 
 /////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
-const boolean SEND_DATA = true;  // turn off posting of data if required here
+const boolean SEND_DATA = false;  // turn off posting of data if required here
 const int MONITOR_POINTS = 60; // number of data points to store
 typedef struct {
   unsigned long timestamp;
@@ -112,6 +120,7 @@ int monitorSize = 0;
 const int DATA_ENTRIES = 4; // size of /data rpt; must be <= MONITOR_POINTS
 void updateSensorData(monitor_t *monitorData);
 void postSensorData(monitor_t *monitorData);
+void sendSensorData(monitor_t *monitorData);
 void printMonitorEntry(monitor_t m, String* buf);
 void formatMonitorEntry(monitor_t *m, String* buf, bool JSON);
 
@@ -339,7 +348,7 @@ void loop() {
     if(SEND_DATA) {                     // push data to the cloud
       postSensorData(&monitorData[monitorCursor]); yield();
     }
-      
+    if(SEND_MQTT) sendSensorData(&monitorData[monitorCursor]); yield();  
     if(++monitorCursor == MONITOR_POINTS)
       monitorCursor = 0;
   }
@@ -764,6 +773,47 @@ void postSensorData(monitor_t *monitorData) {
   Serial.println("");
   return;
 }
+void sendSensorData(monitor_t *monitorData) {
+  Serial.println("\nsendSensorData");
+  WiFiClient wclient;
+  PubSubClient client(wclient, svrAddr);
+  client.set_callback(callback); // Register MQTT callback
+  if (client.connect("arduinoClient")) {
+    if(GOT_TEMP_SENSOR){
+      String wc;
+      wc.concat(monitorData->waterCelsius);
+      client.publish("WaterTemp",wc);
+    }
+    if(GOT_HUMID_SENSOR){
+      String ac,hm;
+      ac.concat(monitorData->airCelsius);
+      hm.concat(monitorData->airHumid);
+      client.publish("AirTemp",ac);
+      client.publish("Humidity",hm);
+    }  
+    if(GOT_LIGHT_SENSOR){
+      String lx;
+      lx.concat(monitorData->lux);
+      client.publish("Light",lx);
+    }
+    if(GOT_PH_SENSOR){
+      String ph;
+      ph.concat(monitorData->pH);
+      client.publish("pH",ph);
+    }
+    if(GOT_LEVEL_SENSOR){
+      String wl1, wl2, wl3;
+      wl1.concat(monitorData->waterLevel1);
+      wl2.concat(monitorData->waterLevel2);
+      wl3.concat(monitorData->waterLevel3);
+      client.publish("WaterLevel1",wl1);
+      client.publish("WaterLevel2",wl2);
+      client.publish("WaterLevel3",wl3);
+    }
+  }
+  return;
+}
+
 void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
   if(JSON) buf->concat("{ ");
   buf->concat("~timestamp~+ ");
