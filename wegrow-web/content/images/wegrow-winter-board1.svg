@@ -53,7 +53,16 @@
      inkscape:window-height="876"
      inkscape:window-x="0"
      inkscape:window-y="24"
-     inkscape:window-maximized="1" />
+     inkscape:window-maximized="1"
+     showguides="false">
+    <inkscape:grid
+       type="xygrid"
+       id="grid4133"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true" />
+  </sodipodi:namedview>
   <metadata
      id="metadata3005">
     <rdf:RDF>
@@ -72,15 +81,15 @@
      id="layer1"
      transform="translate(0,4907.4813)">
     <image
-       y="330.31967"
-       x="3469.001"
+       y="336.31967"
+       x="3409.001"
        id="image3983"
        xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAIAAAAiOjnJAAAAA3NCSVQICAjb4U/gAAADuklEQVR4 nO3dW4rjMBQA0c7Q+99y5n8cBiFUkpOc8915dCgEF9ny4/l8/sBqf05/AT6TsEgIi4SwSAiLhLBI CIuEsEgIi4SwSAiLhLBICIuEsEgIi4SwSAiLhLBICIuEsEgIi4SwSAiLxO+qN3o8HqveasLI3ZHX bzh9T+XcW4286v4/4yArFglhkRAWCWGREBaJZVPhVXeOzcjoNDdeDb5qbgacc/ZnnGbFIiEsEsIi ISwSwiIRToVXc2PI3Fg0sg038n0GP33hRuTEZ43YfNisFYuEsEgIi4SwSAiLxNapcKe5iW9w4Jrb rPyqh4BYsUgIi4SwSAiLhLBIfOxUmN7oNzfffdWcaMUiISwSwiIhLBLCIrF1Ktw5BK0awRaeSLPK W8ySViwSwiIhLBLCIiEsEuFUePY4zVUG9wq780Xf9Ge0YpEQFglhkRAWCWGRWDYV3m0Da+T73O07 /9zyK82xYpEQFglhkRAWCWGReIPnFe58qN/0iaNzbz63w9j9zUJWLBLCIiEsEsIiISwSh+8r3PmQ hbmx6OXfdE+xn3PDHUYrFglhkRAWCWGREBaJrU+xX3Xz3fGb+O52z+DdptQfKxYRYZEQFglhkRAW iceqQaB7PuDcgLNKug139spPUyHvR1gkhEVCWCSEReLwaTOr9grn3jm9Y3HV7uHxf2SOFYuEsEgI i4SwSAiLhLBILNuEvpvupKHBF859JccYwf8Ii4SwSAiLhLBIhFPhqn3QGw5B3elLO3+0kVdNs2KR EBYJYZEQFglhkdg6FXaz2/ExrTs2qPsZ3bDK+xEWCWGREBYJYZH4kL3CVe989fKz7nYT6fHrRa+s WCSERUJYJIRFQlgkvvq+ws0H1676AjufHjrNikVCWCSERUJYJIRFYtnhtmdPUx0ZeRZu3nUft/MB J1euIOXuhEVCWCSERUJYJJZNhVdnr01dNQMO/hc7L2pd9T7pIG/FIiEsEsIiISwSwiIRToVXOy99 XHUAy6DuiZ5zPAiTzyQsEsIiISwSwiKxdSq8v/Qq07OnzWxmxSIhLBLCIiEsEsIi8UVT4dx1py93 GO+/6Tny6a4g5f0Ii4SwSAiLhLBIbJ0Kz553ml7kuery1J3vk7JikRAWCWGREBYJYZEIp8LjFzH+ Y+HxnnPPB9y5W3f8x7dikRAWCWGREBYJYZH42OcVcpYVi4SwSAiLhLBICIuEsEgIi4SwSAiLhLBI CIuEsEgIi4SwSAiLhLBICIuEsEgIi4SwSAiLhLBICIuEsEj8Ba/JhKxvgp8hAAAAAElFTkSuQmCC  "
        height="620.78571"
        width="620.78571" />
     <g
        style="display:inline"
-       transform="matrix(2.1478504,0,0,2.1349893,466.21037,-5361.5706)"
+       transform="matrix(2.1478504,0,0,2.1349893,466.21037,-5387.5706)"
        id="layer1-4"
        inkscape:label="Layer 1">
       <flowRoot
@@ -1574,7 +1583,7 @@
        style="fill:none;stroke:#50b848;stroke-width:18.01274872;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
     <g
        id="g4995"
-       transform="matrix(0.7249831,0,0,0.70730693,2823.7582,-4923.2483)">
+       transform="matrix(1.2557468,0,0,1.2251298,1933.7439,-5039.8293)">
       <g
          transform="matrix(8.3771042,0,0,8.3771042,-2673.525,-2712.6748)"
          id="g33">
@@ -1644,16 +1653,21 @@
     </g>
     <text
        xml:space="preserve"
-       style="font-size:89.60009003000000405px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#50b848;fill-opacity:1;stroke:none;font-family:Purisa;-inkscape-font-specification:Purisa Bold"
-       x="302.53543"
-       y="-3572.9929"
+       style="font-size:89.60009003px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#50b848;fill-opacity:1;stroke:none;font-family:Purisa;-inkscape-font-specification:Purisa Bold"
+       x="282.53543"
+       y="-3560.9929"
        id="text3062-2"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
-         id="tspan3064-2"
-         x="302.53543"
-         y="-3572.9929"
-         style="font-size:220px;font-weight:bold;-inkscape-font-specification:Purisa Bold;fill:#50b848;fill-opacity:1">We'll be safer when...</tspan></text>
+         x="282.53543"
+         y="-3560.9929"
+         style="font-size:220px;font-weight:bold;fill:#50b848;fill-opacity:1;-inkscape-font-specification:Purisa Bold"
+         id="tspan4127">We'll be</tspan><tspan
+         sodipodi:role="line"
+         x="282.53543"
+         y="-3285.9929"
+         style="font-size:220px;font-weight:bold;fill:#50b848;fill-opacity:1;-inkscape-font-specification:Purisa Bold"
+         id="tspan4131">safer when...</tspan></text>
     <flowRoot
        xml:space="preserve"
        id="flowRoot3316"
@@ -1676,20 +1690,20 @@
            y="1141.6036" /></flowRegion><flowPara
          id="flowPara3330"></flowPara></flowRoot>    <text
        xml:space="preserve"
-       style="font-size:89.60009003px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#50b848;fill-opacity:1;stroke:none;font-family:Purisa;-inkscape-font-specification:Purisa Bold"
-       x="1636.339"
+       style="font-size:89.60009003px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#50b848;fill-opacity:1;stroke:none;font-family:Purisa;-inkscape-font-specification:Purisa Bold"
+       x="256.33899"
        y="569.31183"
        id="text3062-2-0"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan3064-2-5"
-         x="1636.339"
+         x="256.33899"
          y="569.31183"
-         style="font-size:220px;font-weight:bold;text-align:center;text-anchor:middle;fill:#50b848;fill-opacity:1;-inkscape-font-specification:Purisa Bold">Growing clean food,</tspan><tspan
+         style="font-size:220px;font-weight:bold;text-align:start;text-anchor:start;fill:#50b848;fill-opacity:1;-inkscape-font-specification:Purisa Bold">Growing clean food,</tspan><tspan
          sodipodi:role="line"
-         x="1636.339"
+         x="256.33899"
          y="844.31183"
-         style="font-size:220px;font-weight:bold;text-align:center;text-anchor:middle;fill:#50b848;fill-opacity:1;-inkscape-font-specification:Purisa Bold"
+         style="font-size:220px;font-weight:bold;text-align:start;text-anchor:start;fill:#50b848;fill-opacity:1;-inkscape-font-specification:Purisa Bold"
          id="tspan4121">fast, with aquaponics</tspan></text>
   </g>
 </svg>
