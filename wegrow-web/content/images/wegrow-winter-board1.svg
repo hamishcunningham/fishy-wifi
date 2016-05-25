@@ -15,7 +15,7 @@
    id="svg3000"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="wegrow-winter-board1.svg">
+   sodipodi:docname="wegrow-winter-board1.pdf">
   <defs
      id="defs3002">
     <mask
@@ -37,9 +37,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.16847621"
+     inkscape:zoom="0.47652268"
      inkscape:cx="2632.5854"
-     inkscape:cy="1281.881"
+     inkscape:cy="975.49479"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -71,7 +71,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -2148,63 +2148,88 @@
        transform="scale(1.0124183,0.98773402)"
        sodipodi:linespacing="125%"
        id="text4176"
-       y="3.3054247"
+       y="-89.837128"
        x="2522.0762"
        style="font-size:48px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#f68b1f;fill-opacity:1;stroke:none;font-family:Purisa;-inkscape-font-specification:Purisa"
        xml:space="preserve"><tspan
          sodipodi:role="line"
          x="2522.0762"
-         y="3.3054247"
+         y="-89.837128"
          id="tspan4252"
          style="font-size:36px">We're making</tspan><tspan
          sodipodi:role="line"
          x="2522.0762"
-         y="48.305424"
+         y="-44.837132"
          id="tspan4256"
          style="font-size:36px">systems like this</tspan><tspan
          sodipodi:role="line"
          x="2522.0762"
-         y="93.305428"
+         y="0.16286939"
          id="tspan4258"
          style="font-size:36px">from recycled</tspan><tspan
          sodipodi:role="line"
          x="2522.0762"
-         y="138.30542"
+         y="45.162868"
          id="tspan4260"
          style="font-size:36px">containers, and</tspan><tspan
          sodipodi:role="line"
          x="2522.0762"
-         y="183.30542"
+         y="90.162872"
          id="tspan4262"
          style="font-size:36px">adding open</tspan><tspan
          sodipodi:role="line"
          x="2522.0762"
-         y="228.30542"
+         y="135.16287"
          id="tspan4264"
          style="font-size:36px">electronics to</tspan><tspan
          sodipodi:role="line"
          x="2522.0762"
-         y="273.30542"
+         y="180.16287"
          id="tspan4266"
          style="font-size:36px">share data in</tspan><tspan
          sodipodi:role="line"
          x="2522.0762"
-         y="318.30542"
+         y="225.16287"
          id="tspan4268"
-         style="font-size:36px">citixen science.</tspan><tspan
+         style="font-size:36px">citizen science.</tspan><tspan
          sodipodi:role="line"
          x="2522.0762"
-         y="363.30542"
+         y="270.16287"
+         style="font-size:36px"
+         id="tspan4295" /><tspan
+         sodipodi:role="line"
+         x="2522.0762"
+         y="315.16287"
+         style="font-size:36px"
+         id="tspan4297">The designs are</tspan><tspan
+         sodipodi:role="line"
+         x="2522.0762"
+         y="360.16287"
+         style="font-size:36px"
+         id="tspan4299">open and free so</tspan><tspan
+         sodipodi:role="line"
+         x="2522.0762"
+         y="405.16287"
+         style="font-size:36px"
+         id="tspan4301">they can be </tspan><tspan
+         sodipodi:role="line"
+         x="2522.0762"
+         y="450.16287"
+         style="font-size:36px"
+         id="tspan4303">produced anywhere.</tspan><tspan
+         sodipodi:role="line"
+         x="2522.0762"
+         y="495.16287"
          style="font-size:36px"
          id="tspan4270" /><tspan
          sodipodi:role="line"
          x="2522.0762"
-         y="408.30542"
+         y="540.16284"
          style="font-size:36px"
          id="tspan4272">Local food,</tspan><tspan
          sodipodi:role="line"
          x="2522.0762"
-         y="453.30542"
+         y="585.16284"
          style="font-size:36px"
          id="tspan4274">global community!</tspan></text>
   </g>
