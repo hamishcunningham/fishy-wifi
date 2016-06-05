@@ -122,6 +122,7 @@ void ledOff();
 String ip2str(IPAddress address);
 #define dbg(b, s) if(b) Serial.print(s)
 #define dln(b, s) if(b) Serial.println(s)
+#define startupDBG true
 #define valveDBG true
 #define monitorDBG false
 #define netDBG false
@@ -205,11 +206,11 @@ class Valve { // each valve /////////////////////////////////////////////////
   public:
   static int counter;           // counter for setting valve number
   int number;                   // id of this valve, counting from 1
-  char dryMins = 45;            // mins to leave bed drained per cycle
+  int dryMins = 45;             // mins to leave bed drained per cycle
   // in beds with overflows can be 0; else will be cycle time minus fill time
   long startTime = -1;          // when to start cycling (after boot)    
   bool gotOverflow = false;     // does the growbed have an overflow?
-  char fillLevel = 5;           // cms below the level sensor: drain point
+  int fillLevel = 5;            // cms below the level sensor: drain point
   bool filling = false;         // true when closed / on
   long lastFlip = -1;           // millis at last state change
 
@@ -232,41 +233,46 @@ class Valve { // each valve /////////////////////////////////////////////////
       filling = false;
       dln(valveDBG, " off");
     }
+    // dbg(valveDBG, "pump Pin = "); dbg(valveDBG, pumpMcpPin);
+    // dbg(valveDBG, ", solen = "); dln(valveDBG, solenoidMcpPin);
 
     lastFlip = millis();
   }
   void on()  { stateChange(true); }  // fill time
   void off() { stateChange(false); } // drain time
-  void step(monitor_t* now, char cycleMins) { // check conditions and adjust
-    if(!filling && startTime >= millis()) {   // time to start filling
+  void step(monitor_t* now, char cycleMins) {   // check conditions and adjust
+    dbg(valveDBG, "valve[].step - number = "); dln(valveDBG, number);
+    if(!filling && ( startTime >= millis() )) { // time to start filling
       on();
-      startTime = startTime += (cycleMins * 60 * 1000);
+      startTime += (cycleMins * 60 * 1000);
+      dbg(valveDBG, "startTime = "); dln(valveDBG, startTime);
     }
     if(full(now))                    // we're full
       off();
   }
-  int full(monitor_t *now) {
+  bool full(monitor_t *now) {
+    int l = -1;
     switch(number) {
-      case 1: return ( now->waterLevel1 <= fillLevel );
-      case 2: return ( now->waterLevel2 <= fillLevel );
-      case 3: return ( now->waterLevel3 <= fillLevel );
-      default: return -1;
+      case 1: l = now->waterLevel1; break;
+      case 2: l = now->waterLevel2; break;
+      case 3: l = now->waterLevel3; break;
     }
+    dbg(valveDBG, "now->waterLevel = "); dln(valveDBG, l);
+    return ( l <= fillLevel );
   }
 };
 int Valve::counter = 1;         // definition (the above only declares)
 
 class FlowController { // the set of valves and their config ////////////////
   public:
-  int numValves = 3;            // WARNING! call init if resetting!
-  char cycleMins = 6;//TODO    // how long is a flood/drain cycle?
-  char maxSimultDrainers = 1;   // how many beds can drain simultaneously?
-  char minBedsWet = 1;          // min beds that are full or filling
-  char maxBedsWet = 2;          // max beds that are full or filling
-  char staggerMins;             // gap to leave between valve startups
-  Valve* valves = 0;            // the valves and their states
+  int numValves = 3;         // WARNING! call init if resetting!
+  int cycleMins = 6;//TODO   // how long is a flood/drain cycle?
+  int maxSimultDrainers = 1; // how many beds can drain simultaneously?
+  int minBedsWet = 1;        // min beds that are full or filling
+  int maxBedsWet = 2;        // max beds that are full or filling
+  int staggerMins;           // gap to leave between valve startups
+  Valve* valves = 0;         // the valves and their states
 
-  FlowController() { init(); }
   int getStaggerMillis() { return staggerMins * 60 * 1000; }
   void init() {
     Valve::counter = 1;
@@ -275,10 +281,15 @@ class FlowController { // the set of valves and their config ////////////////
 
     // set up staggered valve starts
     staggerMins = cycleMins / numValves;
+    dbg(valveDBG, "cycleMins = "); dbg(valveDBG, cycleMins);
+    dbg(valveDBG, " staggerMins = "); dln(valveDBG, staggerMins);
     long t = millis();
+    dbg(valveDBG, "millis = "); dln(valveDBG, t);
     long nextCycleStart = t;
     for(int i = 0; i < numValves; i++) {
       valves[i].startTime = nextCycleStart;
+      dbg(valveDBG, "valves["); dbg(valveDBG, i);
+      dbg(valveDBG, "].startTime = "); dln(valveDBG, nextCycleStart);
       nextCycleStart += getStaggerMillis();
     }
   }
@@ -316,6 +327,7 @@ void setup() {
   startWebServer();
 
   // initialise the MCP and the flow controller
+  dln(startupDBG, "doing flow controller and mcp init...");
   flowController.init();
   mcp.begin();                  // use default address 0 for mcp23008
   for(int i = 0; i < mcpPinsUsed; i++)
@@ -381,20 +393,20 @@ void startAP() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP(apSSID);
-  dln(netDBG, "Soft AP started");
+  dln(startupDBG, "Soft AP started");
 }
 void startDNS() {
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
-  dln(netDBG, "DNS server started");
+  dln(startupDBG, "DNS server started");
 }
 void printIPs() {
-  dbg(netDBG, "AP SSID: ");
-  dbg(netDBG, apSSID);
-  dbg(netDBG, "; IP address(es): local=");
-  dbg(netDBG, WiFi.localIP());
-  dbg(netDBG, "; AP=");
-  dln(netDBG, WiFi.softAPIP());
+  dbg(startupDBG, "AP SSID: ");
+  dbg(startupDBG, apSSID);
+  dbg(startupDBG, "; IP address(es): local=");
+  dbg(startupDBG, WiFi.localIP());
+  dbg(startupDBG, "; AP=");
+  dln(startupDBG, WiFi.softAPIP());
 }
 void startWebServer() {
   webServer.on("/", handle_root);
@@ -414,7 +426,7 @@ void startWebServer() {
   webServer.on("/valve2", handle_valve2);
   webServer.on("/valve3", handle_valve3);
   webServer.begin();
-  dln(netDBG, "HTTP server started");
+  dln(startupDBG, "HTTP server started");
 }
 void handleNotFound() {
   dbg(netDBG, "URI Not Found: ");
