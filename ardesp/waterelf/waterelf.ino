@@ -225,7 +225,7 @@ class Valve { // each valve /////////////////////////////////////////////////
     if(newState == true){
       mcp.digitalWrite(pumpMcpPin, HIGH);
       mcp.digitalWrite(solenoidMcpPin, HIGH);
-      filling = true;
+      filling = true; // TODO if set from UI will interfere with timing?
       dln(valveDBG, " on");
     } else {
       mcp.digitalWrite(pumpMcpPin, LOW);
@@ -241,14 +241,14 @@ class Valve { // each valve /////////////////////////////////////////////////
   void on()  { stateChange(true); }  // fill time
   void off() { stateChange(false); } // drain time
   void step(monitor_t* now, char cycleMins) {   // check conditions and adjust
-    dbg(valveDBG, "valve[].step - number = "); dln(valveDBG, number);
-    if(!filling && ( startTime >= millis() )) { // time to start filling
+    dbg(valveDBG, "\nvalve[].step - number = "); dln(valveDBG, number);
+    if(!filling && ( startTime <= millis() )) { // time to start filling
       on();
       startTime += (cycleMins * 60 * 1000);
       dbg(valveDBG, "startTime = "); dln(valveDBG, startTime);
-    }
-    if(full(now))                    // we're full
+    } else if(filling && full(now)) {           // we're full
       off();
+    } // TODO if cycleMins - dryMins ...?
   }
   bool full(monitor_t *now) {
     int l = -1;
