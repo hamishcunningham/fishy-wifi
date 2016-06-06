@@ -210,7 +210,7 @@ class Valve { // each valve /////////////////////////////////////////////////
   // in beds with overflows can be 0; else will be cycle time minus fill time
   long startTime = -1;          // when to start cycling (after boot)    
   bool gotOverflow = false;     // does the growbed have an overflow?
-  int fillLevel = 5;            // cms below the level sensor: drain point
+  int fillLevel = 10;           // cms below the level sensor: drain point
   bool filling = false;         // true when closed / on
   long lastFlip = -1;           // millis at last state change
 
@@ -266,7 +266,7 @@ int Valve::counter = 1;         // definition (the above only declares)
 class FlowController { // the set of valves and their config ////////////////
   public:
   int numValves = 3;         // WARNING! call init if resetting!
-  int cycleMins = 6;//TODO   // how long is a flood/drain cycle?
+  int cycleMins = 21;        // how long is a flood/drain cycle?
   int maxSimultDrainers = 1; // how many beds can drain simultaneously?
   int minBedsWet = 1;        // min beds that are full or filling
   int maxBedsWet = 2;        // max beds that are full or filling
