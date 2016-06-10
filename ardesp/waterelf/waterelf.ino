@@ -213,6 +213,7 @@ class Valve { // each valve /////////////////////////////////////////////////
   int fillLevel = 10;           // cms below the level sensor: drain point
   bool filling = false;         // true when closed / on
   long lastFlip = -1;           // millis at last state change
+  int floodMins = 1; // TODO 10;
 
   Valve() { number = counter++; }
   void stateChange(bool newState) { // turn on or off
@@ -242,13 +243,25 @@ class Valve { // each valve /////////////////////////////////////////////////
   void off() { stateChange(false); } // drain time
   void step(monitor_t* now, char cycleMins) {   // check conditions and adjust
     dbg(valveDBG, "\nvalve[].step - number = "); dln(valveDBG, number);
-    if(!filling && ( startTime <= millis() )) { // time to start filling
+    int t = millis();
+    dbg(valveDBG, "t = "); dln(valveDBG, t);
+    if(filling && ( lastFlip + (floodMins * 60 * 1000) ) <= t) { // flood over
+      dbg(valveDBG, "t = "); dln(valveDBG, t);
+      dbg(valveDBG, "lastFlip = "); dln(valveDBG, lastFlip);
+      dbg(valveDBG, "floodMins = "); dln(valveDBG, floodMins);
+      dbg(valveDBG, "floodMins * 60 * 1000 = ");
+      dln(valveDBG, floodMins * 60 * 1000);
+      off();
+    } else if(!filling && ( startTime <= t )) { // time to start filling
       on();
       startTime += (cycleMins * 60 * 1000);
       dbg(valveDBG, "startTime = "); dln(valveDBG, startTime);
-    } else if(filling && full(now)) {           // we're full
+    }
+    /* old version using level sensors:
+    else if(filling && full(now)) {           // we're full
       off();
-    } // TODO if cycleMins - dryMins ...?
+    } 
+    */
   }
 int averageLevel1 = 22; // TODO
 int averageLevel2 = 22;
@@ -285,7 +298,7 @@ int Valve::counter = 1;         // definition (the above only declares)
 class FlowController { // the set of valves and their config ////////////////
   public:
   int numValves = 3;         // WARNING! call init if resetting!
-  int cycleMins = 12;        // how long is a flood/drain cycle?
+  int cycleMins = 3; // TODO// how long is a flood/drain cycle?
   int maxSimultDrainers = 1; // how many beds can drain simultaneously?
   int minBedsWet = 1;        // min beds that are full or filling
   int maxBedsWet = 2;        // max beds that are full or filling
@@ -363,7 +376,7 @@ void setup() {
 /////////////////////////////////////////////////////////////////////////////
 // looooooooooooooooooooop //////////////////////////////////////////////////
 void loop() {
-  dnsServer.processNextRequest();
+  // TODO reinstate when doing captive portal dnsServer.processNextRequest();
   webServer.handleClient();
 
   if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
