@@ -250,15 +250,34 @@ class Valve { // each valve /////////////////////////////////////////////////
       off();
     } // TODO if cycleMins - dryMins ...?
   }
+int averageLevel1 = 22; // TODO
+int averageLevel2 = 22;
+int averageLevel3 = 22;
   bool full(monitor_t *now) {
     int l = -1;
+    int al = -1; // TODO
     switch(number) {
       case 1: l = now->waterLevel1; break;
       case 2: l = now->waterLevel2; break;
       case 3: l = now->waterLevel3; break;
     }
     dbg(valveDBG, "now->waterLevel = "); dln(valveDBG, l);
-    return ( l <= fillLevel );
+    dbg(valveDBG, "waterLevel1 = "); dbg(valveDBG, now->waterLevel1);
+    dbg(valveDBG, "; waterLevel2 = "); dbg(valveDBG, now->waterLevel2);
+    dbg(valveDBG, "; waterLevel3 = "); dln(valveDBG, now->waterLevel3);
+
+if(l < 9) return false; // TODO
+switch(number) {
+  case 1: al = (averageLevel1 + l) / 2; averageLevel1 = al;
+  break;
+  case 2: al = (averageLevel2 + l) / 2; averageLevel2 = al;
+  break;
+  case 3: al = (averageLevel3 + l) / 2; averageLevel3 = al;
+  break;
+}
+dbg(valveDBG, "average level = "); dln(valveDBG, al);
+
+    return ( al <= fillLevel );
   }
 };
 int Valve::counter = 1;         // definition (the above only declares)
@@ -266,7 +285,7 @@ int Valve::counter = 1;         // definition (the above only declares)
 class FlowController { // the set of valves and their config ////////////////
   public:
   int numValves = 3;         // WARNING! call init if resetting!
-  int cycleMins = 21;        // how long is a flood/drain cycle?
+  int cycleMins = 12;        // how long is a flood/drain cycle?
   int maxSimultDrainers = 1; // how many beds can drain simultaneously?
   int minBedsWet = 1;        // min beds that are full or filling
   int maxBedsWet = 2;        // max beds that are full or filling
