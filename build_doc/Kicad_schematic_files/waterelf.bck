@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP AZ1117CH
+D Fixed/Adjustable 1.35A Low Dropout regulator, Positive
+K REGULATOR LDO 1.5V 1.8V 2.5V 3.3V 5V
+F http://www.diodes.com/_files/datasheets/AZ1117C.pdf
+$ENDCMP
+#
+#End Doc Library
