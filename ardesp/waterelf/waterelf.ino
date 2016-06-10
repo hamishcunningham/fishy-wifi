@@ -213,7 +213,7 @@ class Valve { // each valve /////////////////////////////////////////////////
   int fillLevel = 10;           // cms below the level sensor: drain point
   bool filling = false;         // true when closed / on
   long lastFlip = -1;           // millis at last state change
-  int floodMins = 1; // TODO 10;
+  int floodMins = 6; // TODO 10;
 
   Valve() { number = counter++; }
   void stateChange(bool newState) { // turn on or off
@@ -298,7 +298,7 @@ int Valve::counter = 1;         // definition (the above only declares)
 class FlowController { // the set of valves and their config ////////////////
   public:
   int numValves = 3;         // WARNING! call init if resetting!
-  int cycleMins = 3; // TODO// how long is a flood/drain cycle?
+  int cycleMins = 18; // TODO// how long is a flood/drain cycle?
   int maxSimultDrainers = 1; // how many beds can drain simultaneously?
   int minBedsWet = 1;        // min beds that are full or filling
   int maxBedsWet = 2;        // max beds that are full or filling
