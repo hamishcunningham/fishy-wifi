@@ -1,3 +1,36 @@
 Mission, deadlines, team members
 ===
 
+We're working to get more local pockets of sustainable food production out
+there using aquaponics. The more distributed food supplies are, the more
+resilient our communities will become. The less we use scarce resources, the
+more sustainable we'll be.
+
+To do this we're trying to boost awareness of aquaponics, and to get a bunch
+of systems out there (in the UK and elsewhere) that incorporate our WaterElf
+device. These will gather the data (in _citizen science_) to be able to say
+more precisely what we can grow in our local conditions, and what it costs.
+
+On September 1st we'll launch our Kickstarter campaign, WeGrow, to help
+develop the electronics and on-line community, to deliver training courses
+(via our partners), and to supply complete aquaponics systems.
+
+# Deadlines
+
+- June 23rd: meeting with Farm Urban and UTCs
+- July 21st, 3-6pm: schools session for 25 year 12s
+- July ???, schools session for 30 year 2s
+- September 1st: WeGrow launch
+
+# Team members
+
+- BG: Zilla
+- CB: Charlyne
+- GC: Gareth
+- HC: Hamish
+- HP: Henry
+- KM: Kahmin
+- LJ: Lizzie
+- NTB: Nick
+- PM: Paulo
+- ZR: Zac
