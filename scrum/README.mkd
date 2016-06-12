@@ -26,11 +26,11 @@ develop the electronics and on-line community, to deliver training courses
 
 - BG: Zilla
 - CB: Charlyne
+- EJ: Lizzie
 - GC: Gareth
 - HC: Hamish
 - HP: Henry
 - KM: Kahmin
-- LJ: Lizzie
-- NTB: Nick
+- NB: Nick
 - PM: Paulo
 - ZR: Zac
