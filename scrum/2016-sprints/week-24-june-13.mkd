@@ -4,6 +4,7 @@ Sprint w/b 13th June
 - add availability to sprint docs [all]
 - populate backlog [all]
 - seed our social media presence
+  - instagram [cb, ej]
 - create rota for:
   - Denny; Winter Garden
   - Tuesday and Friday meetups
