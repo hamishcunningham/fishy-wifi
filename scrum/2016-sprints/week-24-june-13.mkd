@@ -9,3 +9,4 @@ Sprint w/b 13th June
   - Tuesday and Friday meetups
   - social media
 - KS draft and schedule to HbN [hc]
+- fix level sensors [gc]
