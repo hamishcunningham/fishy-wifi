@@ -137,10 +137,10 @@
 #define MAX_SENSOR_DISTANCE 500 // Maximum sensor distance can be as high as 500cm, no reason to wait for ping longer than sound takes to travel this distance and back. Default=500
 #define US_ROUNDTRIP_CM 57      // Microseconds (uS) it takes sound to travel round-trip 1cm (2cm total), uses integer to save compiled code space. Default=57
 #define US_ROUNDTRIP_IN 146     // Microseconds (uS) it takes sound to travel round-trip 1 inch (2 inches total), uses integer to save compiled code space. Defalult=146
-#define ONE_PIN_ENABLED true    // Set to "false" to disable one pin mode which saves around 14-26 bytes of binary size. Default=true
+#define ONE_PIN_ENABLED false    // Set to "false" to disable one pin mode which saves around 14-26 bytes of binary size. Default=true
 #define ROUNDING_ENABLED false  // Set to "true" to enable distance rounding which also adds 64 bytes to binary size. Default=false
 #define URM37_ENABLED false     // Set to "true" to enable support for the URM37 sensor in PWM mode. Default=false
-#define TIMER_ENABLED true      // Set to "false" to disable the timer ISR (if getting "__vector_7" compile errors set this to false). Default=true
+#define TIMER_ENABLED true     // Set to "false" to disable the timer ISR (if getting "__vector_7" compile errors set this to false). Default=true
 
 // Probably shouldn't change these values unless you really know what you're doing.
 #define NO_ECHO 0               // Value returned if there's no ping echo within the specified MAX_SENSOR_DISTANCE or max_cm_distance. Default=0
@@ -160,19 +160,13 @@
 #define NewPingConvert(echoTime, conversionFactor) (max(((unsigned int)echoTime + conversionFactor / 2) / conversionFactor, (echoTime ? 1 : 0)))
 
 // Detect non-AVR microcontrollers (Teensy 3.x, Arduino DUE, etc.) and don't use port registers or timer interrupts as required.
-#if (defined (__arm__) && defined (TEENSYDUINO))
-	#undef  PING_OVERHEAD
-	#define PING_OVERHEAD 1
-	#undef  PING_TIMER_OVERHEAD
-	#define PING_TIMER_OVERHEAD 1
-#elif !defined (__AVR__)
 	#undef  PING_OVERHEAD
 	#define PING_OVERHEAD 1
 	#undef  PING_TIMER_OVERHEAD
 	#define PING_TIMER_OVERHEAD 1
 	#undef  TIMER_ENABLED
 	#define TIMER_ENABLED false
-#endif
+
 
 // Disable the timer interrupts when using ATmega128 and all ATtiny microcontrollers.
 #if defined (__AVR_ATmega128__) || defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__) || defined(__AVR_ATtiny261__) || defined(__AVR_ATtiny461__) || defined(__AVR_ATtiny861__) || defined(__AVR_ATtiny43U__)

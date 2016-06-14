@@ -898,8 +898,10 @@ void getPH(float* pH) {
   return;
 }
 void getLevel(int currentSensor, long* waterLevel) {
-
-  (*waterLevel) = sonar[currentSensor].convert_cm(sonar[currentSensor].ping_median(10));  // Get filtered time with 10 iterations
+  long duration;
+  duration = sonar[currentSensor].ping_median(10);
+  dbg(monitorDBG, "ping_median");
+  (*waterLevel) = sonar[currentSensor].convert_cm(duration);  // Get filtered time with 10 iterations
 
   dbg(monitorDBG, "Water Level: ");
   dbg(monitorDBG, *waterLevel);
