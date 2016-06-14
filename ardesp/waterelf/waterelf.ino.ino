@@ -3,7 +3,6 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-//#include "./DNSServer.h"      // patched lib
 #include <FS.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -13,7 +12,6 @@
 #include <Adafruit_TSL2591.h>
 #include <RCSwitch.h>
 #include "Adafruit_MCP23008.h"
-#include <NewPing.h>
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
@@ -26,10 +24,8 @@ const int TICK_HEAP_DEBUG = 1000;
 
 /////////////////////////////////////////////////////////////////////////////
 // wifi management stuff ////////////////////////////////////////////////////
-//const byte DNS_PORT = 53;
 IPAddress apIP(192, 168, 99, 1);
 IPAddress netMsk(255, 255, 255, 0);
-//DNSServer dnsServer;
 ESP8266WebServer webServer(80);
 String apSSIDStr = "WaterElf-" + String(ESP.getChipId());
 const char* apSSID = apSSIDStr.c_str();
@@ -178,17 +174,10 @@ const int valvePinMap[][2] = {
 
 /////////////////////////////////////////////////////////////////////////////
 // level sensing stuff //////////////////////////////////////////////////////
-#define SONAR_NUM     3             // Number of sensors.
-#define MAX_DISTANCE 50             // Maximum distance (in cm) to ping.
-
-uint8_t currentSensor = 0;          // Keeps track of which sensor is active.
-
-NewPing sonar[SONAR_NUM] = {        // Sensor object array.
-  NewPing(12, 13, MAX_DISTANCE),    // Each sensor's trigger pin, echo pin, and max distance to ping.
-  NewPing(12, 14, MAX_DISTANCE),
-  NewPing(12, 16, MAX_DISTANCE),
-  };
-  
+const int LEVEL_TRIG_PIN=12;
+const int LEVEL_ECHO_PIN1=13;
+const int LEVEL_ECHO_PIN2=14;
+const int LEVEL_ECHO_PIN3=16;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -218,9 +207,10 @@ class Valve { // each valve /////////////////////////////////////////////////
   // in beds with overflows can be 0; else will be cycle time minus fill time
   long startTime = -1;          // when to start cycling (after boot)    
   bool gotOverflow = false;     // does the growbed have an overflow?
-  int fillLevel = 10;           // cms below the level sensor: drain point
+  int fillLevel = 7;            // cms below the level sensor: drain point
   bool filling = false;         // true when closed / on
   long lastFlip = -1;           // millis at last state change
+  int floodMins = 18;
 
   Valve() { number = counter++; }
   void stateChange(bool newState) { // turn on or off
@@ -250,13 +240,25 @@ class Valve { // each valve /////////////////////////////////////////////////
   void off() { stateChange(false); } // drain time
   void step(monitor_t* now, char cycleMins) {   // check conditions and adjust
     dbg(valveDBG, "\nvalve[].step - number = "); dln(valveDBG, number);
-    if(!filling && ( startTime <= millis() )) { // time to start filling
+    int t = millis();
+    dbg(valveDBG, "t = "); dbg(valveDBG, t);
+    dbg(valveDBG, "; filling = "); dln(valveDBG, filling);
+    if(filling &&
+        (
+          ( lastFlip + (floodMins * 60 * 1000) ) <= t  || full(now)
+        )
+      ) { // flood over
+      dbg(valveDBG, "t = "); dln(valveDBG, t);
+      dbg(valveDBG, "lastFlip = "); dln(valveDBG, lastFlip);
+      dbg(valveDBG, "floodMins = "); dln(valveDBG, floodMins);
+      dbg(valveDBG, "floodMins * 60 * 1000 = ");
+      dln(valveDBG, floodMins * 60 * 1000);
+      off();
+    } else if(!filling && ( startTime <= t )) { // time to start filling
       on();
       startTime += (cycleMins * 60 * 1000);
       dbg(valveDBG, "startTime = "); dln(valveDBG, startTime);
-    } else if(filling && full(now)) {           // we're full
-      off();
-    } // TODO if cycleMins - dryMins ...?
+    } 
   }
   bool full(monitor_t *now) {
     int l = -1;
@@ -265,7 +267,8 @@ class Valve { // each valve /////////////////////////////////////////////////
       case 2: l = now->waterLevel2; break;
       case 3: l = now->waterLevel3; break;
     }
-    dbg(valveDBG, "now->waterLevel = "); dln(valveDBG, l);
+    dbg(valveDBG, "full? l = "); dln(valveDBG, l);
+
     return ( l <= fillLevel );
   }
 };
@@ -274,7 +277,7 @@ int Valve::counter = 1;         // definition (the above only declares)
 class FlowController { // the set of valves and their config ////////////////
   public:
   int numValves = 3;         // WARNING! call init if resetting!
-  int cycleMins = 21;        // how long is a flood/drain cycle?
+  int cycleMins = 30;        // how long is a flood/drain cycle?
   int maxSimultDrainers = 1; // how many beds can drain simultaneously?
   int minBedsWet = 1;        // min beds that are full or filling
   int maxBedsWet = 2;        // max beds that are full or filling
@@ -331,7 +334,6 @@ void setup() {
   startPeripherals();
   startAP();
   printIPs();
-//  startDNS();
   startWebServer();
 
   // initialise the MCP and the flow controller
@@ -352,7 +354,6 @@ void setup() {
 /////////////////////////////////////////////////////////////////////////////
 // looooooooooooooooooooop //////////////////////////////////////////////////
 void loop() {
-  //dnsServer.processNextRequest();
   webServer.handleClient();
 
   if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
@@ -369,9 +370,13 @@ void loop() {
     if(GOT_LIGHT_SENSOR) { getLight(&now->lux);         yield(); }
     if(GOT_PH_SENSOR) { getPH(&now->pH);                yield(); }
     if(GOT_LEVEL_SENSOR) {
-      getLevel(1, &now->waterLevel1);     yield();
-      getLevel(2, &now->waterLevel2);     yield();
-      getLevel(3, &now->waterLevel3);     yield();
+      getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);     yield();
+      getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);     yield();
+      getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
+      dln(valveDBG, "");
+      dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel1);
+      dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel2);
+      dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel3);
     }
 
     flowController.step(now); yield();  // set valves on and off etc.
@@ -403,11 +408,7 @@ void startAP() {
   WiFi.softAP(apSSID);
   dln(startupDBG, "Soft AP started");
 }
-//void startDNS() {
-//  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-//  dnsServer.start(DNS_PORT, "*", apIP);
-//  dln(startupDBG, "DNS server started");
-//}
+
 void printIPs() {
   dbg(startupDBG, "AP SSID: ");
   dbg(startupDBG, apSSID);
@@ -738,6 +739,10 @@ void startPeripherals() {
   }
 
   // configure the level sensors
+  pinMode(LEVEL_TRIG_PIN, OUTPUT);
+  pinMode(LEVEL_ECHO_PIN1, INPUT);
+  pinMode(LEVEL_ECHO_PIN2, INPUT);
+  pinMode(LEVEL_ECHO_PIN3, INPUT);
   GOT_LEVEL_SENSOR = true;
 
   Wire.begin();
@@ -897,15 +902,24 @@ void getPH(float* pH) {
   dln(monitorDBG, " pH");
   return;
 }
-void getLevel(int currentSensor, long* waterLevel) {
+void getLevel(int echoPin, long* waterLevel) {
   long duration;
-  duration = sonar[currentSensor].ping_median(10);
-  dbg(monitorDBG, "ping_median");
-  (*waterLevel) = sonar[currentSensor].convert_cm(duration);  // Get filtered time with 10 iterations
+  int TIMEOUT = 15000;                          // how long to wait for pulse
+
+  digitalWrite(LEVEL_TRIG_PIN, LOW);            // prepare for ping
+  delayMicroseconds(2);
+  digitalWrite(LEVEL_TRIG_PIN, HIGH);           // start ping
+  delayMicroseconds(10);                        // allow 10ms ping
+  digitalWrite(LEVEL_TRIG_PIN, LOW);            // stop ping
+  duration = pulseIn(echoPin, HIGH, TIMEOUT);   // wait for response
+
+  (*waterLevel) = (duration/2) / 29.1;
+  delay(35);                                    // anti-interference measure
 
   dbg(monitorDBG, "Water Level: ");
   dbg(monitorDBG, *waterLevel);
   dln(monitorDBG, " cm, ");
+  return;
 }
 
 /////////////////////////////////////////////////////////////////////////////
