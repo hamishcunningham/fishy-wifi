@@ -210,10 +210,10 @@ class Valve { // each valve /////////////////////////////////////////////////
   // in beds with overflows can be 0; else will be cycle time minus fill time
   long startTime = -1;          // when to start cycling (after boot)    
   bool gotOverflow = false;     // does the growbed have an overflow?
-  int fillLevel = 10;           // cms below the level sensor: drain point
+  int fillLevel = 7;            // cms below the level sensor: drain point
   bool filling = false;         // true when closed / on
   long lastFlip = -1;           // millis at last state change
-  int floodMins = 6; // TODO 10;
+  int floodMins = 18;
 
   Valve() { number = counter++; }
   void stateChange(bool newState) { // turn on or off
@@ -246,7 +246,11 @@ class Valve { // each valve /////////////////////////////////////////////////
     int t = millis();
     dbg(valveDBG, "t = "); dbg(valveDBG, t);
     dbg(valveDBG, "; filling = "); dln(valveDBG, filling);
-    if(filling && ( lastFlip + (floodMins * 60 * 1000) ) <= t) { // flood over
+    if(filling &&
+        (
+          ( lastFlip + (floodMins * 60 * 1000) ) <= t  || full(now)
+        )
+      ) { // flood over
       dbg(valveDBG, "t = "); dln(valveDBG, t);
       dbg(valveDBG, "lastFlip = "); dln(valveDBG, lastFlip);
       dbg(valveDBG, "floodMins = "); dln(valveDBG, floodMins);
@@ -257,41 +261,18 @@ class Valve { // each valve /////////////////////////////////////////////////
       on();
       startTime += (cycleMins * 60 * 1000);
       dbg(valveDBG, "startTime = "); dln(valveDBG, startTime);
-    }
-    /* old version using level sensors:
-    else if(filling && full(now)) {           // we're full
-      off();
     } 
-    */
   }
-int averageLevel1 = 22; // TODO
-int averageLevel2 = 22;
-int averageLevel3 = 22;
   bool full(monitor_t *now) {
     int l = -1;
-    int al = -1; // TODO
     switch(number) {
       case 1: l = now->waterLevel1; break;
       case 2: l = now->waterLevel2; break;
       case 3: l = now->waterLevel3; break;
     }
-    dbg(valveDBG, "now->waterLevel = "); dln(valveDBG, l);
-    dbg(valveDBG, "waterLevel1 = "); dbg(valveDBG, now->waterLevel1);
-    dbg(valveDBG, "; waterLevel2 = "); dbg(valveDBG, now->waterLevel2);
-    dbg(valveDBG, "; waterLevel3 = "); dln(valveDBG, now->waterLevel3);
+    dbg(valveDBG, "full? l = "); dln(valveDBG, l);
 
-if(l < 9) return false; // TODO
-switch(number) {
-  case 1: al = (averageLevel1 + l) / 2; averageLevel1 = al;
-  break;
-  case 2: al = (averageLevel2 + l) / 2; averageLevel2 = al;
-  break;
-  case 3: al = (averageLevel3 + l) / 2; averageLevel3 = al;
-  break;
-}
-dbg(valveDBG, "average level = "); dln(valveDBG, al);
-
-    return ( al <= fillLevel );
+    return ( l <= fillLevel );
   }
 };
 int Valve::counter = 1;         // definition (the above only declares)
@@ -299,7 +280,7 @@ int Valve::counter = 1;         // definition (the above only declares)
 class FlowController { // the set of valves and their config ////////////////
   public:
   int numValves = 3;         // WARNING! call init if resetting!
-  int cycleMins = 18; // TODO// how long is a flood/drain cycle?
+  int cycleMins = 30;        // how long is a flood/drain cycle?
   int maxSimultDrainers = 1; // how many beds can drain simultaneously?
   int minBedsWet = 1;        // min beds that are full or filling
   int maxBedsWet = 2;        // max beds that are full or filling
@@ -942,6 +923,7 @@ void getLevel(int echoPin, long* waterLevel) {
   duration = pulseIn(echoPin, HIGH, TIMEOUT);   // wait for response
 
   (*waterLevel) = (duration/2) / 29.1;
+  delay(35);                                    // anti-interference measure
 
   dbg(monitorDBG, "Water Level: ");
   dbg(monitorDBG, *waterLevel);
