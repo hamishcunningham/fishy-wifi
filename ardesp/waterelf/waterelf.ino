@@ -244,7 +244,8 @@ class Valve { // each valve /////////////////////////////////////////////////
   void step(monitor_t* now, char cycleMins) {   // check conditions and adjust
     dbg(valveDBG, "\nvalve[].step - number = "); dln(valveDBG, number);
     int t = millis();
-    dbg(valveDBG, "t = "); dln(valveDBG, t);
+    dbg(valveDBG, "t = "); dbg(valveDBG, t);
+    dbg(valveDBG, "; filling = "); dln(valveDBG, filling);
     if(filling && ( lastFlip + (floodMins * 60 * 1000) ) <= t) { // flood over
       dbg(valveDBG, "t = "); dln(valveDBG, t);
       dbg(valveDBG, "lastFlip = "); dln(valveDBG, lastFlip);
@@ -396,6 +397,10 @@ void loop() {
       getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);     yield();
       getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);     yield();
       getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
+      dln(valveDBG, "");
+      dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel1);
+      dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel2);
+      dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel3);
     }
 
     flowController.step(now); yield();  // set valves on and off etc.
