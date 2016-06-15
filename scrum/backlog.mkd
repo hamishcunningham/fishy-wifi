@@ -3,5 +3,6 @@ Backlog
 
 - refresh Denny publicity
 - Denny logo / banner thing
+- Denny webcams
 - Denny webcam to website
 - website :-)
