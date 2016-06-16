@@ -6,3 +6,75 @@ Backlog
 - Denny webcams
 - Denny webcam to website
 - website :-)
+
+From the 10bn doc:
+- Soft power story building:
+  - Flood patterns as indicators of climate change, and the implications for
+    food security.
+  - Deforestation as a driver of climate change, and ditto.
+  - Biotechnology and biosecurity and soil-free growing methods: grow clean,
+    eat clean.
+  - Videos: system builds; talking heads; happy fish dancing the Tarantella
+    while reciting Shakespeare backwards in Serbo-Croat.
+  - Infographic presentation of project messages, as a flyer (see Appendix C).
+  - A logo!
+  - Slide set to run on the plasma screen in the Denny greenhouse (see
+    Appendix D).
+  - Materials for school children; planting sessions for school parties; etc.
+  - Political, philosophical, socio-economic and ethical dimensions. The case
+    for the development, dissemination and implementation open source systems
+    for supply of basic needs. Resilience and human development, aquaponics
+    scenarios:
+    - Political
+    - Economical/financial
+    - Philosophical  
+    - Societal (resilience and self-organization)
+  - Good initial sources: Joshua Pearce (Pearce 2012a; Pearce 2012b)
+- Biomechanics research goals:
+  - Plant interactions: what species/varieties work best together? What plants
+    fit best in an aquaponics context (e.g. pH has to be ok for both plants
+    and fish)?
+  - Can plants who would normally rely on mycorrhizal
+    associations/rhizobacteria still function in a ‘sterile’ non-soil growth
+    medium where soil dwelling microbes are not present? Will they grow
+    normally and produce a significant yield?
+    - Aquaponics is small in comparison with hydroponics; we will review
+      available research about microbial symbionts for both, and identify
+      research goals to extend results for the latter to the former.
+  - Strategies to prevent and treat potential crop diseases or pests that
+    might get into the system.
+  - IPM (integrated pest Management) protocols. How to avoid, how to treat,
+    how to avoid mass fish death when trying to kill the greenfly…
+  - Review food safety in relation to aquaponics. Particularly in relation to
+    microorganisms/bacteria living in the water like E.coli — (Fox et al.
+    2012) deal with this issue, stating “fish are not considered by the Center
+    for Disease Control (CDC) to be ‘animals of significant risk’ of carrying
+    E. coli“.
+  - Biosecurity in aquaponics: how to monitor, identify, avoid, or treat fish
+    disease; how to identify nutritional and compositional nature of plant and
+    fish outputs (what impact does air pollution have on the concourse, for
+    example?) Conformance with CEFAS regulations.
+  - Logbook: create a list of simple questions that growers answer every day
+    or so to keep track of data that is not registered by the WaterElf sensor
+    (e.g. report fish or plant state of health, plantings, harvestings, amount
+    of fish feed etc…).
+  - How would solar power work? (Both to reduce running costs, and to cope
+    with off-grid running and/or power outages. How many panels with what
+    energy profiles would be needed? What capacity and type of batteries would
+    be appropriate?)
+  - Review system 1 growing plan (see draft in Appendix A) and adjust for
+    systems 2 and 3.
+- Computational infrastructure:
+  - WaterElf sensing and control firmware (C, Arduino development environment
+    running on ESP8266).
+  - WeGrow cloudside: data collection, infographic (static) website
+    generation, S3 serving.
+  - WeGrow cloudside systems
+    - Data collection — design a small server to accept and process data from
+      WaterElves around the world (see e.g. http://pastebin.com/MUBheaYx for a
+      record-oriented Python microserver sketch).
+    - Infographic and static website generation — write software to generate
+      static websites and infographics for scalability (e.g. graphs of
+      conditions vs. time).
+    - Static file serving to S3 - push data to the S3 static site server.
+

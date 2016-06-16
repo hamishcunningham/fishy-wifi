@@ -1,8 +1,8 @@
 Sprint w/b 13th June
 ===
 
-- add availability to sprint docs [all]
-- populate backlog [all]
+- add availability to sprint docs [all] [NTB & HC DONE; others?]
+- populate backlog [all] [DONE]
 - seed our social media presence
   - instagram [cb, ej] [DONE]
   - organise meeting [cb] [DONE]
@@ -16,5 +16,5 @@ Sprint w/b 13th June
 - KS draft and schedule to HbN [hc] [DONE]
 - fix level sensors [gc] [DONE]
 - contact Dunc and Meg re. 23rd? [decided not to] [DONE]
-- finalise 8th Aug dates with Becky/Charlie/Rachael [DONE]
+- finalise 8th Aug dates with Becky/Charlie/Rachael [mails DONE]
 - organise testing with Timo [mail DONE]
