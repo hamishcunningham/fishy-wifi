@@ -1,13 +1,7 @@
 Sprint week-29-july-18.mkd
 ===
 
-<<<<<<< Updated upstream
-
-
 # Availability
 
-NTB away Wed/Thu
-=======
 NTB Available Mon, Tues, Fri
 GC Away Friday
->>>>>>> Stashed changes
