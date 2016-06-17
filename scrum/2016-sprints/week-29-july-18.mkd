@@ -4,4 +4,5 @@ Sprint week-29-july-18.mkd
 # Availability
 
 NTB Available Mon, Tues, Fri
+
 GC Away Friday
