@@ -3,6 +3,7 @@ Sprint week-25-june-20.mkd
 
 - data collection infrastructure using Zac's code on an EC2 server
 - check in with HbN (and book travel 8th aug?)
+- twitter: follow ponics and others (e.g. from hcunningham lists)
 
 
 # Availability
