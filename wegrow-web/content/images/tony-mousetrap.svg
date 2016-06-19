@@ -16,7 +16,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="New document 1">
+   sodipodi:docname="tony-mousetrap.svg">
   <defs
      id="defs4">
     <linearGradient
@@ -1350,5 +1350,34 @@ HuOWx6P5MabVCAhlycjvXDeLyVMD9TkDnkYwKKK0iScff20SIk6LsZmAIXp+VZisck55NFFMZ//Z
          sodipodi:role="line"
          id="tspan5509"
          style="font-size:18px">the mousetrap</tspan></text>
+    <g
+       id="g5768"
+       transform="translate(-42,74)">
+      <rect
+         ry="23.239435"
+         rx="47.923626"
+         y="897.6579"
+         x="261.60562"
+         height="64.084511"
+         width="492.25351"
+         id="rect5766"
+         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+      <text
+         transform="translate(0,552.36212)"
+         sodipodi:linespacing="125%"
+         id="text5534"
+         y="371.83099"
+         x="508.99081"
+         style="font-size:24px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Purisa;-inkscape-font-specification:Purisa"
+         xml:space="preserve"><tspan
+           y="371.83099"
+           x="508.99081"
+           id="tspan5536"
+           sodipodi:role="line">Eminent chemist falls for elaborate</tspan><tspan
+           id="tspan5538"
+           y="401.83099"
+           x="508.99081"
+           sodipodi:role="line">aquaponics sting operation</tspan></text>
+    </g>
   </g>
 </svg>
