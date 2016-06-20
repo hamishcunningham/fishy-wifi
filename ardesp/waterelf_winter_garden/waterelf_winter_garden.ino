@@ -3,8 +3,6 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include <PubSubClient.h>
-#include "./DNSServer.h"      // patched lib
 #include <FS.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -26,26 +24,17 @@ const int TICK_HEAP_DEBUG = 1000;
 
 /////////////////////////////////////////////////////////////////////////////
 // wifi management stuff ////////////////////////////////////////////////////
-const byte DNS_PORT = 53;
 IPAddress apIP(192, 168, 99, 1);
 IPAddress netMsk(255, 255, 255, 0);
-DNSServer dnsServer;
 ESP8266WebServer webServer(80);
 String apSSIDStr = "WaterElf-" + String(ESP.getChipId());
 const char* apSSID = apSSIDStr.c_str();
 String svrAddr = ""; // address of a local server
 
 /////////////////////////////////////////////////////////////////////////////
-// MQTT stuff ///////////////////////////////////////////////////////////////
-const boolean SEND_MQTT = true;  // turn on/off posting of data to MQTT
-void callback(const MQTT::Publish& pub) {
-  // handle message arrived
-}
-
-/////////////////////////////////////////////////////////////////////////////
 // page generation stuff ////////////////////////////////////////////////////
 String pageTopStr = String(
-  "<html><head><title>WaterElf Aquaponics Helper [ID: " + apSSIDStr + "]"
+  "<html><head><title>WaterElf Aquaponics Helper Winter Garden build 20.6.16 [ID: " + apSSIDStr + "]"
 );
 const char* pageTop = pageTopStr.c_str();
 const char* pageTop2 = "</title>\n"
@@ -99,7 +88,7 @@ const char* pageFooter =
 
 /////////////////////////////////////////////////////////////////////////////
 // data monitoring stuff ////////////////////////////////////////////////////
-const boolean SEND_DATA = false;  // turn off posting of data if required here
+const boolean SEND_DATA = true;  // turn off posting of data if required here
 const int MONITOR_POINTS = 60; // number of data points to store
 typedef struct {
   unsigned long timestamp;
@@ -108,7 +97,7 @@ typedef struct {
   float airHumid;
   uint16_t lux;
   float pH;
-  long waterLevel1;
+  long waterLevel1; // TODO should be an array
   long waterLevel2;
   long waterLevel3;
   // TODO add last reboot
@@ -120,9 +109,21 @@ int monitorSize = 0;
 const int DATA_ENTRIES = 4; // size of /data rpt; must be <= MONITOR_POINTS
 void updateSensorData(monitor_t *monitorData);
 void postSensorData(monitor_t *monitorData);
-void sendSensorData(monitor_t *monitorData);
 void printMonitorEntry(monitor_t m, String* buf);
 void formatMonitorEntry(monitor_t *m, String* buf, bool JSON);
+
+/////////////////////////////////////////////////////////////////////////////
+// misc utils ///////////////////////////////////////////////////////////////
+void ledOn();
+void ledOff();
+String ip2str(IPAddress address);
+#define dbg(b, s) if(b) Serial.print(s)
+#define dln(b, s) if(b) Serial.println(s)
+#define startupDBG true
+#define valveDBG true
+#define monitorDBG false
+#define netDBG false
+#define miscDBG false
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
@@ -144,7 +145,7 @@ boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // pH sensor stuff //////////////////////////////////////////////////////////
-const byte pH_Add = 0x4D;  // change this to match ph ADC address
+const byte pH_Add = 0x4C;  // change this to match ph ADC address
 int pH7Cal = 2048; // assume ideal probe and amp conditions 1/2 of 4096
 int pH4Cal = 1286; // ideal probe slope -> this many 12bit units on 4 scale
 float pHStep = 59.16; // ideal probe slope
@@ -202,55 +203,81 @@ class Valve { // each valve /////////////////////////////////////////////////
   public:
   static int counter;           // counter for setting valve number
   int number;                   // id of this valve, counting from 1
-  char dryMins = 45;            // mins to leave bed drained per cycle
+  int dryMins = 45;             // mins to leave bed drained per cycle
   // in beds with overflows can be 0; else will be cycle time minus fill time
   long startTime = -1;          // when to start cycling (after boot)    
-  bool running = false;         // true when cycling started
   bool gotOverflow = false;     // does the growbed have an overflow?
-  char fillLevel = 5;           // cms below the level sensor: drain point
+  int fillLevel = 7;            // cms below the level sensor: drain point
+  bool filling = false;         // true when closed / on
+  long lastFlip = -1;           // millis at last state change
+  int floodMins = 18;
 
   Valve() { number = counter++; }
   void stateChange(bool newState) { // turn on or off
-    Serial.print("valve ");
-    Serial.print(number);
-    int pumpMcpPin = valvePinMap[number][0];
-    int solenoidMcpPin = valvePinMap[number][1];
+    dbg(valveDBG, "valve ");
+    dbg(valveDBG, number);
 
-    // trigger MOSFETs via the MCP
+    // trigger MOSFETs via the radio transmitter
     if(newState == true){
-      mcp.digitalWrite(pumpMcpPin, HIGH);
-      mcp.digitalWrite(solenoidMcpPin, HIGH);
-      Serial.println(" on");
+      mySwitch.switchOn(RCSW_CHANNEL, RCSW_HEATER);
+      filling = true; // TODO if set from UI will interfere with timing?
+      dln(valveDBG, " on");
     } else {
-      mcp.digitalWrite(pumpMcpPin, LOW);
-      mcp.digitalWrite(solenoidMcpPin, LOW);
-      Serial.println(" off");
+      mySwitch.switchOff(RCSW_CHANNEL, RCSW_HEATER);
+      filling = false;
+      dln(valveDBG, " off");
     }
+
+    lastFlip = millis();
   }
   void on()  { stateChange(true); }  // fill time
   void off() { stateChange(false); } // drain time
-  void step(monitor_t* now) {        // check conditions and adjust state
-    if(! running) {
-      if(startTime >= millis())
-        running = true;
-      else
-        return;
+  void step(monitor_t* now, char cycleMins) {   // check conditions and adjust
+    dbg(valveDBG, "\nvalve[].step - number = "); dln(valveDBG, number);
+    int t = millis();
+    dbg(valveDBG, "t = "); dbg(valveDBG, t);
+    dbg(valveDBG, "; filling = "); dln(valveDBG, filling);
+    if(filling &&
+        (
+          ( lastFlip + (floodMins * 60 * 1000) ) <= t  || full(now)
+        )
+      ) { // flood over
+      dbg(valveDBG, "t = "); dln(valveDBG, t);
+      dbg(valveDBG, "lastFlip = "); dln(valveDBG, lastFlip);
+      dbg(valveDBG, "floodMins = "); dln(valveDBG, floodMins);
+      dbg(valveDBG, "floodMins * 60 * 1000 = ");
+      dln(valveDBG, floodMins * 60 * 1000);
+      off();
+    } else if(!filling && ( startTime <= t )) { // time to start filling
+      on();
+      startTime += (cycleMins * 60 * 1000);
+      dbg(valveDBG, "startTime = "); dln(valveDBG, startTime);
+    } 
+  }
+  bool full(monitor_t *now) {
+    int l = -1;
+    switch(number) {
+      case 1: l = now->waterLevel1; break;
+      case 2: l = now->waterLevel2; break;
+      case 3: l = now->waterLevel3; break;
     }
+    dbg(valveDBG, "full? l = "); dln(valveDBG, l);
+
+    return ( l <= fillLevel );
   }
 };
 int Valve::counter = 1;         // definition (the above only declares)
 
 class FlowController { // the set of valves and their config ////////////////
   public:
-  int numValves = 3;            // WARNING! call init if resetting!
-  char cycleMins = 60;          // how long is a flood/drain cycle?
-  char maxSimultDrainers = 1;   // how many beds can drain simultaneously?
-  char minBedsWet = 1;          // min beds that are full or filling
-  char maxBedsWet = 2;          // max beds that are full or filling
-  char staggerMins;             // gap to leave between valve startups
-  Valve* valves = 0;            // the valves and their states
+  int numValves = 1;         // WARNING! call init if resetting!
+  int cycleMins = 30;        // how long is a flood/drain cycle?
+  int maxSimultDrainers = 1; // how many beds can drain simultaneously?
+  int minBedsWet = 1;        // min beds that are full or filling
+  int maxBedsWet = 2;        // max beds that are full or filling
+  int staggerMins;           // gap to leave between valve startups
+  Valve* valves = 0;         // the valves and their states
 
-  FlowController() { init(); }
   int getStaggerMillis() { return staggerMins * 60 * 1000; }
   void init() {
     Valve::counter = 1;
@@ -259,16 +286,21 @@ class FlowController { // the set of valves and their config ////////////////
 
     // set up staggered valve starts
     staggerMins = cycleMins / numValves;
+    dbg(valveDBG, "cycleMins = "); dbg(valveDBG, cycleMins);
+    dbg(valveDBG, " staggerMins = "); dln(valveDBG, staggerMins);
     long t = millis();
+    dbg(valveDBG, "millis = "); dln(valveDBG, t);
     long nextCycleStart = t;
     for(int i = 0; i < numValves; i++) {
       valves[i].startTime = nextCycleStart;
+      dbg(valveDBG, "valves["); dbg(valveDBG, i);
+      dbg(valveDBG, "].startTime = "); dln(valveDBG, nextCycleStart);
       nextCycleStart += getStaggerMillis();
     }
   }
   void step(monitor_t* now) {
     for(int i = 0; i < numValves; i++)
-      valves[i].step(now);
+      valves[i].step(now, cycleMins);
   }
 };
 FlowController flowController;
@@ -279,12 +311,6 @@ boolean getCloudShare();
 void setCloudShare(boolean b);
 String getSvrAddr();
 void setSvrAddr(String s);
-
-/////////////////////////////////////////////////////////////////////////////
-// misc utils ///////////////////////////////////////////////////////////////
-void ledOn();
-void ledOff();
-String ip2str(IPAddress address);
 
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
@@ -302,10 +328,10 @@ void setup() {
   startPeripherals();
   startAP();
   printIPs();
-  startDNS();
   startWebServer();
 
   // initialise the MCP and the flow controller
+  dln(startupDBG, "doing flow controller and mcp init...");
   flowController.init();
   mcp.begin();                  // use default address 0 for mcp23008
   for(int i = 0; i < mcpPinsUsed; i++)
@@ -313,16 +339,15 @@ void setup() {
 
   // try and set the host name
   if(WiFi.hostname("waterelf"))
-    Serial.println("set hostname succeeded");
+    dln(netDBG, "set hostname succeeded");
   else
-    Serial.println("set hostname failed");
+    dln(netDBG, "set hostname failed");
   delay(300); blink(3);         // signal we've finished config
 }
 
 /////////////////////////////////////////////////////////////////////////////
 // looooooooooooooooooooop //////////////////////////////////////////////////
 void loop() {
-  dnsServer.processNextRequest();
   webServer.handleClient();
 
   if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
@@ -342,24 +367,28 @@ void loop() {
       getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);     yield();
       getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);     yield();
       getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
+      dln(valveDBG, "");
+      dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel1);
+      dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel2);
+      dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel3);
     }
 
     flowController.step(now); yield();  // set valves on and off etc.
     if(SEND_DATA) {                     // push data to the cloud
       postSensorData(&monitorData[monitorCursor]); yield();
     }
-    if(SEND_MQTT) sendSensorData(&monitorData[monitorCursor]); yield();  
+      
     if(++monitorCursor == MONITOR_POINTS)
       monitorCursor = 0;
   }
 
   if(loopCounter == TICK_WIFI_DEBUG) {
-    Serial.print("SSID: "); Serial.print(apSSID);
-    Serial.print("; IP address(es): local="); Serial.print(WiFi.localIP());
-    Serial.print("; AP="); Serial.println(WiFi.softAPIP());
+    dbg(netDBG, "SSID: "); dbg(netDBG, apSSID);
+    dbg(netDBG, "; IP address(es): local="); dbg(netDBG, WiFi.localIP());
+    dbg(netDBG, "; AP="); dln(netDBG, WiFi.softAPIP());
   }
   if(loopCounter == TICK_HEAP_DEBUG) {
-    Serial.print("free heap="); Serial.println(ESP.getFreeHeap());
+    dbg(miscDBG, "free heap="); dln(miscDBG, ESP.getFreeHeap());
   }
 
   if(loopCounter++ == LOOP_ROLLOVER) loopCounter = 0;
@@ -371,20 +400,16 @@ void startAP() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP(apSSID);
-  Serial.println("Soft AP started");
+  dln(startupDBG, "Soft AP started");
 }
-void startDNS() {
-  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-  dnsServer.start(DNS_PORT, "*", apIP);
-  Serial.println("DNS server started");
-}
+
 void printIPs() {
-  Serial.print("AP SSID: ");
-  Serial.print(apSSID);
-  Serial.print("; IP address(es): local=");
-  Serial.print(WiFi.localIP());
-  Serial.print("; AP=");
-  Serial.println(WiFi.softAPIP());
+  dbg(startupDBG, "AP SSID: ");
+  dbg(startupDBG, apSSID);
+  dbg(startupDBG, "; IP address(es): local=");
+  dbg(startupDBG, WiFi.localIP());
+  dbg(startupDBG, "; AP=");
+  dln(startupDBG, WiFi.softAPIP());
 }
 void startWebServer() {
   webServer.on("/", handle_root);
@@ -404,16 +429,16 @@ void startWebServer() {
   webServer.on("/valve2", handle_valve2);
   webServer.on("/valve3", handle_valve3);
   webServer.begin();
-  Serial.println("HTTP server started");
+  dln(startupDBG, "HTTP server started");
 }
 void handleNotFound() {
-  Serial.print("URI Not Found: ");
-  Serial.println(webServer.uri());
+  dbg(netDBG, "URI Not Found: ");
+  dln(netDBG, webServer.uri());
   // TODO send redirect to /? or just use handle_root?
   webServer.send(200, "text/plain", "URI Not Found");
 }
 void handle_root() {
-  Serial.println("serving page notionally at /");
+  dln(netDBG, "serving page notionally at /");
   String toSend = pageTop;
   toSend += pageTop2;
   toSend += pageDefault;
@@ -421,7 +446,7 @@ void handle_root() {
   webServer.send(200, "text/html", toSend);
 }
 void handle_data() {
-  Serial.println("serving page at /data");
+  dln(netDBG, "serving page at /data");
   String toSend = pageTop;
   toSend += ": Sensor Data";
   toSend += pageTop2;
@@ -453,24 +478,24 @@ String genAPForm() {
   const char *checked = " checked";
 
   int n = WiFi.scanNetworks();
-  Serial.print("scan done: ");
+  dbg(netDBG, "scan done: ");
   if(n == 0) {
-    Serial.println("no networks found");
+    dln(netDBG, "no networks found");
     f += "No wifi access points found :-( ";
     f += "<a href='/'>Back</a><br/><a href='/wifi'>Try again?</a></p>\n";
   } else {
-    Serial.print(n);
-    Serial.println(" networks found");
+    dbg(netDBG, n);
+    dln(netDBG, " networks found");
     f += "<form method='POST' action='wfchz'> ";
     for(int i = 0; i < n; ++i) {
       // print SSID and RSSI for each network found
-      Serial.print(i + 1);
-      Serial.print(": ");
-      Serial.print(WiFi.SSID(i));
-      Serial.print(" (");
-      Serial.print(WiFi.RSSI(i));
-      Serial.print(")");
-      Serial.println((WiFi.encryptionType(i) == ENC_TYPE_NONE)?" ":"*");
+      dbg(netDBG, i + 1);
+      dbg(netDBG, ": ");
+      dbg(netDBG, WiFi.SSID(i));
+      dbg(netDBG, " (");
+      dbg(netDBG, WiFi.RSSI(i));
+      dbg(netDBG, ")");
+      dln(netDBG, (WiFi.encryptionType(i) == ENC_TYPE_NONE)?" ":"*");
 
       f.concat("<input type='radio' name='ssid' value='");
       f.concat(WiFi.SSID(i));
@@ -492,13 +517,13 @@ String genAPForm() {
   return f;
 }
 void handle_wifi() {
-  Serial.println("serving page at /wifi");
+  dln(netDBG, "serving page at /wifi");
   String toSend = genAPForm();
   webServer.send(200, "text/html", toSend);
 }
 
 void handle_wifistatus() {
-  Serial.println("serving page at /wifistatus");
+  dln(netDBG, "serving page at /wifistatus");
 
   String toSend = pageTop;
   toSend += ": Wifi Status";
@@ -541,7 +566,7 @@ void handle_wifistatus() {
   webServer.send(200, "text/html", toSend);
 }
 void handle_wfchz() {
-  Serial.println("serving page at /wfchz");
+  dln(netDBG, "serving page at /wfchz");
   String toSend = pageTop;
   toSend += ": joining wifi network";
   toSend += pageTop2;
@@ -549,7 +574,7 @@ void handle_wfchz() {
   String key = "";
 
   for(uint8_t i = 0; i < webServer.args(); i++ ) {
-    //Serial.println(" " + webServer.argName(i) + ": " + webServer.arg(i));
+    //dln(netDBG, " " + webServer.argName(i) + ": " + webServer.arg(i));
     if(webServer.argName(i) == "ssid")
       ssid = webServer.arg(i);
     else if(webServer.argName(i) == "key")
@@ -591,12 +616,12 @@ String genServerConfForm() {
   return f;
 }
 void handle_serverconf() {
-  Serial.println("serving page at /serverconf");
+  dln(netDBG, "serving page at /serverconf");
   String toSend = genServerConfForm();
   webServer.send(200, "text/html", toSend);
 }
 void handle_svrchz() {
-  Serial.println("serving page at /svrchz");
+  dln(netDBG, "serving page at /svrchz");
   String toSend = pageTop;
   toSend += ": data sharing configured";
   toSend += pageTop2;
@@ -626,7 +651,7 @@ void handle_svrchz() {
   webServer.send(200, "text/html", toSend);
 }
 void handle_actuate() {
-  Serial.println("serving page at /actuate");
+  dln(netDBG, "serving page at /actuate");
   String toSend = pageTop;
   toSend += ": Setting Actuator";
   toSend += pageTop2;
@@ -642,10 +667,10 @@ void handle_actuate() {
   // now we trigger the 433 transmitter
   if(newState == true){
     mySwitch.switchOn(RCSW_CHANNEL, RCSW_HEATER);
-    Serial.println("Actuator on");
+    dln(netDBG, "Actuator on");
   } else {
     mySwitch.switchOff(RCSW_CHANNEL, RCSW_HEATER);
-    Serial.println("Actuator off");
+    dln(netDBG, "Actuator off");
   }
 
   toSend += "<h2>Actuator triggered</h2>\n";
@@ -659,8 +684,8 @@ void handle_valve1() { handle_valve(0); } // valves in the UI are...
 void handle_valve2() { handle_valve(1); } // ...numbered from 1, but...
 void handle_valve3() { handle_valve(2); } // ...from 0 in the FlowController
 void handle_valve(int valveNum) {
-  Serial.print("serving page at /valve");
-  Serial.println(valveNum + 1);
+  dbg(valveDBG, "serving page at /valve");
+  dln(valveDBG, valveNum + 1);
   String toSend = pageTop;
   toSend += ": Setting Water Valve ";
   toSend += valveNum + 1;
@@ -688,7 +713,7 @@ void handle_valve(int valveNum) {
 /////////////////////////////////////////////////////////////////////////////
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
-  Serial.println("\nstartPeripherals...");
+  dln(monitorDBG, "\nstartPeripherals...");
   mySwitch.enableTransmit(15);   // RC transmitter is connected to Pin 15
 
   tempSensor.begin();     // start the onewire temperature sensor
@@ -702,7 +727,7 @@ void startPeripherals() {
   float airHumid = dht.readHumidity();
   float airCelsius = dht.readTemperature();
   if (isnan(airHumid) || isnan(airCelsius)) {
-    Serial.println("failed to find humidity sensor");
+    dln(monitorDBG, "failed to find humidity sensor");
   } else {
     GOT_HUMID_SENSOR = true;
   }
@@ -743,11 +768,11 @@ void startPeripherals() {
   error = Wire.endTransmission();
   if(error==0){
     GOT_PH_SENSOR = true;
-    Serial.println("Found pH sensor");
+    dln(monitorDBG, "Found pH sensor");
   }
 }
 void postSensorData(monitor_t *monitorData) {
-  //Serial.println("\npostSensorData");
+  //dln(monitorDBG, "\npostSensorData");
 
   // create a JSON form
   String jsonBuf = "";
@@ -758,62 +783,21 @@ void postSensorData(monitor_t *monitorData) {
   envelope += jsonBuf.length();
   envelope += "\nConnection: close\n\n";
   envelope += jsonBuf;
-  //Serial.println(envelope);
+  //dln(monitorDBG, envelope);
   
   WiFiClient couchClient;
   if(couchClient.connect(svrAddr.c_str(), 5984)) {
-    Serial.print(svrAddr);
-    Serial.println(" - connected as couch server");
+    dbg(netDBG, svrAddr);
+    dln(monitorDBG, " - connected as couch server");
     couchClient.print(envelope);
   } else {
-    Serial.print(svrAddr);
-    Serial.println(" - no couch server");
+    dbg(netDBG, svrAddr);
+    dln(monitorDBG, " - no couch server");
   }
 
-  Serial.println("");
+  dln(monitorDBG, "");
   return;
 }
-void sendSensorData(monitor_t *monitorData) {
-  Serial.println("\nsendSensorData");
-  WiFiClient wclient;
-  PubSubClient client(wclient, svrAddr);
-  client.set_callback(callback); // Register MQTT callback
-  if (client.connect("arduinoClient")) {
-    if(GOT_TEMP_SENSOR){
-      String wc;
-      wc.concat(monitorData->waterCelsius);
-      client.publish("WaterTemp",wc);
-    }
-    if(GOT_HUMID_SENSOR){
-      String ac,hm;
-      ac.concat(monitorData->airCelsius);
-      hm.concat(monitorData->airHumid);
-      client.publish("AirTemp",ac);
-      client.publish("Humidity",hm);
-    }  
-    if(GOT_LIGHT_SENSOR){
-      String lx;
-      lx.concat(monitorData->lux);
-      client.publish("Light",lx);
-    }
-    if(GOT_PH_SENSOR){
-      String ph;
-      ph.concat(monitorData->pH);
-      client.publish("pH",ph);
-    }
-    if(GOT_LEVEL_SENSOR){
-      String wl1, wl2, wl3;
-      wl1.concat(monitorData->waterLevel1);
-      wl2.concat(monitorData->waterLevel2);
-      wl3.concat(monitorData->waterLevel3);
-      client.publish("WaterLevel1",wl1);
-      client.publish("WaterLevel2",wl2);
-      client.publish("WaterLevel3",wl3);
-    }
-  }
-  return;
-}
-
 void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
   if(JSON) buf->concat("{ ");
   buf->concat("~timestamp~+ ");
@@ -864,29 +848,29 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
 void getTemperature(float* waterCelsius) {
   tempSensor.requestTemperatures(); // send command to get temperatures
   (*waterCelsius) = tempSensor.getTempC(tempAddr);
-  Serial.print("Water temp: ");
-  Serial.print(*waterCelsius);
-  Serial.println(" C, ");
+  dbg(monitorDBG, "Water temp: ");
+  dbg(monitorDBG, *waterCelsius);
+  dln(monitorDBG, " C, ");
   return;
 }
 void getHumidity(float* airCelsius, float* airHumid) {
   (*airCelsius) = dht.readTemperature();
   (*airHumid) = dht.readHumidity();
-  Serial.print("Air Temp: ");
-  Serial.print(*airCelsius);
-  Serial.print(" C, ");
-  Serial.print("Humidity: ");
-  Serial.print(*airHumid);
-  Serial.println(" %RH, ");
+  dbg(monitorDBG, "Air Temp: ");
+  dbg(monitorDBG, *airCelsius);
+  dbg(monitorDBG, " C, ");
+  dbg(monitorDBG, "Humidity: ");
+  dbg(monitorDBG, *airHumid);
+  dln(monitorDBG, " %RH, ");
   return;
 }
 void getLight(uint16_t* lux) {
   sensors_event_t event;
   tsl.getEvent(&event);
   (*lux) = event.light; 
-  Serial.print("Light: ");
-  Serial.print(*lux);
-  Serial.println(" Lux");
+  dbg(monitorDBG, "Light: ");
+  dbg(monitorDBG, *lux);
+  dln(monitorDBG, " Lux");
   return;
 }
 void getPH(float* pH) {
@@ -907,9 +891,9 @@ void getPH(float* pH) {
   float milliVolts = (((float)adc_result/4096)*vRef)*1000;
   float temp = ((((vRef*(float)pH7Cal)/4096)*1000) - milliVolts) / opampGain;
   (*pH) = 7-(temp/pHStep); 
-  Serial.print("pH: ");
-  Serial.print(*pH);
-  Serial.println(" pH");
+  dbg(monitorDBG, "pH: ");
+  dbg(monitorDBG, *pH);
+  dln(monitorDBG, " pH");
   return;
 }
 void getLevel(int echoPin, long* waterLevel) {
@@ -924,10 +908,11 @@ void getLevel(int echoPin, long* waterLevel) {
   duration = pulseIn(echoPin, HIGH, TIMEOUT);   // wait for response
 
   (*waterLevel) = (duration/2) / 29.1;
+  delay(35);                                    // anti-interference measure
 
-  Serial.print("Water Level: ");
-  Serial.print(*waterLevel);
-  Serial.println(" cm, ");
+  dbg(monitorDBG, "Water Level: ");
+  dbg(monitorDBG, *waterLevel);
+  dln(monitorDBG, " cm, ");
   return;
 }
 
