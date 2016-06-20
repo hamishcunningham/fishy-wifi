@@ -7,7 +7,7 @@ Sprint week-25-june-20.mkd
 - twitter: follow ponics and others (e.g. from hcunningham lists)
 - figure out optimum ways to use the fb/twitter/instagram/?
 - process the "competition" entries, the questions, and email and tweet
-- collect all our pics and graphics in one place
+- collect all our pics and graphics in one place [gc]
 
 - regulars
   - feeding fish and checking water quality
