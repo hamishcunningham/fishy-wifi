@@ -1,34 +1,49 @@
 Sprint week-25-june-20.mkd
 ===
 
-- Review and send email (GC CB EJ)
-- Circulate drive details (GC)
--   then Collect media into drive (GC CB EJ HC)
-- get keys cut [hc]
-- data collection infrastructure using Zac's code on an EC2 server [hc, kg]
-- check in with HbN (and book travel 8th aug?)
-- twitter: follow ponics and others (e.g. from hcunningham lists)
-- figure out optimum ways to use the fb/twitter/instagram/?
-- process the "competition" entries, the questions, and email and tweet
-- collect all our pics and graphics in one place [gc]
-
-- regulars
-  - feeding fish and checking water quality
-  - plants: checking, pruning, planting
-  - social media
-  - printing sheets for the WG, keeping that tidy, emailing "competitors" and
-    building the FAQ
+- circulate drive details (GC)
+  - then collect media into drive (GC CB EJ HC)
+- get keys cut (HC)
+- data collection infrastructure using Zac's code on an EC2 server (HC, KG)
+- check in with HbN (and book travel 8th aug?) (HC)
+- process the "competition" entries, and email from wegrow account (GC CB EJ)
+- put the FAQ questions on the website (HC)
+- finish WaterElf for FarmUrban (GC)
+- pH sensor in WG (GC)
+- Denny vinyl banner (GC)
+- create a giveaway double-sided A6 sheet (EJ, GC)
+  - main message
+  - fish pic; logo; uni logo
+  - meetups
+  - get involved...
+  - contacts: www.wegrow.social + icons for: email, twitter, fb, instagram,
+    website, logo, qr
+- media work
+  - twitter: follow ponics and others (e.g. from hcunningham lists)
+  - figure out optimum ways to use the fb/twitter/instagram/?
+    - following people on twitter
+    - doing posts across platforms
+    - sharing knowledge with the rest of the team, and getting retweets
 
 
 # Availability
 
 *Please add a note here if you are __not__ available this week*.
 
+
+# Regulars
+  - feeding fish and checking water quality
+  - plants: checking, pruning, planting
+  - social media
+  - printing sheets for the WG, keeping that tidy, emailing "competitors" and
+    building the FAQ
+
 # Rota - feeding,testing and social media
-Monday - Lizzy - both
-Tuesday - Nick Denny
-Wednesday - Nick Denny - Kahmin WG
-Thursday - Charlyne Denny - Nick WG
-Friday - Gareth WG - Zilla Denny
-Saturday - Zilla? both
-Sunday - Gareth both
+
+- Monday - Lizzy - both; print sheets HC
+- Tuesday - Nick Denny
+- Wednesday - Nick Denny - Kahmin WG
+- Thursday - Charlyne Denny - Nick WG
+- Friday - Gareth WG - Zilla Denny
+- Saturday - Zilla? both
+- Sunday - Gareth both
