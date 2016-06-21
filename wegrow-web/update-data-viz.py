@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# update-data-viz.py
 #
 # script to rewrite output/data, an html tree that visualises WaterElf data
 # from ../../wegrow-data
@@ -12,11 +13,11 @@
 #   ../../wegrow-data/88888/elf-today-88888.txt
 # and write .htmls to output/data
 # (these are then served via iframes in the Pelican-generated html tree)
+
 import os
 import json
 import prettytable
 import errno
-
 
 # Data Handling
 
