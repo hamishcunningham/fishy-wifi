@@ -4,3 +4,4 @@ min
 ESPlorer.Log*
 mqtt-spy.messages
 *.log
+*.pyc
