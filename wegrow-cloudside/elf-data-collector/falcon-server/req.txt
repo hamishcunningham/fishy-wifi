@@ -1,0 +1,8 @@
+GET /collect/9999 HTTP/1.1
+User-Agent: curl/7.35.0
+Host: localhost:8000
+Accept: application/json
+Content-Type: application/json
+Content-Length: 92
+
+{"timestamp": 22200, "airTemp": 55, "humidity": 44, "lux": 1494, "pH": 6.4, "waterTemp": 14}

@@ -98,8 +98,8 @@ typedef struct {
   uint16_t lux;
   float pH;
   long waterLevel1; // TODO should be an array
-  long waterLevel2;
-  long waterLevel3;
+//  long waterLevel2;
+//  long waterLevel3;
   // TODO add last reboot
   // TODO add free memory?
 } monitor_t;
@@ -121,7 +121,7 @@ String ip2str(IPAddress address);
 #define dln(b, s) if(b) Serial.println(s)
 #define startupDBG true
 #define valveDBG true
-#define monitorDBG false
+#define monitorDBG true
 #define netDBG false
 #define miscDBG false
 
@@ -145,7 +145,7 @@ boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // pH sensor stuff //////////////////////////////////////////////////////////
-const byte pH_Add = 0x4D;  // change this to match ph ADC address
+byte pH_Add = 0x48;  // the start of ADC address range (0x48 to 0x4F)
 int pH7Cal = 2048; // assume ideal probe and amp conditions 1/2 of 4096
 int pH4Cal = 1286; // ideal probe slope -> this many 12bit units on 4 scale
 float pHStep = 59.16; // ideal probe slope
@@ -203,14 +203,14 @@ class Valve { // each valve /////////////////////////////////////////////////
   public:
   static int counter;           // counter for setting valve number
   int number;                   // id of this valve, counting from 1
-  int dryMins = 45;             // mins to leave bed drained per cycle
+  int dryMins = 15;             // mins to leave bed drained per cycle
   // in beds with overflows can be 0; else will be cycle time minus fill time
   long startTime = -1;          // when to start cycling (after boot)    
   bool gotOverflow = false;     // does the growbed have an overflow?
-  int fillLevel = 7;            // cms below the level sensor: drain point
+  int fillLevel = -1;            // cms below the level sensor: drain point
   bool filling = false;         // true when closed / on
   long lastFlip = -1;           // millis at last state change
-  int floodMins = 18;
+  int floodMins = 15;
 
   Valve() { number = counter++; }
   void stateChange(bool newState) { // turn on or off
@@ -258,8 +258,8 @@ class Valve { // each valve /////////////////////////////////////////////////
     int l = -1;
     switch(number) {
       case 1: l = now->waterLevel1; break;
-      case 2: l = now->waterLevel2; break;
-      case 3: l = now->waterLevel3; break;
+    //  case 2: l = now->waterLevel2; break;
+    //  case 3: l = now->waterLevel3; break;
     }
     dbg(valveDBG, "full? l = "); dln(valveDBG, l);
 
@@ -349,7 +349,6 @@ void setup() {
 // looooooooooooooooooooop //////////////////////////////////////////////////
 void loop() {
   webServer.handleClient();
-
   if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
     monitor_t* now = &monitorData[monitorCursor];
     if(monitorSize < MONITOR_POINTS)
@@ -361,8 +360,12 @@ void loop() {
     if(GOT_HUMID_SENSOR) {
       getHumidity(&now->airCelsius, &now->airHumid);    yield();
     }
-    if(GOT_LIGHT_SENSOR) { getLight(&now->lux);         yield(); }
-    if(GOT_PH_SENSOR) { getPH(&now->pH);                yield(); }
+    if(GOT_LIGHT_SENSOR) {
+      getLight(&now->lux);         yield();
+    }
+    if(GOT_PH_SENSOR) {
+      getPH(&now->pH);                yield();
+    }
     if(GOT_LEVEL_SENSOR) {
       getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);     yield();
       //getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);     yield();
@@ -399,7 +402,7 @@ void loop() {
 void startAP() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(apSSID);
+  WiFi.softAP(apSSID,"wegrowdotsocial");
   dln(startupDBG, "Soft AP started");
 }
 
@@ -713,7 +716,7 @@ void handle_valve(int valveNum) {
 /////////////////////////////////////////////////////////////////////////////
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
-  dln(monitorDBG, "\nstartPeripherals...");
+  dln(startupDBG, "\nstartPeripherals...");
   mySwitch.enableTransmit(15);   // RC transmitter is connected to Pin 15
 
   tempSensor.begin();     // start the onewire temperature sensor
@@ -721,14 +724,16 @@ void startPeripherals() {
     GOT_TEMP_SENSOR = true;
     tempSensor.getAddress(tempAddr, 0);
     tempSensor.setResolution(tempAddr, 12); // 12 bit res (DS18B20 does 9-12)
+    dln(startupDBG, "Found water temperature sensor");
   }
   
   dht.begin();    // start the humidity and air temperature sensor
   float airHumid = dht.readHumidity();
   float airCelsius = dht.readTemperature();
   if (isnan(airHumid) || isnan(airCelsius)) {
-    dln(monitorDBG, "failed to find humidity sensor");
+    dln(startupDBG, "failed to find humidity sensor");
   } else {
+    dln(startupDBG, "Found humidity sensor");
     GOT_HUMID_SENSOR = true;
   }
 
@@ -762,13 +767,16 @@ void startPeripherals() {
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS); // longest (dim)
   }
-  
-  //Wire.begin();
-  Wire.beginTransmission(pH_Add);
-  error = Wire.endTransmission();
-  if(error==0){
-    GOT_PH_SENSOR = true;
-    dln(monitorDBG, "Found pH sensor");
+
+  for(int i=0; i<7; i++) {
+    Wire.beginTransmission(pH_Add+i);
+    error = Wire.endTransmission();
+    if(error==0){
+      GOT_PH_SENSOR = true;
+      dln(startupDBG, "Found pH sensor");
+      pH_Add=pH_Add+i;
+      //dln(startupDBG,pH_Add);
+    }
   }
 }
 void postSensorData(monitor_t *monitorData) {
@@ -880,11 +888,12 @@ void getPH(float* pH) {
   byte adc_low;
   // we'll assemble the 2 in this variable
   int adc_result;
-  
+  delay(50);
   Wire.requestFrom(pH_Add, 2); // requests 2 bytes
   while(Wire.available() < 2); // while two bytes to receive
   adc_high = Wire.read();      // set...
   adc_low = Wire.read();       // ...them
+
   // now assemble them, remembering byte maths; a Union works well here too
   adc_result = (adc_high * 256) + adc_low;
   // we have a our Raw pH reading from the ADC; now figure out what the pH is  
