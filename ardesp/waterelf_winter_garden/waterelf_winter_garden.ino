@@ -145,7 +145,7 @@ boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // pH sensor stuff //////////////////////////////////////////////////////////
-const byte pH_Add = 0x4C;  // change this to match ph ADC address
+const byte pH_Add = 0x4D;  // change this to match ph ADC address
 int pH7Cal = 2048; // assume ideal probe and amp conditions 1/2 of 4096
 int pH4Cal = 1286; // ideal probe slope -> this many 12bit units on 4 scale
 float pHStep = 59.16; // ideal probe slope
@@ -365,12 +365,12 @@ void loop() {
     if(GOT_PH_SENSOR) { getPH(&now->pH);                yield(); }
     if(GOT_LEVEL_SENSOR) {
       getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);     yield();
-      getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);     yield();
-      getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
+      //getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);     yield();
+      //getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
       dln(valveDBG, "");
       dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel1);
-      dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel2);
-      dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel3);
+      //dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel2);
+      //dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel3);
     }
 
     flowController.step(now); yield();  // set valves on and off etc.
@@ -828,10 +828,10 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
   if(GOT_LEVEL_SENSOR){
     buf->concat("^ ~waterLevel1~+ "); buf->concat(m->waterLevel1);
     if(! JSON) buf->concat("\tcm");
-    buf->concat("^ ~waterLevel2~+ "); buf->concat(m->waterLevel2);
-    if(! JSON) buf->concat("\tcm");
-    buf->concat("^ ~waterLevel3~+ "); buf->concat(m->waterLevel3);
-    if(! JSON) buf->concat("\tcm");
+    //buf->concat("^ ~waterLevel2~+ "); buf->concat(m->waterLevel2);
+    //if(! JSON) buf->concat("\tcm");
+    //buf->concat("^ ~waterLevel3~+ "); buf->concat(m->waterLevel3);
+    //if(! JSON) buf->concat("\tcm");
   }
   if(JSON) {
     buf->concat(" }");

@@ -98,8 +98,8 @@ typedef struct {
   uint16_t lux;
   float pH;
   long waterLevel1; // TODO should be an array
-  long waterLevel2;
-  long waterLevel3;
+//  long waterLevel2;
+//  long waterLevel3;
   // TODO add last reboot
   // TODO add free memory?
 } monitor_t;
@@ -121,7 +121,7 @@ String ip2str(IPAddress address);
 #define dln(b, s) if(b) Serial.println(s)
 #define startupDBG true
 #define valveDBG true
-#define monitorDBG false
+#define monitorDBG true
 #define netDBG false
 #define miscDBG false
 
@@ -145,7 +145,7 @@ boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // pH sensor stuff //////////////////////////////////////////////////////////
-byte pH_Add = 0x48;  // change this to match ph ADC address
+byte pH_Add = 0x48;  // the start of ADC address range (0x48 to 0x4F)
 int pH7Cal = 2048; // assume ideal probe and amp conditions 1/2 of 4096
 int pH4Cal = 1286; // ideal probe slope -> this many 12bit units on 4 scale
 float pHStep = 59.16; // ideal probe slope
@@ -203,14 +203,14 @@ class Valve { // each valve /////////////////////////////////////////////////
   public:
   static int counter;           // counter for setting valve number
   int number;                   // id of this valve, counting from 1
-  int dryMins = 45;             // mins to leave bed drained per cycle
+  int dryMins = 15;             // mins to leave bed drained per cycle
   // in beds with overflows can be 0; else will be cycle time minus fill time
   long startTime = -1;          // when to start cycling (after boot)    
   bool gotOverflow = false;     // does the growbed have an overflow?
-  int fillLevel = 7;            // cms below the level sensor: drain point
+  int fillLevel = -1;            // cms below the level sensor: drain point
   bool filling = false;         // true when closed / on
   long lastFlip = -1;           // millis at last state change
-  int floodMins = 18;
+  int floodMins = 15;
 
   Valve() { number = counter++; }
   void stateChange(bool newState) { // turn on or off
@@ -258,8 +258,8 @@ class Valve { // each valve /////////////////////////////////////////////////
     int l = -1;
     switch(number) {
       case 1: l = now->waterLevel1; break;
-      case 2: l = now->waterLevel2; break;
-      case 3: l = now->waterLevel3; break;
+    //  case 2: l = now->waterLevel2; break;
+    //  case 3: l = now->waterLevel3; break;
     }
     dbg(valveDBG, "full? l = "); dln(valveDBG, l);
 
@@ -349,7 +349,6 @@ void setup() {
 // looooooooooooooooooooop //////////////////////////////////////////////////
 void loop() {
   webServer.handleClient();
-
   if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
     monitor_t* now = &monitorData[monitorCursor];
     if(monitorSize < MONITOR_POINTS)
@@ -361,16 +360,20 @@ void loop() {
     if(GOT_HUMID_SENSOR) {
       getHumidity(&now->airCelsius, &now->airHumid);    yield();
     }
-    if(GOT_LIGHT_SENSOR) { getLight(&now->lux);         yield(); }
-    if(GOT_PH_SENSOR) { getPH(&now->pH);                yield(); }
+    if(GOT_LIGHT_SENSOR) {
+      getLight(&now->lux);         yield();
+    }
+    if(GOT_PH_SENSOR) {
+      getPH(&now->pH);                yield();
+    }
     if(GOT_LEVEL_SENSOR) {
       getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);     yield();
-      getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);     yield();
-      getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
+      //getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);     yield();
+      //getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
       dln(valveDBG, "");
       dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel1);
-      dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel2);
-      dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel3);
+      //dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel2);
+      //dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel3);
     }
 
     flowController.step(now); yield();  // set valves on and off etc.
@@ -399,7 +402,7 @@ void loop() {
 void startAP() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(apSSID);
+  WiFi.softAP(apSSID,"wegrowdotsocial");
   dln(startupDBG, "Soft AP started");
 }
 
@@ -731,7 +734,6 @@ void startPeripherals() {
     dln(startupDBG, "failed to find humidity sensor");
   } else {
     dln(startupDBG, "Found humidity sensor");
-
     GOT_HUMID_SENSOR = true;
   }
 
@@ -770,9 +772,10 @@ void startPeripherals() {
     Wire.beginTransmission(pH_Add+i);
     error = Wire.endTransmission();
     if(error==0){
-    GOT_PH_SENSOR = true;
-    dln(startupDBG, "Found pH sensor");
-    pH_Add=pH_Add+i;
+      GOT_PH_SENSOR = true;
+      dln(startupDBG, "Found pH sensor");
+      pH_Add=pH_Add+i;
+      //dln(startupDBG,pH_Add);
     }
   }
 }
@@ -833,10 +836,10 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
   if(GOT_LEVEL_SENSOR){
     buf->concat("^ ~waterLevel1~+ "); buf->concat(m->waterLevel1);
     if(! JSON) buf->concat("\tcm");
-    buf->concat("^ ~waterLevel2~+ "); buf->concat(m->waterLevel2);
-    if(! JSON) buf->concat("\tcm");
-    buf->concat("^ ~waterLevel3~+ "); buf->concat(m->waterLevel3);
-    if(! JSON) buf->concat("\tcm");
+    //buf->concat("^ ~waterLevel2~+ "); buf->concat(m->waterLevel2);
+    //if(! JSON) buf->concat("\tcm");
+    //buf->concat("^ ~waterLevel3~+ "); buf->concat(m->waterLevel3);
+    //if(! JSON) buf->concat("\tcm");
   }
   if(JSON) {
     buf->concat(" }");
@@ -885,11 +888,12 @@ void getPH(float* pH) {
   byte adc_low;
   // we'll assemble the 2 in this variable
   int adc_result;
-  
+  delay(50);
   Wire.requestFrom(pH_Add, 2); // requests 2 bytes
   while(Wire.available() < 2); // while two bytes to receive
   adc_high = Wire.read();      // set...
   adc_low = Wire.read();       // ...them
+
   // now assemble them, remembering byte maths; a Union works well here too
   adc_result = (adc_high * 256) + adc_low;
   // we have a our Raw pH reading from the ADC; now figure out what the pH is  
