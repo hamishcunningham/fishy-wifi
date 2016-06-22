@@ -2,7 +2,7 @@
 
 # nc raw request version (working)
 cat <<EOF |nc citsci.wegrow.social 8000
-GET /collect/9999 HTTP/1.1
+GET /collect/elf-12345 HTTP/1.1
 User-Agent: curl/7.35.0
 Host: localhost:8000
 Accept: application/json
