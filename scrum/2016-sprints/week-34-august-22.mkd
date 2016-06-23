@@ -4,6 +4,4 @@ Sprint week-34-august-22.mkd
 
 # Availability
 
-NTB Away
-
-KG away
+NTB Away; KG away
