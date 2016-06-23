@@ -780,8 +780,7 @@ void startPeripherals() {
 }
 
 /*
-construct and post (via GET, to confuse you), sensor data like this:
-
+postSensorData: construct & post (via GET, to confuse), sensor data like this:
 GET /collect/WaterElf-10865861 HTTP/1.1
 User-Agent: WaterElf/0.000001
 Host: citsci.wegrow.social:8000
@@ -790,16 +789,6 @@ Content-Type: application/json
 Content-Length: 146
 
 { "timestamp": 39653, "airTemp": 25.90, "humidity": 49.40, "light": 8, "pH": 11.12, "waterLevel1": 257, "waterLevel2": 257, "waterLevel3": 257 }
-
-
-GET /collect/9999 HTTP/1.1
-User-Agent: curl/7.35.0
-Host: localhost:8000
-Accept: application/json
-Content-Type: application/json
-Content-Length: 92
-
-{"timestamp": 22200, "airTemp": 55, "humidity": 44, "lux": 1494, "pH": 6.4, "waterTemp": 14}
 */
 void postSensorData(monitor_t *monitorData) {
   dln(citsciDBG, "\npostSensorData");
