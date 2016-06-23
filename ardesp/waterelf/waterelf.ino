@@ -29,7 +29,7 @@ IPAddress netMsk(255, 255, 255, 0);
 ESP8266WebServer webServer(80);
 String apSSIDStr = "WaterElf-" + String(ESP.getChipId());
 const char* apSSID = apSSIDStr.c_str();
-String svrAddr = ""; // address of a local server
+String svrAddr = ""; // address of a local server TODO delete?
 
 /////////////////////////////////////////////////////////////////////////////
 // page generation stuff ////////////////////////////////////////////////////
@@ -124,6 +124,7 @@ String ip2str(IPAddress address);
 #define monitorDBG false
 #define netDBG false
 #define miscDBG false
+#define citsciDBG true
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
@@ -626,7 +627,7 @@ void handle_serverconf() {
   String toSend = genServerConfForm();
   webServer.send(200, "text/html", toSend);
 }
-void handle_svrchz() {
+void handle_svrchz() { // TODO delete?
   dln(netDBG, "serving page at /svrchz");
   String toSend = pageTop;
   toSend += ": data sharing configured";
@@ -777,31 +778,57 @@ void startPeripherals() {
     dln(monitorDBG, "Found pH sensor");
   }
 }
-void postSensorData(monitor_t *monitorData) {
-  //dln(monitorDBG, "\npostSensorData");
 
-  // create a JSON form
+/*
+construct and post (via GET, to confuse you), sensor data like this:
+
+GET /collect/WaterElf-10865861 HTTP/1.1
+User-Agent: WaterElf/0.000001
+Host: citsci.wegrow.social:8000
+Accept: application/json
+Content-Type: application/json
+Content-Length: 146
+
+{ "timestamp": 39653, "airTemp": 25.90, "humidity": 49.40, "light": 8, "pH": 11.12, "waterLevel1": 257, "waterLevel2": 257, "waterLevel3": 257 }
+
+
+GET /collect/9999 HTTP/1.1
+User-Agent: curl/7.35.0
+Host: localhost:8000
+Accept: application/json
+Content-Type: application/json
+Content-Length: 92
+
+{"timestamp": 22200, "airTemp": 55, "humidity": 44, "lux": 1494, "pH": 6.4, "waterTemp": 14}
+*/
+void postSensorData(monitor_t *monitorData) {
+  dln(citsciDBG, "\npostSensorData");
   String jsonBuf = "";
+  String citsciAddr = "citsci.wegrow.social";
   formatMonitorEntry(monitorData, &jsonBuf, true);
-  String envelope = "POST /fishydata HTTP/1.1\n";
-  envelope += "Content-Type: application/json\n";
+  String envelope =
+    "GET /collect/"; envelope += apSSIDStr; envelope += " HTTP/1.1\r\n";
+  envelope += "User-Agent: WaterElf/0.000001\r\n";
+  envelope += "Host: "; envelope += citsciAddr; envelope += ":8000\r\n";
+  envelope += "Accept: application/json\r\n";
+  envelope += "Content-Type: application/json\r\n";
   envelope += "Content-Length: " ;
-  envelope += jsonBuf.length();
-  envelope += "\nConnection: close\n\n";
+  envelope += jsonBuf.length() + 2; // + 2 for the cr/nls
+  envelope += "\r\n\r\n";
   envelope += jsonBuf;
-  //dln(monitorDBG, envelope);
+  dln(citsciDBG, envelope);
   
-  WiFiClient couchClient;
-  if(couchClient.connect(svrAddr.c_str(), 5984)) {
-    dbg(netDBG, svrAddr);
-    dln(monitorDBG, " - connected as couch server");
-    couchClient.print(envelope);
+  WiFiClient citsciClient;
+  if(citsciClient.connect(citsciAddr.c_str(), 8000)) {
+    dbg(netDBG, citsciAddr);
+    dln(citsciDBG, " - connected to citsci server");
+    citsciClient.print(envelope);
   } else {
-    dbg(netDBG, svrAddr);
-    dln(monitorDBG, " - no couch server");
+    dbg(netDBG, citsciAddr);
+    dln(citsciDBG, " - no citsci server");
   }
 
-  dln(monitorDBG, "");
+  dln(citsciDBG, "");
   return;
 }
 void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
