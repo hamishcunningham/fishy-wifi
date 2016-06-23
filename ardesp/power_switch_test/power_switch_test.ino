@@ -11,7 +11,7 @@ RCSwitch mySwitch = RCSwitch();
 
 void setup() {
 
-  // Transmitter is connected to Arduino Pin #13  
+  // Transmitter is connected to esp Pin #15  
   mySwitch.enableTransmit(15);
   
   // Optional set pulse length.
@@ -27,7 +27,7 @@ void loop() {
   // 
   // The second parameter represents the setting of the lower rotary switch. 
   // In this example it's switched to "2". 
-  mySwitch.switchOn(2, 2);
+  mySwitch.switchOn(4, 2);
 
   // Wait half a second
   delay(500);
