@@ -1,6 +1,7 @@
 Sprint week-26-june-27.mkd
 ===
 
+- check pws on gh a/cs (HC, all)
 
 
 # Availability
