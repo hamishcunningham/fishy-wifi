@@ -5,6 +5,7 @@ Sprint week-26-june-27.mkd
 - fix light and pH sensors on Denny elf (GC, HC)
 - give back or buy mifi from WG (GC, HC)
 - add passkey to Denny elf / main firmware AP (HC)
+- check posh testing hardware -- system startup rentals?
 
 
 # Availability
