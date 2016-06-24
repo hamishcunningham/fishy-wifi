@@ -805,17 +805,17 @@ void postSensorData(monitor_t *monitorData) {
   envelope += jsonBuf.length() + 2; // + 2 for the cr/nls
   envelope += "\r\n\r\n";
   envelope += jsonBuf;
-  dln(citsciDBG, envelope);
   
   WiFiClient citsciClient;
   if(citsciClient.connect(citsciAddr.c_str(), 8000)) {
-    dbg(netDBG, citsciAddr);
-    dln(citsciDBG, " - connected to citsci server");
+    dln(citsciDBG, "connected to citsci server; doing GET");
     citsciClient.print(envelope);
   } else {
     dbg(netDBG, citsciAddr);
     dln(citsciDBG, " - no citsci server");
   }
+  citsciClient.stop();
+  // dln(citsciDBG, envelope);
 
   dln(citsciDBG, "");
   return;
