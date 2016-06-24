@@ -791,6 +791,10 @@ Content-Length: 146
 { "timestamp": 39653, "airTemp": 25.90, "humidity": 49.40, "light": 8, "pH": 11.12, "waterLevel1": 257, "waterLevel2": 257, "waterLevel3": 257 }
 */
 void postSensorData(monitor_t *monitorData) {
+
+// TODO if we failed to connect last time, wait another few calls before
+// trying again? to increase web liveness in disconnected devices
+
   dln(citsciDBG, "\npostSensorData");
   String jsonBuf = "";
   String citsciAddr = "citsci.wegrow.social";
