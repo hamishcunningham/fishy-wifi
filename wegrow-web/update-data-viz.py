@@ -54,7 +54,7 @@ def get_changed_paths(changes_dir, flags=False):
     for root, subs, files in os.walk(changes_dir):
         paths = map(lambda x: os.path.join(root, x), files)
         if not flags:
-            paths = map(lambda x: x.replace("changes/", ""), paths)
+            paths = map(lambda x: x.replace("changes%s" % os.path.sep, ""), paths)
         changed_files += paths
     return changed_files
 
@@ -77,7 +77,7 @@ def create_data_table_htmls(changes_dir):
     """Create HTML file tables from all of the raw data files"""
     for original_path, data, table in yield_changed_file_objects(changes_dir):
         path = _make_html_path(original_path)
-        path = _add_filename_prefix(path, "table/table_")
+        path = _add_filename_prefix(path, "table%stable_" % os.path.sep)
         _create_path(path)
 
         html = table.get_html_string()
@@ -128,8 +128,8 @@ def main():
     wipe_flags()
 
 if __name__ == "__main__":
-    changes_dir = "../../wegrow-data/changes"
-    data_dir = "../../wegrow-data"
-    html_output_dir = "output/data"
+    changes_dir = os.path.join("..", "..", "wegrow-data", "changes")
+    data_dir = os.path.join("..", "..", "wegrow-data")
+    html_output_dir = os.path.join("output", "data")
     main()
 

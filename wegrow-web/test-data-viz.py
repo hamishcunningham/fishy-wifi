@@ -120,8 +120,8 @@ def aperture():
         print
 
 if __name__ == "__main__":
-    changes_dir = "../../wegrow-data/changes"
-    data_dir = "../../wegrow-data/"
+    changes_dir = os.path.join("..", "..", "wegrow-data", "changes")
+    data_dir = os.path.join("..", "..", "wegrow-data")
     elf_id = "test-elf1"
     
     args = sys.argv[1:]
