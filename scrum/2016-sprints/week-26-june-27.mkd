@@ -3,14 +3,46 @@ Sprint week-26-june-27.mkd
 
 - check pws on gh a/cs (HC, all)
 - fix light and pH sensors on Denny elf (GC, HC)
+  - elf plans: new light? button? board to lubo? (GC, HC)
+- another elf -- for lubo? (GC)
 - give back or buy mifi from WG (GC, HC)
 - add passkey to Denny elf / main firmware AP (HC)
-- check posh testing hardware -- system startup rentals?
 - waterelf.ino: move data posting to separate slice; increase number of
   slices? (HC)
-- order fish food?
+- finish setting up the blog (HC)
+- draft post about nitrifying bacteria (ZG)
+  - run through publishing across soc med sites (ZG + ?)
+- check in with HbN (and book travel 8th aug?) (HC)
+- website [www.]wegrow.social; put the FAQ questions (HC)
+- create a giveaway double-sided A6 sheet (EJ, GC)
+  - try in inkscape?
 
 
+# Regulars
+
+- process the "competition" entries, and email from wegrow account (EJ GC)
+- media work
+  - twitter: follow ponics and others (e.g. from hcunningham lists)
+  - figure out optimum ways to use the fb/twitter/instagram/?
+  - following people on twitter
+  - doing posts across platforms
+  - sharing knowledge with the rest of the team, and getting retweets
+- system maint
+  - feeding fish and checking water quality
+  - plants: checking, pruning, planting
+  - social media
+  - printing sheets for the WG, keeping that tidy, emailing "competitors" and
+    building the FAQ
+
+# Rota - feeding,testing and social media
+
+- Monday - Lizzy - Denny (+test) WG (+test); print sheets HC
+- Tuesday - Gareth - Denny; Hamish - WG
+- Wednesday - Nick - Denny (+test); Kahmin - WG
+- Thursday - Charlyne - Denny; Nick - WG
+- Friday - Gareth - Denny (+test); Gareth - WG
+- Saturday - Zilla - Denny & WG
+- Sunday - Denny & WG
 
 # Availability
 
