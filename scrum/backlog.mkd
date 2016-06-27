@@ -1,7 +1,7 @@
 Backlog
 ===
 
-- collect all our pics and graphics in one place
+- check posh testing hardware -- system startup rentals?
 - refresh Denny publicity
 - Denny logo / banner thing
 - Denny webcams
