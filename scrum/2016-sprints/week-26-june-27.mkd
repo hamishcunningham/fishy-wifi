@@ -6,6 +6,8 @@ Sprint week-26-june-27.mkd
 - give back or buy mifi from WG (GC, HC)
 - add passkey to Denny elf / main firmware AP (HC)
 - check posh testing hardware -- system startup rentals?
+- waterelf.ino: move data posting to separate slice; increase number of
+  slices? (HC)
 
 
 # Availability
