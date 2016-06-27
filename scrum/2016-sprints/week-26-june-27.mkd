@@ -8,6 +8,7 @@ Sprint week-26-june-27.mkd
 - check posh testing hardware -- system startup rentals?
 - waterelf.ino: move data posting to separate slice; increase number of
   slices? (HC)
+- order fish food?
 
 
 # Availability
