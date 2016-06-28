@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Tue 19 Apr 2016 15:54:02 BST
+EESchema Schematic File Version 2  date Tue 19 Apr 2016 15:55:54 BST
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -28,8 +28,8 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-LIBS:ESP8266
 LIBS:waterelf
+LIBS:aquaponics-system-cache
 EELAYER 25  0
 EELAYER END
 $Descr A4 11700 8267
@@ -37,7 +37,7 @@ encoding utf-8
 Sheet 1 1
 Title "Aquaponics System"
 Date "19 apr 2016"
-Rev "1.3"
+Rev "1.4"
 Comp ""
 Comment1 ""
 Comment2 ""
