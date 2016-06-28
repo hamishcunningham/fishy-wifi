@@ -9,10 +9,11 @@ Sprint week-26-june-27.mkd
 - add passkey to Denny elf / main firmware AP (HC)
 - waterelf.ino: move data posting to separate slice; increase number of
   slices? (HC)
-- finish setting up the blog (HC)
+- finish setting up the blog (HC) [DONE]
 - draft post about nitrifying bacteria (ZG)
   - run through publishing across soc med sites (ZG + ?)
-- check in with HbN (and book travel 8th aug?) (HC)
+- check in with HbN (and book travel 8th aug?) (HC) [tried; booked a call with
+  them next week]
 - website [www.]wegrow.social; put the FAQ questions (HC)
 - create a giveaway double-sided A6 sheet (EJ, GC)
   - try in inkscape?
