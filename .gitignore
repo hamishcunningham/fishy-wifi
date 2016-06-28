@@ -5,3 +5,4 @@ ESPlorer.Log*
 mqtt-spy.messages
 *.log
 *.pyc
+.ipynb_checkpoints
