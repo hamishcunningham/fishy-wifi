@@ -21,6 +21,13 @@ local-finalise:
           -e "/CONTACT FORM HERE/ r $${TMPF}" \
             `find output -name '*.html'`; \
         rm $${TMPF}
+	TMPF=/tmp/pi-gate-$$$$; \
+       	echo '<iframe src="https://player.vimeo.com/video/150789642?byline=0" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe> <p><a href="https://vimeo.com/150789642">WeGrow aquaponics (coming soon!)</a> from <a href="https://wegrow.social">WeGrow.social</a> on <a href="https://vimeo.com">Vimeo</a>.</p>' >$${TMPF}; \
+        sed -i \
+          -e "/KS VID HERE/ r $${TMPF}" \
+            `find output -name '*.html'`; \
+        rm $${TMPF}
+
 
 # make any necessary local mods to the print tree
 local-print:
