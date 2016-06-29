@@ -1,4 +1,31 @@
 <footer class="post-info">
+  <a style="float: left; padding-right: 5px;" class="article-thumb"
+    href="{{ SITEURL }}/images/articles/{{ article.slug }}.jpg"><img
+    src="{{ SITEURL }}/images/articles/thumbs/{{ article.slug }}.jpg"
+    height="75" width="75" alt="{{ article.slug }}"></a>
+
+  {% if article.summary %}
+    <span class="article-summary"><em>{{ article.summary }}</em>.</span>
+
+    <!-- {% if page_name != "index" %} <br/> {% endif %} -->
+    <span>&nbsp;&nbsp;<a href="http://twitter.com/share?text=.@{{ TWITTER_USERNAME }}&url={{ PUBURL }}/{{ article.url if article else page.url }}"
+             target="_blank" title="Tweet this page"><img src="{{ SITEURL }}/images/tweet.png"
+             height="30" width="30"></a></span>
+    <!--
+    <span><a href="{{ FEED_DOMAIN }}/{{ FEED_ALL_ATOM }}" type="application/atom+xml" rel="alternate"
+             title="Syndication feed"><img
+             height="28" width="28" src="{{ SITEURL }}/images/rss-large.jpg"/></a></span>
+    -->
+    {% if (not page) or (page.title != "About" and page.title != "Contacting Me") %}
+    <span>&nbsp;<a href="{{ SITEURL }}/{{ article.url if article else page.url }}#disqus_thread"
+             title="Leave a comment"><img src="{{ SITEURL }}/images/comment.png" height="30" width="30"></a></span>
+    <span>&nbsp;<a href="{{ SITEURL }}/print/{{ article.url if article else page.url }}"
+           title="Print"><img
+           src="{{ SITEURL }}/images/print.png" height="30" width="30"></a></span>
+    <br/>
+    {% endif %}
+
+    <!--
     <span class="label label-default">Date</span>
     <span class="published">
         <i class="fa fa-calendar"></i><time datetime="{{ article.date.isoformat() }}"> {{ article.locale_date }}</time>
@@ -18,16 +45,21 @@
             Part {{ article.series.index}} of {{ article.series.name }}
         {% endif %}
     {% endif %}
+    -->
 
     {% if SHOW_ARTICLE_AUTHOR %}
         {% if article.author %}
-            <span class="label label-default">By</span>
+            <span class="label label-default"> By</span>
             <a href="{{ SITEURL }}/{{ article.author.url }}"><i class="fa fa-user"></i> {{ article.author }}</a>
         {% endif %}
     {% endif %}
+    <!-- <span class="label label-default"> on </span> -->
+    <span class="published">
+      &nbsp;<i class="fa fa-calendar"></i><time datetime="{{ article.date.isoformat() }}"> {{ article.date.strftime("%d/%b/%y") }}</time>
+    </span>
 
     {% if SHOW_ARTICLE_CATEGORY %}
-        <span class="label label-default">Category</span>
+        <span class="label label-default"> Category</span>
         <a href="{{ SITEURL }}/{{ article.category.url }}">{{ article.category }}</a>
     {% endif %}
 
@@ -37,7 +69,9 @@
         </span>
     {% endif %}
 
-    {% include 'includes/taglist.html' %}
+    <br/>{% include 'includes/taglist.html' %}
     {% import 'includes/translations.html' as translations with context %}
     {{ translations.translations_for(article) }}
+  
+  {% endif %}
 </footer><!-- /.post-info -->

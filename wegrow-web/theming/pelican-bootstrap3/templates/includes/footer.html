@@ -1,4 +1,4 @@
-<footer>
+<footer class="navbar-default">
    <div class="container{% if BOOTSTRAP_FLUID %}-fluid{% endif %}">
       <hr>
       <div class="row">
@@ -7,7 +7,9 @@
          {% else %}
             {% set copy_date = '' %}
          {% endif %}
-         <div class="col-xs-10">&copy; {{ copy_date }} {{ AUTHOR }}
+         <div class="col-xs-10">
+         <!--
+            &copy; {{ copy_date }} {{ AUTHOR }}
             &middot; Powered by <a href="https://github.com/DandyDev/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
             <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
             <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>
@@ -17,8 +19,35 @@
             {% elif CUSTOM_LICENSE %}
               <p><small>{{ CUSTOM_LICENSE }}</small></p>
             {% endif %}
+         -->
+          <table border="0" align="right"><tbody><tr align="right">
+          <!-- <td style="vertical-align:bottom; text-align:left;">
+          <span id="footer-home-link"><a href="{{ SITEURL }}/">Pi-Tronics from<br/>the GATE people</a></span>
+          </td> -->
+          <td style="vertical-align:bottom; text-align:right;">
+          <font size="-1">
+            © WeGrow.social, 2014-<noscript>2016</noscript><script>document.write(new Date().getFullYear())</script>.
+            <em>This site uses cookies for comments etc. If you leave them on you agree to their use.</em>
+            <br/>
+            This website is licenced under the
+            <a rel="license"
+            href="https://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike Licence</a>.<br/>
+            <a href="https://github.com/hamishcunningham/fishy-wifi/">Our software</a> is <a href="https://www.fsf.org/">free</a> under
+            <a href="https://www.gnu.org/licenses/">the GNU licences</a> and
+            others. All our products and services supplied <b>with no
+            warranty</b> unless otherwise stated.<br/>
+          </font>
+          </td><td>&nbsp;</td>
+          <td style="vertical-align:bottom;">
+            <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/3.0/"><img
+              alt="Creative Commons License" height="31" width="88" style="border-width: 0pt;" src="{{ SITEURL }}/images/cc-by-nc-sa.png"></a><br/>
+          </td>
+          </tr>
+         </tbody></table>
          </div>
-         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
-      </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i>
+           <a href="#">Back to top</a></p>
+         </div>
+      </div><br/>
    </div>
 </footer>
