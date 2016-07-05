@@ -6,14 +6,31 @@ K REGULATOR LDO 1.5V 1.8V 2.5V 3.3V 5V
 F http://www.diodes.com/_files/datasheets/AZ1117C.pdf
 $ENDCMP
 #
-$CMP SI2301
-D Transistor P-MOSFET (general)
-K pmos p-mos p-mosfet transistor
+$CMP IRF9540N
+D -100V Vds, -23A Id, HEXFET P-Channel MOSFET, TO-220
+K HEXFET P-Channel MOSFET
+F http://www.irf.com/product-info/datasheets/data/irf9540n.pdf
+$ENDCMP
+#
+$CMP JACK_TRS_5PINS
+D audio jack TRS 6 pins
+K audio jack connector TRS
+$ENDCMP
+#
+$CMP JACK_TRS_6PINS
+D audio jack TRS 5 pins
+K audio jack connector TRS PTH
+$ENDCMP
+#
+$CMP MINI_DIN_4
+D 4 pin connector, Mini-DIN
+K CONN MINI-DIN 4-pins SVHS
 $ENDCMP
 #
 $CMP SI2301DS
-D Transistor P-MOSFET (general)
-K pmos p-mos p-mosfet transistor
+D P-Channel MOSFET 1.25W, 2.5V 
+K P-Channel 1.25W, 2.5V MOSFET
+F http://www.vishay.com/docs/70627/70627.pdf
 $ENDCMP
 #
 #End Doc Library
