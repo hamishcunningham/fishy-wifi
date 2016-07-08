@@ -15,7 +15,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="UPDATED Younger Kids.svg">
+   sodipodi:docname="sheet1.svg">
   <defs
      id="defs4">
     <clipPath
@@ -36,15 +36,15 @@
      inkscape:pageshadow="2"
      inkscape:zoom="0.78239463"
      inkscape:cx="211.43204"
-     inkscape:cy="659.99741"
+     inkscape:cy="557.74722"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
      units="mm"
-     inkscape:window-width="1280"
-     inkscape:window-height="752"
+     inkscape:window-width="1920"
+     inkscape:window-height="1056"
      inkscape:window-x="0"
-     inkscape:window-y="0"
+     inkscape:window-y="24"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
@@ -54,7 +54,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -98,19 +98,21 @@
            y="1267.3414"
            style="fill:#50b848" /></flowRegion><flowPara
          style="font-size:76.19364166px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;font-family:Nimbus Sans L;-inkscape-font-specification:Nimbus Sans L"
-         id="flowPara3088">Join our competition!</flowPara><flowPara
-         style="font-size:32.65441895px"
-         id="flowPara3097"> </flowPara><flowPara
+         id="flowPara3088">Draw a fish, colour a fish, name a fish!</flowPara><flowPara
          style="font-size:42.1786232px"
          id="flowPara3102"><flowSpan
            style="font-size:42.1786232px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;font-family:Nimbus Sans L;-inkscape-font-specification:Nimbus Sans L"
-           id="flowSpan3104">Draw your own fish and colour the other one with the</flowSpan><flowSpan
+           id="flowSpan3104"></flowSpan></flowPara><flowPara
+         style="font-size:42.1786232px"
+         id="flowPara3053"><flowSpan
+           style="font-size:42.1786232px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:112.99999952%;writing-mode:lr-tb;text-anchor:start;font-family:Nimbus Sans L;-inkscape-font-specification:Nimbus Sans L"
+           id="flowSpan3055">Draw your own fish and colour the other one with the</flowSpan><flowSpan
            style="font-size:42.1786232px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Nimbus Sans L;-inkscape-font-specification:Nimbus Sans L"
            id="flowSpan3074"> most beautiful colours you can find. Choose their names and the winning names will be given to our goldfish! We will send you a picture of your fish.</flowSpan></flowPara><flowPara
          style="font-size:42.1786232px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Nimbus Sans L;-inkscape-font-specification:Nimbus Sans L"
          id="flowPara3110" /><flowPara
          style="font-size:42.1786232px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Nimbus Sans L;-inkscape-font-specification:Nimbus Sans L"
-         id="flowPara3112">Put your entries in the box and remember to get the email address of your parent/carer!</flowPara></flowRoot>    <flowRoot
+         id="flowPara3112" /></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot3182"
        style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Quicksand;font-style:normal;font-weight:normal;font-size:18px;line-height:125%;letter-spacing:0px;word-spacing:0px;-inkscape-font-specification:Quicksand;font-stretch:normal;font-variant:normal"><flowRegion
@@ -130,7 +132,7 @@
        rx="7.0866141"
        ry="7.0866141" />
     <g
-       transform="translate(-307.89458,-298.81445)"
+       transform="translate(-307.89458,-320.81445)"
        id="g3182">
       <g
          id="g3190" />
@@ -156,33 +158,8 @@
              id="tspan3188"
              x="377.79163"
              y="663.95752"
-             style="font-size:18px;fill:#f68b1f">Name:                             Age:</tspan></text>
+             style="font-size:18px;fill:#f68b1f">Name:                             </tspan></text>
       </g>
-    </g>
-    <g
-       transform="translate(-167.09601,121.27231)"
-       id="g3217">
-      <rect
-         style="fill:none;stroke:#f68b1f;stroke-width:1.68799567;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-         id="rect3219"
-         width="560.5423"
-         height="41.581779"
-         x="230.7394"
-         y="830.77747"
-         rx="7.0866141"
-         ry="7.0866141" />
-      <text
-         xml:space="preserve"
-         style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Nimbus Sans L;-inkscape-font-specification:Nimbus Sans L"
-         x="238.7123"
-         y="856.63153"
-         id="text3221"
-         sodipodi:linespacing="125%"><tspan
-           sodipodi:role="line"
-           id="tspan3223"
-           x="238.7123"
-           y="856.63153"
-           style="font-size:18px;fill:#50b848">Parent/Carer email:</tspan></text>
     </g>
     <g
        transform="matrix(0.47893657,0,0,-0.47893657,124.57754,1100.1132)"
@@ -284,7 +261,7 @@
            id="flowPara4059"
            style="font-size:120px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#50b848;font-family:Nimbus Sans L;-inkscape-font-specification:Nimbus Sans L">aquaponics</flowPara><flowPara
            style="font-size:55.36519623px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#50b848;font-family:Nimbus Sans L;-inkscape-font-specification:Nimbus Sans L"
-           id="flowPara3039">Sheffield Winter Garden</flowPara></flowRoot>      <g
+           id="flowPara3039">Sheffield University</flowPara></flowRoot>      <g
          id="g3462"
          transform="translate(52.747253,6.5934066)">
         <text
@@ -348,5 +325,15 @@
              sodipodi:role="line">/wegrowsocial</tspan></text>
       </g>
     </g>
-  </g>
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3058"
+       style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Sans;font-style:normal;font-weight:normal;font-size:40px;line-height:125%;letter-spacing:0px;word-spacing:0px"><flowRegion
+         id="flowRegion3060"><rect
+           id="rect3062"
+           width="544.48224"
+           height="120.14397"
+           x="-109.91895"
+           y="303.37955" /></flowRegion><flowPara
+         id="flowPara3064"></flowPara></flowRoot>  </g>
 </svg>
