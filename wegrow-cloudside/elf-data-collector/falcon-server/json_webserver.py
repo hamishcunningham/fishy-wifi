@@ -3,6 +3,7 @@
 import falcon
 import json
 import datetime
+import time
 import os
 from middleware import RequireJSON, JSONTranslator
 from change_flagging import write_change_flag
@@ -33,6 +34,7 @@ class JSONWaterElfCollector:
 
         self.check_data(data)
         output_path = self.generate_path(uuid)
+        data['recv_timestamp']  = time.time() # as Elves only send in timestamps relative to their boot time
         self.write_data_line(output_path, json.dumps(data)) 
         write_change_flag(output_path, uuid)
 
