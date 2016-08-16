@@ -33,4 +33,9 @@ K P-Channel 1.25W, 2.5V MOSFET
 F http://www.vishay.com/docs/70627/70627.pdf
 $ENDCMP
 #
+$CMP Solenoid
+D Generic Solenoid symbol
+K solenoid
+$ENDCMP
+#
 #End Doc Library

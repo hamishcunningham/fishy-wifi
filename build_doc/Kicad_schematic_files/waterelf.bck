@@ -17,6 +17,11 @@ D audio jack TRS 6 pins
 K audio jack connector TRS
 $ENDCMP
 #
+$CMP JACK_TRS_6PINS
+D audio jack TRS 5 pins
+K audio jack connector TRS PTH
+$ENDCMP
+#
 $CMP MINI_DIN_4
 D 4 pin connector, Mini-DIN
 K CONN MINI-DIN 4-pins SVHS

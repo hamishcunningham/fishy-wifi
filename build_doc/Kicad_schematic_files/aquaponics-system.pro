@@ -1,4 +1,4 @@
-update=Fri 24 Jun 2016 10:29:54 BST
+update=Tue 16 Aug 2016 13:38:11 BST
 version=1
 last_client=eeschema
 [cvpcb]
@@ -6,19 +6,6 @@ version=1
 NetIExt=net
 [general]
 version=1
-[schematic_editor]
-version=1
-PageLayoutDescrFile=
-PlotDirectoryName=../
-SubpartIdSeparator=0
-SubpartFirstId=65
-NetFmtName=
-SpiceForceRefPrefix=0
-SpiceUseNetNumbers=0
-RptD_X=0
-RptD_Y=100
-RptLab=1
-LabSize=60
 [pcbnew]
 version=1
 PadDrlX=320
@@ -74,3 +61,13 @@ LibName28=atmel
 LibName29=contrib
 LibName30=valves
 LibName31=waterelf
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=../
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=
+SpiceForceRefPrefix=0
+SpiceUseNetNumbers=0
+LabSize=60
