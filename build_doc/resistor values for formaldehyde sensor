@@ -1,0 +1,29 @@
+from http://www.esp8266-projects.com/2016/08/esp8266-internal-adc-2-easy-way-example.html
+
+R1=120300
+R2=105554 (102300+3254)
+
+R1act=91300
+R2act=110600
+
+Vout = R2/R1+R2 * Vin
+
+Vout = 105554/120300+105554 *Vin
+
+Vout = 105554/225854 *Vin
+Voutact = 110600/201900
+
+Vout = 0.46736 * Vin
+Voutact=0.54780 * Vin
+Vin = Vout/0.46736
+
+for a FSD of 1V at Vout, Vin is 1/0.46736=2.1397V
+act 1.82548V
+given 1024 steps, 2.139V = step 1023, so each step is 2.1397V/1023=0.0020916V
+
+So raw reading *0.0020916 gives input voltage.
+
+To get formaldehyde in ppm, we take the measured voltage in mV and divide by sensor sensitivity (220)
+
+So raw*2.0916/220 gives absolute in mv divided by sensitivity = ppm formaldehyde
+1.7844/220
