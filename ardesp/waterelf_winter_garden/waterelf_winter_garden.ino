@@ -121,8 +121,8 @@ String ip2str(IPAddress address);
 #define dln(b, s) if(b) Serial.println(s)
 #define startupDBG true
 #define valveDBG true
-#define monitorDBG false
-#define netDBG false
+#define monitorDBG true
+#define netDBG true
 #define miscDBG false
 
 /////////////////////////////////////////////////////////////////////////////
@@ -176,7 +176,7 @@ const int valvePinMap[][2] = {
 // level sensing stuff //////////////////////////////////////////////////////
 const int LEVEL_TRIG_PIN=12;
 const int LEVEL_ECHO_PIN1=13;
-const int LEVEL_ECHO_PIN2=14;
+const int LEVEL_ECHO_PIN2=16;
 const int LEVEL_ECHO_PIN3=16;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
@@ -203,14 +203,14 @@ class Valve { // each valve /////////////////////////////////////////////////
   public:
   static int counter;           // counter for setting valve number
   int number;                   // id of this valve, counting from 1
-  int dryMins = 45;             // mins to leave bed drained per cycle
+  int dryMins = 15;             // mins to leave bed drained per cycle
   // in beds with overflows can be 0; else will be cycle time minus fill time
   long startTime = -1;          // when to start cycling (after boot)    
-  bool gotOverflow = false;     // does the growbed have an overflow?
-  int fillLevel = 7;            // cms below the level sensor: drain point
+  bool gotOverflow = true;     // does the growbed have an overflow?
+  int fillLevel = -1;            // cms below the level sensor: drain point
   bool filling = false;         // true when closed / on
   long lastFlip = -1;           // millis at last state change
-  int floodMins = 18;
+  int floodMins = 15;
 
   Valve() { number = counter++; }
   void stateChange(bool newState) { // turn on or off

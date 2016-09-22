@@ -13,11 +13,13 @@ echo sensor HC-SR04
 
 Colour code for Cat5 wire:
 
-Pin	Wire colour			Function
+Pin	Wire colour		Function
 1	Orange+Orange/White	VCC (5v)
-2	Green+Green/White	Trig
-3	Blue+Blue/White		Echo
+2	Green			Trig
+3	Blue			Echo
 4	Brown+Brown/White	Gnd
+5	Green/White y		Pump signal
+6	Blue/White br		Pump 3v
 
 Temp sensor DS18B20
 
@@ -25,11 +27,11 @@ Colour code for 3 core wire / 3 pin connector:
 
 Pin	Wire colour			Function
 1	Black				Gnd
-2	Red					VCC (3.3v)
+2	Red				VCC (3.3v)
 3	Yellow				Signal
 
 AM2302 Temp/Humidity Sensor
-Pin	Wire Colour			Function
+Pin	Wire Colour		Function
 1	Orange+Orange/White	Vcc (3.3v)
 2	Green+Green/White	Data
 3	Blue+Blue/White		NC

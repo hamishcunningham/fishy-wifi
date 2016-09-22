@@ -48,13 +48,6 @@ const char* pageDefault = // TODO build the growbeds according to their num
   "<p><ul>\n"
   "<li><a href='/wifi'>Join a wifi network</a></li>\n"
   "<li><a href='/serverconf'>Configure data sharing</a></li>\n"
-  "<li>"
-    "<form method='POST' action='valve1'>\n"
-    "Growbed 1: "
-    "fill <input type='radio' name='state' value='on'>\n"
-    "drain <input type='radio' name='state' value='off'>\n"
-    "<input type='submit' value='Submit'></form>\n"
-  "</li>"
   "<li>\n"
     "<form method='POST' action='actuate'>\n"
     "Power: "
@@ -106,8 +99,8 @@ String ip2str(IPAddress address);
 #define dbg(b, s) if(b) Serial.print(s)
 #define dln(b, s) if(b) Serial.println(s)
 #define startupDBG true
-#define valveDBG true
-#define monitorDBG false
+#define valveDBG false
+#define monitorDBG true
 #define netDBG false
 #define miscDBG false
 #define citsciDBG true
@@ -132,7 +125,7 @@ boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // pH sensor stuff //////////////////////////////////////////////////////////
-const byte pH_Add = 0x4D;  // change this to match ph ADC address
+const byte pH_Add = 0x4E;  // change this to match ph ADC address
 int pH7Cal = 2048; // assume ideal probe and amp conditions 1/2 of 4096
 int pH4Cal = 1286; // ideal probe slope -> this many 12bit units on 4 scale
 float pHStep = 59.16; // ideal probe slope
@@ -162,9 +155,9 @@ const int valvePinMap[][2] = {
 /////////////////////////////////////////////////////////////////////////////
 // level sensing stuff //////////////////////////////////////////////////////
 const int LEVEL_TRIG_PIN=12;
-const int LEVEL_ECHO_PIN1=14;
-const int LEVEL_ECHO_PIN2=13;
-const int LEVEL_ECHO_PIN3=14;
+const int LEVEL_ECHO_PIN1=13;
+const int LEVEL_ECHO_PIN2=14;
+const int LEVEL_ECHO_PIN3=16;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -190,14 +183,14 @@ class Valve { // each valve /////////////////////////////////////////////////
   public:
   static int counter;           // counter for setting valve number
   int number;                   // id of this valve, counting from 1
-  int dryMins = 1;             // mins to leave bed drained per cycle
+  int dryMins = 45;             // mins to leave bed drained per cycle
   // in beds with overflows can be 0; else will be cycle time minus fill time
   long startTime = -1;          // when to start cycling (after boot)    
   bool gotOverflow = false;     // does the growbed have an overflow?
   int fillLevel = 7;            // cms below the level sensor: drain point
   bool filling = false;         // true when closed / on
   long lastFlip = -1;           // millis at last state change
-  int floodMins = 1;
+  int floodMins = 18;
 
   Valve() { number = counter++; }
   void stateChange(bool newState) { // turn on or off
@@ -208,11 +201,13 @@ class Valve { // each valve /////////////////////////////////////////////////
 
     // trigger MOSFETs via the MCP
     if(newState == true){
-      digitalWrite(16, HIGH);
+      mcp.digitalWrite(pumpMcpPin, HIGH);
+      mcp.digitalWrite(solenoidMcpPin, HIGH);
       filling = true; // TODO if set from UI will interfere with timing?
       dln(valveDBG, " on");
     } else {
-      digitalWrite(16, LOW);
+      mcp.digitalWrite(pumpMcpPin, LOW);
+      mcp.digitalWrite(solenoidMcpPin, LOW);
       filling = false;
       dln(valveDBG, " off");
     }
@@ -261,8 +256,8 @@ int Valve::counter = 1;         // definition (the above only declares)
 
 class FlowController { // the set of valves and their config ////////////////
   public:
-  int numValves = 1;         // WARNING! call init if resetting!
-  int cycleMins = 2;        // how long is a flood/drain cycle?
+  int numValves = 0;         // WARNING! call init if resetting!
+  int cycleMins = 30;        // how long is a flood/drain cycle?
   int maxSimultDrainers = 1; // how many beds can drain simultaneously?
   int minBedsWet = 1;        // min beds that are full or filling
   int maxBedsWet = 2;        // max beds that are full or filling
@@ -324,7 +319,9 @@ void setup() {
   // initialise the MCP and the flow controller
   dln(startupDBG, "doing flow controller and mcp init...");
   flowController.init();
-  pinMode(16, OUTPUT);
+  mcp.begin();                  // use default address 0 for mcp23008
+  for(int i = 0; i < mcpPinsUsed; i++)
+    mcp.pinMode(mcpPins[i], OUTPUT);
 
   // try and set the host name
   if(WiFi.hostname("waterelf"))
