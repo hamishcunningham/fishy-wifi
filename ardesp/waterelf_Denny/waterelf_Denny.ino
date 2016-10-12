@@ -55,6 +55,20 @@ const char* pageDefault = // TODO build the growbeds according to their num
     "drain <input type='radio' name='state' value='off'>\n"
     "<input type='submit' value='Submit'></form>\n"
   "</li>"
+  "<li>"
+    "<form method='POST' action='valve2'>\n"
+    "Growbed 2: "
+    "fill <input type='radio' name='state' value='on'>\n"
+    "drain <input type='radio' name='state' value='off'>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>"
+  "<li>"
+    "<form method='POST' action='valve3'>\n"
+    "Growbed 3: "
+    "fill <input type='radio' name='state' value='on'>\n"
+    "drain <input type='radio' name='state' value='off'>\n"
+    "<input type='submit' value='Submit'></form>\n"
+  "</li>"
   "<li>\n"
     "<form method='POST' action='actuate'>\n"
     "Power: "
@@ -162,9 +176,9 @@ const int valvePinMap[][2] = {
 /////////////////////////////////////////////////////////////////////////////
 // level sensing stuff //////////////////////////////////////////////////////
 const int LEVEL_TRIG_PIN=12;
-const int LEVEL_ECHO_PIN1=14;
-const int LEVEL_ECHO_PIN2=13;
-const int LEVEL_ECHO_PIN3=14;
+const int LEVEL_ECHO_PIN1=13;
+const int LEVEL_ECHO_PIN2=14;
+const int LEVEL_ECHO_PIN3=16;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -190,14 +204,14 @@ class Valve { // each valve /////////////////////////////////////////////////
   public:
   static int counter;           // counter for setting valve number
   int number;                   // id of this valve, counting from 1
-  int dryMins = 1;             // mins to leave bed drained per cycle
+  //int dryMins = 9;              // mins to leave bed drained per cycle (not currently used)
   // in beds with overflows can be 0; else will be cycle time minus fill time
   long startTime = -1;          // when to start cycling (after boot)    
-  bool gotOverflow = false;     // does the growbed have an overflow?
+  // bool gotOverflow = false;     // does the growbed have an overflow? (not currently used)
   int fillLevel = 7;            // cms below the level sensor: drain point
   bool filling = false;         // true when closed / on
   long lastFlip = -1;           // millis at last state change
-  int floodMins = 1;
+  int floodMins = 5;
 
   Valve() { number = counter++; }
   void stateChange(bool newState) { // turn on or off
@@ -208,11 +222,13 @@ class Valve { // each valve /////////////////////////////////////////////////
 
     // trigger MOSFETs via the MCP
     if(newState == true){
-      digitalWrite(16, HIGH);
+      mcp.digitalWrite(pumpMcpPin, HIGH);
+      mcp.digitalWrite(solenoidMcpPin, HIGH);
       filling = true; // TODO if set from UI will interfere with timing?
       dln(valveDBG, " on");
     } else {
-      digitalWrite(16, LOW);
+      mcp.digitalWrite(pumpMcpPin, LOW);
+      mcp.digitalWrite(solenoidMcpPin, LOW);
       filling = false;
       dln(valveDBG, " off");
     }
@@ -261,12 +277,12 @@ int Valve::counter = 1;         // definition (the above only declares)
 
 class FlowController { // the set of valves and their config ////////////////
   public:
-  int numValves = 1;         // WARNING! call init if resetting!
-  int cycleMins = 2;        // how long is a flood/drain cycle?
+  int numValves = 3;         // WARNING! call init if resetting!
+  int cycleMins = 6;        // how long is a flood/drain cycle?
   int maxSimultDrainers = 1; // how many beds can drain simultaneously?
   int minBedsWet = 1;        // min beds that are full or filling
-  int maxBedsWet = 2;        // max beds that are full or filling
-  int staggerMins;           // gap to leave between valve startups
+  int maxBedsWet = 1;        // max beds that are full or filling
+  int staggerMins = 5;           // gap to leave between valve startups
   Valve* valves = 0;         // the valves and their states
 
   int getStaggerMillis() { return staggerMins * 60 * 1000; }
@@ -324,7 +340,9 @@ void setup() {
   // initialise the MCP and the flow controller
   dln(startupDBG, "doing flow controller and mcp init...");
   flowController.init();
-  pinMode(16, OUTPUT);
+  mcp.begin();                  // use default address 0 for mcp23008
+  for(int i = 0; i < mcpPinsUsed; i++)
+    mcp.pinMode(mcpPins[i], OUTPUT);
 
   // try and set the host name
   if(WiFi.hostname("waterelf"))
