@@ -7,7 +7,7 @@ class Harvest {
 
   static constraints = {
     crop()
-    weight()
+    weight(notEqual: 0)
     unit()
   }
 }

@@ -3,6 +3,23 @@ package harvest
 class BootStrap {
 
   def init = { servletContext ->
+
+    // create user(s) if none exist
+    if (!User.list()) {
+      def adminRole = new Role(authority: 'ROLE_ADMIN').save()
+      def userRole = new Role(authority: 'ROLE_USER').save()
+      def testUser = new User(username: 'me', password: 'x').save()
+      UserRole.create testUser, adminRole
+      UserRole.withSession {
+        it.flush()
+        it.clear()
+      }
+
+      assert User.count() == 1
+      assert Role.count() == 2
+      assert UserRole.count() == 1
+    }
+
     // create some crops if none exist
     if (!Crop.list()) {
       log.info("Creating default crops")
