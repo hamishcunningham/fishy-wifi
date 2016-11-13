@@ -1,5 +1,4 @@
 
-
 // Added by the Spring Security Core plugin:
 grails.plugin.springsecurity.userLookup.userDomainClassName = 'harvest.User'
 grails.plugin.springsecurity.userLookup.authorityJoinClassName = 'harvest.UserRole'
@@ -14,7 +13,10 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 	[pattern: '/**/js/**',       access: ['permitAll']],
 	[pattern: '/**/css/**',      access: ['permitAll']],
 	[pattern: '/**/images/**',   access: ['permitAll']],
-	[pattern: '/**/favicon.ico', access: ['permitAll']]
+	[pattern: '/**/favicon.ico', access: ['permitAll']],
+
+        [pattern: '/user/**',        access: 'ROLE_ADMIN'],
+        [pattern: '/admin/**',       access: ['ROLE_ADMIN', 'isFullyAuthenticated()']],
 ]
 
 grails.plugin.springsecurity.filterChain.chainMap = [
@@ -29,4 +31,3 @@ grails.plugin.springsecurity.filterChain.chainMap = [
 // TODO delete this when logout changed to POST in gsps; see
 // https://grails-plugins.github.io/grails-spring-security-core/v3/index.html
 grails.plugin.springsecurity.logout.postOnly = false
-

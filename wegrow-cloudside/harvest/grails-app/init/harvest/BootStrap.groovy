@@ -8,16 +8,21 @@ class BootStrap {
     if (!User.list()) {
       def adminRole = new Role(authority: 'ROLE_ADMIN').save()
       def userRole = new Role(authority: 'ROLE_USER').save()
+
       def testUser = new User(username: 'me', password: 'x').save()
-      UserRole.create testUser, adminRole
+      UserRole.create testUser, userRole
+
+      def adminUser = new User(username: 'admin', password: 'x').save()
+      UserRole.create adminUser, adminRole
+
       UserRole.withSession {
         it.flush()
         it.clear()
       }
 
-      assert User.count() == 1
+      assert User.count() == 2
       assert Role.count() == 2
-      assert UserRole.count() == 1
+      assert UserRole.count() == 2
     }
 
     // create some crops if none exist
