@@ -1,7 +1,7 @@
 package harvest
 
 class Area {
-  int val
+  Integer area
   AreaUnit unit
 
   static constraints = {

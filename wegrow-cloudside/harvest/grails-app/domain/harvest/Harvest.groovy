@@ -2,7 +2,7 @@ package harvest
 
 class Harvest {
   Crop crop
-  int weight
+  Integer weight
   WeightUnit unit
 
   static constraints = {

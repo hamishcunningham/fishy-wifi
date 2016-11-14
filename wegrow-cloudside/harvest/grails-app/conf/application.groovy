@@ -24,7 +24,8 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
   [pattern: '/login/impersonate', access: ['ROLE_ADMIN']],
   [pattern: '/logout/impersonate', access: ['permitAll']],
 
-  [pattern: '/harvest/**',        access: ['ROLE_USER']],
+  [pattern: '/harvest/**',      access: ['ROLE_USER', 'ROLE_ADMIN' ]],
+  [pattern: '/crop/**',         access: ['ROLE_USER', 'ROLE_ADMIN' ]],
 ]
 
 grails.plugin.springsecurity.filterChain.chainMap = [
