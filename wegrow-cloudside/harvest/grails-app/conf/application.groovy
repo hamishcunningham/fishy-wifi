@@ -18,7 +18,13 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 
   [pattern: '/user/**',        access: 'ROLE_ADMIN'],
   [pattern: '/admin/**',       access: ['ROLE_ADMIN', 'isFullyAuthenticated()']],
-  [pattern: '/register/**',    access: 'isAuthenticated()'],
+  [pattern: '/login/**',       access: ['permitAll']],
+  [pattern: '/logout/**',      access: ['permitAll']],
+  [pattern: '/register/**',    access: ['permitAll']],
+  [pattern: '/login/impersonate', access: ['ROLE_ADMIN']],
+  [pattern: '/logout/impersonate', access: ['permitAll']],
+
+  [pattern: '/harvest/**',        access: ['ROLE_USER']],
 ]
 
 grails.plugin.springsecurity.filterChain.chainMap = [
