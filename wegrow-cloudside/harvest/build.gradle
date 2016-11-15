@@ -6,6 +6,8 @@ buildscript {
   dependencies {
     classpath "org.grails:grails-gradle-plugin:$grailsVersion"
     classpath "com.bertramlabs.plugins:asset-pipeline-gradle:2.11.1"
+    classpath 'com.bertramlabs.plugins:less-asset-pipeline:2.11.1'
+
     classpath "org.grails.plugins:hibernate5:6.0.2"
   }
 }
@@ -42,10 +44,12 @@ dependencies {
   compile "org.grails:grails-web-boot"
   compile "org.grails.plugins:cache"
   compile "org.grails.plugins:scaffolding"
+  runtime 'org.grails.plugins:grails-console:2.0.8'
   compile "org.grails.plugins:hibernate5"
   compile "org.hibernate:hibernate-core:5.1.1.Final"
   compile "org.hibernate:hibernate-ehcache:5.1.1.Final"
   console "org.grails:grails-console"
+  compile "org.grails.plugins:fields:2.1.3"
   profile "org.grails.profiles:web"
   runtime "com.bertramlabs.plugins:asset-pipeline-grails:2.11.1"
   runtime "com.h2database:h2"
@@ -53,6 +57,7 @@ dependencies {
   testCompile "org.grails.plugins:geb"
   testRuntime "org.seleniumhq.selenium:selenium-htmlunit-driver:2.47.1"
   testRuntime "net.sourceforge.htmlunit:htmlunit:2.18"
+  assets 'com.bertramlabs.plugins:less-asset-pipeline:2.11.1'
 
   compile "org.grails.plugins:spring-security-core:3.1.1"
   compile "org.grails.plugins:spring-security-ui:3.0.0.M2"

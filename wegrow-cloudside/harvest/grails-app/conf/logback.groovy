@@ -23,3 +23,6 @@ if (Environment.isDevelopmentMode() && targetDir != null) {
 else {
     root(ERROR, ['STDOUT'])
 }
+
+
+logger("grails.app.taglib.grails.plugins.formfields", DEBUG)

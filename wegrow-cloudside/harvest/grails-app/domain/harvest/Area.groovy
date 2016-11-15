@@ -4,6 +4,7 @@ class Area {
   Integer area
   AreaUnit unit
 
+
   static constraints = {
   }
 }

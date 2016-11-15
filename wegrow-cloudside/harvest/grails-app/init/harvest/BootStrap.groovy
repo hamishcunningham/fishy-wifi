@@ -20,9 +20,9 @@ class BootStrap {
         it.clear()
       }
 
-      assert User.count() == 2
-      assert Role.count() == 2
-      assert UserRole.count() == 2
+//      assert User.count() == 2
+//      assert Role.count() == 2
+//      assert UserRole.count() == 2
     }
 
     // create some crops if none exist

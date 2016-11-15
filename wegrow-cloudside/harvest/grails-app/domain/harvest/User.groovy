@@ -18,6 +18,8 @@ class User implements Serializable {
 	boolean accountLocked
 	boolean passwordExpired
 
+	GrowingSpace growingSpace
+
 	Set<Role> getAuthorities() {
 		UserRole.findAllByUser(this)*.role
 	}
@@ -41,9 +43,13 @@ class User implements Serializable {
 	static constraints = {
 		password blank: false, password: true
 		username blank: false, unique: true
+		growingSpace nullable: true
 	}
 
 	static mapping = {
 		password column: '`password`'
 	}
+
+
+
 }

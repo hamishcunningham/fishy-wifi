@@ -15,6 +15,8 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
   [pattern: '/**/css/**',      access: ['permitAll']],
   [pattern: '/**/images/**',   access: ['permitAll']],
   [pattern: '/**/favicon.ico', access: ['permitAll']],
+  [pattern: '/console/**',        access: 'ROLE_ADMIN'],
+  [pattern: '/static/console/**', access: 'ROLE_ADMIN'],
 
   [pattern: '/user/**',        access: 'ROLE_ADMIN'],
   [pattern: '/admin/**',       access: ['ROLE_ADMIN', 'isFullyAuthenticated()']],
@@ -22,10 +24,7 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
   [pattern: '/logout/**',      access: ['permitAll']],
   [pattern: '/register/**',    access: ['permitAll']],
   [pattern: '/login/impersonate', access: ['ROLE_ADMIN']],
-  [pattern: '/logout/impersonate', access: ['permitAll']],
-
-  [pattern: '/harvest/**',      access: ['ROLE_USER', 'ROLE_ADMIN' ]],
-  [pattern: '/crop/**',         access: ['ROLE_USER', 'ROLE_ADMIN' ]],
+  [pattern: '/logout/impersonate', access: ['permitAll']]
 ]
 
 grails.plugin.springsecurity.filterChain.chainMap = [
@@ -36,6 +35,9 @@ grails.plugin.springsecurity.filterChain.chainMap = [
   [pattern: '/**/favicon.ico', filters: 'none'],
   [pattern: '/**',             filters: 'JOINED_FILTERS']
 ]
+grails.plugin.springsecurity.roleHierarchy = '''
+   ROLE_ADMIN > ROLE_USER
+'''
 
 // TODO delete this when logout changed to POST in gsps; see
 // https://grails-plugins.github.io/grails-spring-security-core/v3/index.html
