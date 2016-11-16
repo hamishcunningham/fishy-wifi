@@ -2,14 +2,14 @@
 <g:if test="${type == Boolean}">
     <div class="checkbox">
         <label>
-              <%= widget %> <g:message code="${entityName}.${property}.question" default="${label}" />
+              <%= widget %> <g:message code="${controllerName}.${property}.question" default="${label}" />
         </label>
     </div>
 </g:if>
 <g:else>
     <div class="form-group ${invalid ? 'error' : ''} widget">
         <label for="${property}">
-            <g:message code="${entityName}.${property}.question" default="${label}" />
+            <g:message code="${controllerName}.${property}.question" default="${label}" />
         </label>
 
             <%= widget %>

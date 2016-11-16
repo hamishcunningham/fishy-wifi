@@ -10,7 +10,6 @@ import static org.springframework.http.HttpStatus.CREATED
  * Created by dominic on 14/11/2016.
  */
 @Secured("hasRole('ROLE_USER')")
-class AllotmentController {
-    static scaffold = Allotment
-
+class OtherGrowingSpaceController {
+    static scaffold = OtherGrowingSpace
 }

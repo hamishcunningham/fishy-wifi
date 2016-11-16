@@ -6,7 +6,6 @@
         <title><g:message code="default.create.label" args="[entityName]" /></title>
     </head>
     <body>
-        <a href="#create-${propertyName}" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
         <div id="create-${propertyName}" class="content scaffold-create" role="main">
             <h1><g:message code="default.create.label" args="[entityName]" /></h1>
             <g:if test="\${flash.message}">
@@ -20,11 +19,8 @@
             </ul>
             </g:hasErrors>
             <g:form action="save">
-                <f:all bean="${propertyName}"/>
-
-                    <div class="col-sm-offset-2 col-sm-10">
-                        <g:submitButton name="create" class="save btn btn-default" value="\${message(code: 'default.button.create.label', default: 'Create')}" />
-                    </div>
+                <f:allWTransients bean="${propertyName}"/>
+                <g:submitButton name="create" class="save btn btn-default" value="\${message(code: 'default.button.create.label', default: 'Create')}" />
             </g:form>
         </div>
     </body>
