@@ -13,10 +13,10 @@ class BootStrap {
       UserRole.create testUser, userRole
 
       def adminUser = new User(username: 'admin', password: 'x').save()
-      def garden = new Garden(area:100, unit:"SQ_FEET", yearsGrowing:25, isOrganic: false,
-              submittingAllData: false, consentGiven: true, electronicSignature:"dom");
+//      def garden = new Garden(area:100, unit:"SQ_FEET", yearsGrowing:25, isOrganic: false,
+//              submittingAllData: false, consentGiven: true, electronicSignature:"dom");
 
-      testUser.growingSpace = garden;
+      //testUser.growingSpace = garden;
       testUser.save()
 
       UserRole.create adminUser, adminRole
