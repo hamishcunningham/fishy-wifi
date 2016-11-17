@@ -26,7 +26,7 @@ class Area {
   }
 
   def beforeValidate() {
-    if (area != null) {
+    if (area != null && unit != null) {
       areaMeters = unit.normalise(area)
     }
 
@@ -34,6 +34,11 @@ class Area {
       def targetSpace = springSecurityService.currentUser.growingSpace
       targetSpace.addToAreas(this)
     }
+  }
 
+
+  @Override
+  public String toString() {
+    return "${crop?.type} growing in ${areaMeters}\u33A1";
   }
 }

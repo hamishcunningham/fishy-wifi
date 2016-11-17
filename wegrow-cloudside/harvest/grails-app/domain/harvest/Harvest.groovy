@@ -1,7 +1,6 @@
 package harvest
 
 class Harvest {
-  Crop crop
   Double weight
   WeightUnit unit
 
@@ -11,16 +10,14 @@ class Harvest {
   static transients = ['weight', 'unit']
 
   static constraints = {
-    crop()
     area()
-    weight(greaterThan: new Double(0.0), display: false)
-    weightGrammes(greaterThan: new Double(0.0))
+    weight(greaterThan: new Double(0.0))
+    weightGrammes greaterThan: new Double(0.0), display: false
     unit display: false
-
   }
 
   def beforeValidate() {
-    if (weight != null) {
+    if (weight != null && unit != null) {
       weightGrammes = unit.normalise(weight)
     }
   }

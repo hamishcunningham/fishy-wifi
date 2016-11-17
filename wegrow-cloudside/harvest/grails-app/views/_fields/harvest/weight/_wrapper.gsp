@@ -7,7 +7,7 @@
     <div class="input-group">
     <div class="widget"><%= widget %></div>
       <span class="input-group-addon">
-        <g:each in="${harvest.AreaUnit}" var="unit">
+        <g:each in="${harvest.WeightUnit}" var="unit">
             <label>
                 <input type="radio" aria-label="meters" value="${unit.toString()}" name="unit" /> <%= unit.getName() %>
             </label>

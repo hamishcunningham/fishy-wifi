@@ -38,7 +38,7 @@ class GrowingSpace {
     }
 
     def beforeValidate() {
-        if (area != null) {
+        if (area != null && unit != null) {
             areaMeters = unit.normalise(area)
         }
     }

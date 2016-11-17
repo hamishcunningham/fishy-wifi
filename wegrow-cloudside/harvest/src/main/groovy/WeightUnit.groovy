@@ -1,8 +1,8 @@
 package harvest
 
 public enum WeightUnit {
-  GRAMMES('Grammes'),
-  OUNCES('Ounces')
+  GRAMMES('g'),
+  OUNCES('oz')
 
   String name
  

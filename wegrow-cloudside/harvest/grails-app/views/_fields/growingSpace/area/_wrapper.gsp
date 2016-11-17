@@ -7,14 +7,11 @@
     <div class="input-group">
     <div class="widget"><%= widget %></div>
       <span class="input-group-addon">
-
-        <label>
-            <input type="radio" aria-label="meters" value="SQ_METERS" name="unit" /> square meters
-        </label>
-
-        <label>
-            <input type="radio" aria-label="feet" value="SQ_FEET" name="unit" / /> square feet
-        </label>
+        <g:each in="${harvest.AreaUnit}" var="unit">
+            <label>
+                <input type="radio" aria-label="meters" value="${unit.toString()}" name="unit" /> <%= unit.getName() %>
+            </label>
+        </g:each>
       </span>
 
     </div><!-- /input-group -->

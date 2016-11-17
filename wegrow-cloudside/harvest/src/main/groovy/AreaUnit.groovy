@@ -1,11 +1,11 @@
 package harvest
 
 public enum AreaUnit {
-  SQ_METERS('Square meters'),
-  SQ_FEET('Square feet')
+  SQ_METERS('m²'),
+  SQ_FEET('ft²')
 
   String name
- 
+
   AreaUnit(String name) {
     this.name = name
   }
