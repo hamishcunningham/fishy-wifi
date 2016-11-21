@@ -12,5 +12,4 @@ import static org.springframework.http.HttpStatus.CREATED
 @Secured("hasRole('ROLE_USER')")
 class AllotmentController {
     static scaffold = Allotment
-
 }

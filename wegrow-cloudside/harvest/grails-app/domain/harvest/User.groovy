@@ -11,6 +11,9 @@ class User implements Serializable {
 
 	transient springSecurityService
 
+	AreaUnit preferredAreaUnit = AreaUnit.SQ_METERS
+	WeightUnit preferredWeightUnit = WeightUnit.GRAMMES
+
 	String username
 	String password
 	boolean enabled = true

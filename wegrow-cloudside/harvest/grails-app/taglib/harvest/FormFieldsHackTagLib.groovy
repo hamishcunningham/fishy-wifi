@@ -58,4 +58,19 @@ class FormFieldsHackTagLib extends FormFieldsTagLib  {
         }
     }
 
+    def eachProperty = { attrs, body ->
+        def domainClass = attrs.domainClass
+        def var = attrs.var ?: "property"
+        def indexKey = attrs.status ?: "index"
+
+        if (domainClass) {
+            resolveAllProperties(domainClass, attrs).eachWithIndex { property, index ->
+                out << body((var):property, ())
+            }
+        } else {
+            throwTagError('Tag [eachProperty] currently only supports domain types')
+        }
+
+    }
+
 }

@@ -10,6 +10,9 @@ public enum AreaUnit {
     this.name = name
   }
 
+  public static getDefault() {
+    return SQ_METERS
+  }
   /**
    * Convert units to meters for normalised storage in the database
    * @param area
@@ -21,6 +24,20 @@ public enum AreaUnit {
         return area;
       case SQ_FEET:
         return area * 0.3048;
+    }
+  }
+
+  /**
+   * Converts from meters back into this unit.
+   * @param area
+   * @return
+     */
+  public Double denormalise(Double area) {
+    switch (this) {
+      case SQ_METERS:
+        return area;
+      case SQ_FEET:
+        return area / 0.3048;
     }
   }
 }
