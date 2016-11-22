@@ -65,7 +65,8 @@ class FormFieldsHackTagLib extends FormFieldsTagLib  {
 
         if (domainClass) {
             resolveAllProperties(domainClass, attrs).eachWithIndex { property, index ->
-                out << body((var):property, ())
+                out << body((var):property)
+                // out << body((var):property, ())
             }
         } else {
             throwTagError('Tag [eachProperty] currently only supports domain types')
