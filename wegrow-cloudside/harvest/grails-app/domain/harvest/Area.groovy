@@ -33,17 +33,19 @@ class Area {
     if (this.area != null) {
       return this.area
     } else if (areaMeters != null) {
-      return currentUser.preferredAreaUnit.denormalise(areaMeters)
+      return getUnit().denormalise(areaMeters)
     } else {
-      return null
+      return areaMeters
     }
   }
 
   AreaUnit getUnit() {
     if (this.unit != null) {
       return this.unit
+    } else if (springSecurityService.currentUser != null) {
+      return springSecurityService.currentUser?.preferredAreaUnit
     } else {
-      return springSecurityService.currentUser.preferredAreaUnit
+      return AreaUnit.default
     }
   }
 
@@ -71,6 +73,6 @@ class Area {
 
   @Override
   public String toString() {
-    return "${crop?.type} growing in ${areaMeters}\u33A1";
+    return "${crop?.type} growing in ${getArea()}${getUnit().name}";
   }
 }

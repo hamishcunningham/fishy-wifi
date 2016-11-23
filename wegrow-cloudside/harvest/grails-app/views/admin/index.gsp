@@ -24,11 +24,16 @@
             <g:message default="Manage Crops" code="crops.index.label" />
         </g:link>
     </p>
-
+    <p>
     <g:link class="btn btn-default btn-large" resource="user">
         <g:message default="Manage Users" code="users.index.label" />
     </g:link>
-
+   </p>
+    <p>
+        <g:link class="btn btn-default btn-large" resource="settings">
+            <g:message default="Site Settings" code="settings.index.label" />
+        </g:link>
+    </p>
 <div id="controllers" role="navigation">
                 <h2>Available Controllers:</h2>
                 <ul>

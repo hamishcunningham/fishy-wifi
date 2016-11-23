@@ -33,6 +33,18 @@
                         </p>
                         <g:link class="btn btn-default" controller="garden" action="create" >Get Started</g:link>
                     </div>
+
+                    <g:ifHydro>
+                        <div class="col-lg-4">
+                            <g:img class="img-circle" file="hydro_circle.png"></g:img>
+                            <h2>Hydroponics</h2>
+                            <p>
+                                Your growing space is based on hydroponics
+                            </p>
+                            <g:link class="btn btn-default" controller="hydroponics" action="create" >Get Started</g:link>
+                        </div>
+                    </g:ifHydro>
+
                     <div class="col-lg-4">
                         <g:img class="img-circle" file="other_circle.png"></g:img>
                         <h2>Other</h2>
@@ -41,6 +53,7 @@
                         </p>
                         <g:link class="btn btn-default" controller="otherGrowingSpace" action="create" >Get Started</g:link>
                     </div>
+
                 </div>
             </div>
         </div>

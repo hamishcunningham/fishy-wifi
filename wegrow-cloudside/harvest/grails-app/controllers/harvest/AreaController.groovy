@@ -1,6 +1,7 @@
 package harvest
 
 import grails.plugin.springsecurity.SpringSecurityService
+import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.plugin.springsecurity.annotation.Secured
 
 import static org.springframework.http.HttpStatus.*
@@ -18,8 +19,9 @@ class AreaController {
 
     def index(Integer max) {
         def growingSpace = springSecurityService?.currentUser?.growingSpace
-
-        if (growingSpace != null) {
+        if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
+            respond Area.findAll(params), model:[areaCount: Area.count()]
+        } else if (growingSpace != null) {
             params.max = Math.min(max ?: 10, 100)
             respond Area.findAllBySpace(growingSpace, params), model:[areaCount: Area.count()]
         }
@@ -33,7 +35,10 @@ class AreaController {
         def growingSpace = springSecurityService?.currentUser?.growingSpace
 
         if (growingSpace != null) {
-            respond new Area(params), model:[areaList: Area.findAllBySpace(growingSpace), areaCount: Area.count()]
+            respond([area: new Area(params),
+                    areaList: Area.findAllBySpace(growingSpace), areaCount: Area.count()])
+        } else {
+            redirect resource: "growingSpace", action: "create"
         }
     }
 

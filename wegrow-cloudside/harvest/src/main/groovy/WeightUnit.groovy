@@ -5,9 +5,13 @@ public enum WeightUnit {
   OUNCES('oz')
 
   String name
- 
+
   WeightUnit(String name) {
     this.name = name
+  }
+
+  public static WeightUnit getDefault() {
+    GRAMMES
   }
 
   public Double normalise(Double weight) {
@@ -16,6 +20,15 @@ public enum WeightUnit {
         return weight;
       case OUNCES:
         return weight * 28.3495;
+    }
+  }
+
+  public Double denormalise(Double weight) {
+    switch (this) {
+      case GRAMMES:
+        return weight;
+      case OUNCES:
+        return weight / 28.3495;
     }
   }
 }

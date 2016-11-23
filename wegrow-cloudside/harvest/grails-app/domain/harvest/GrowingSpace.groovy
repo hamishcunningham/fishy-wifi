@@ -9,10 +9,10 @@ class GrowingSpace {
     String electronicSignature
 
     Double areaMeters
-    Double area
-    AreaUnit unit
+    private Double area;
+    private AreaUnit unit;
 
-    transient springSecurityService
+    def springSecurityService
     static belongsTo = [user:User]
     static hasMany = [harvests: Harvest, areas: Area]
 
@@ -26,7 +26,7 @@ class GrowingSpace {
         areas display: false
 
         area bindable: true, display: true
-        unit display: false
+        unit display: false, bindable: true
     }
 
     def afterInsert() {
@@ -37,9 +37,39 @@ class GrowingSpace {
         }
     }
 
-    def beforeValidate() {
+    Double getArea() {
+        User currentUser = springSecurityService.currentUser
+        if (this.area != null) {
+            return this.area
+        } else if (areaMeters != null) {
+            return getUnit().denormalise(areaMeters)
+        } else {
+            return areaMeters
+        }
+    }
+
+    AreaUnit getUnit() {
+        if (this.unit != null) {
+            return this.unit
+        } else if (springSecurityService.currentUser != null) {
+            return springSecurityService.currentUser.preferredAreaUnit
+        } else {
+            return AreaUnit.getDefault()
+        }
+    }
+
+    def setArea(area) {
+        this.area = area
         if (area != null && unit != null) {
             areaMeters = unit.normalise(area)
         }
     }
+
+    def setUnit(unit) {
+        this.unit = unit
+        if (area != null && unit != null) {
+            areaMeters = unit.normalise(area)
+        }
+    }
+
 }

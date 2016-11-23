@@ -13,7 +13,7 @@ class BootStrap {
       UserRole.create testUser, userRole
 
       def adminUser = new User(username: 'admin', password: 'x').save()
-      def garden = new Garden(area:100, unit:"SQ_FEET", yearsGrowing:25, isOrganic: false,
+      def garden = new Garden(areaMeters:100, yearsGrowing:25, isOrganic: false,
               submittingAllData: false, consentGiven: true, electronicSignature:"dom");
 
       testUser.growingSpace = garden;
@@ -25,6 +25,9 @@ class BootStrap {
         it.flush()
         it.clear()
       }
+
+      // Create the empty settings entry (we only ever want to have one).
+      new Settings().save()
 
 //      assert User.count() == 2
 //      assert Role.count() == 2

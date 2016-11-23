@@ -10,8 +10,8 @@ public enum AreaUnit {
     this.name = name
   }
 
-  public static getDefault() {
-    return SQ_METERS
+  public static AreaUnit getDefault() {
+    SQ_METERS
   }
   /**
    * Convert units to meters for normalised storage in the database

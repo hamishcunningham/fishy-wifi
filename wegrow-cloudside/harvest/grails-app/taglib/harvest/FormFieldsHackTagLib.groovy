@@ -44,7 +44,7 @@ class FormFieldsHackTagLib extends FormFieldsTagLib  {
      * @attr prefix Prefix to add to input element names.
      */
     def allWTransients = { attrs ->
-        if (!attrs.bean) throwTagError("Tag [all] is missing required attribute [bean]")
+        if (!attrs.bean) throwTagError("Tag [allWTransients] is missing required attribute [bean]")
         def bean = resolveBean(attrs.bean)
         def domainClass = resolveDomainClass(bean)
         def prefix = resolvePrefix(attrs.prefix)
@@ -54,7 +54,7 @@ class FormFieldsHackTagLib extends FormFieldsTagLib  {
                 out << f.field(bean: bean, property: property.name, prefix: prefix)
             }
         } else {
-            throwTagError('Tag [all] currently only supports domain types')
+            throwTagError('Tag [allWTransients] currently only supports domain types')
         }
     }
 
@@ -65,7 +65,7 @@ class FormFieldsHackTagLib extends FormFieldsTagLib  {
 
         if (domainClass) {
             resolveAllProperties(domainClass, attrs).eachWithIndex { property, index ->
-                out << body((var):property, ())
+                out << body((var):property, (indexKey):index)
             }
         } else {
             throwTagError('Tag [eachProperty] currently only supports domain types')

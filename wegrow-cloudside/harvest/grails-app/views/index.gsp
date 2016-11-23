@@ -6,5 +6,11 @@
         <title><g:message code="default.create.label" args="[entityName]" /></title>
     </head>
     <body>
-</body>
+        <g:ifHydro>
+            Text for hydroponics homepage here.
+        </g:ifHydro>
+        <g:ifConventional>
+            Text for conventional growing here.
+        </g:ifConventional>
+    </body>
 </html>

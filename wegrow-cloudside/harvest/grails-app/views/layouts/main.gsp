@@ -10,6 +10,15 @@
 
     <asset:stylesheet src="application.css"/>
 
+    <g:ifHydro>
+        <asset:stylesheet src="application_hydro.css"/>
+    </g:ifHydro>
+
+    <g:ifConventional>
+        <asset:stylesheet src="application_conventional.less"/>
+    </g:ifConventional>
+
+
     <g:layoutHead/>
 </head>
 <body>
@@ -33,16 +42,43 @@
                             <g:link resource="login" action="auth" ><g:message code="login" default="Login" /></g:link>
                          </li>
                           <li>
-                             <g:link resource="register" action="register" ><g:message code="Register" default="Register" /></g:link>
+                             <g:link resource="register" action="register" ><g:message code="register" default="Register" /></g:link>
                           </li>
                     </sec:ifNotLoggedIn>
                     <sec:ifLoggedIn>
+
+                        <li>
+                            <g:link resource="area" action="create">
+                                 <g:message code="area.title" default="Manage Crops" />
+                            </g:link>
+                         </li>
+
+                        <li>
+                            <g:link resource="harvest" action="create" >
+                                 <g:message code="harvests.create.title" default="Log a Harvest" />
+                            </g:link>
+                         </li>
+
+                        <li>
+                            <g:link resource="harvest" action="index" >
+                                 <g:message code="harvests.index.title" default="Past Harvests" />
+                            </g:link>
+                         </li>
+
                          <li>
                              <p class="navbar-text">
                                 Logged in as <sec:loggedInUserInfo field="username"/>
                              </p>
                          </li>
-                         <sec:access expression="hasRole('ROLE_USER')">
+                         <li>
+                            <g:link resource="user" action="editPreferences">
+                                         <g:message code="preferences" default="Preferences" />
+                            </g:link>
+                         </li>
+
+
+
+                         <sec:access expression="hasRole('ROLE_ADMIN')">
                              <li>
                                 <g:link resource="admin" ><g:message code="admin" default="Admin" /></g:link>
                              </li>
