@@ -1,5 +1,8 @@
 package harvest
 
+import grails.plugin.springsecurity.SpringSecurityUtils
+import org.hibernate.LazyInitializationException
+
 class Area {
   Double areaMeters
   transient springSecurityService
@@ -17,7 +20,9 @@ class Area {
   static transients = ['area',
                        'unit',
                        'springSecurityService']
+
   static belongsTo = [space:GrowingSpace, crop:Crop]
+  static hasMany = [harvests: Harvest]
 
   static constraints = {
     crop()
@@ -25,6 +30,7 @@ class Area {
     areaMeters display: false
     area bindable: true, display: true
     unit display: false, bindable: true
+    harvests display: false
 
   }
 
@@ -70,9 +76,34 @@ class Area {
     }
   }
 
+  static def visibleAreas(currentUser) {
+    if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
+      return Area
+    } else if (currentUser?.growingSpace != null) {
+      def growingSpace = currentUser.growingSpace
 
+      return Area.where {
+        space == growingSpace
+      }
+    }
+  }
+
+  def canEdit() {
+    if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
+      return true
+    }
+    else if (space.user == springSecurityService.currentUser) {
+      return true
+    }
+
+    return false
+  }
   @Override
   public String toString() {
-    return "${crop?.type} growing in ${getArea()}${getUnit().name}";
+    try {
+      return "${crop?.type} growing in ${getArea()}${getUnit().name}";
+    } catch (LazyInitializationException e) {
+      return "${getArea()}${getUnit().name}"
+    }
   }
 }

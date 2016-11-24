@@ -1,5 +1,7 @@
 package harvest
 
+import grails.util.GrailsNameUtils
+
 
 class GrowingSpace {
     Integer yearsGrowing
@@ -16,10 +18,14 @@ class GrowingSpace {
     static belongsTo = [user:User]
     static hasMany = [harvests: Harvest, areas: Area]
 
-    static transients = ['area', 'unit', 'springSecurityService']
+    static transients = ['area', 'unit', 'springSecurityService', 'typeLabel']
 
+    def getTypeLabel() {
+        GrailsNameUtils.getPropertyName(this.class)
+    }
 
     static constraints = {
+        typeLabel display:false, bindable:false
         user nullable: true, display: false
         harvests display: false
         areaMeters display: false

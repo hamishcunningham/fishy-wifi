@@ -24,7 +24,7 @@
                     <f:allWTransients bean="${propertyName}"/>
                 </fieldset>
                 <fieldset class="buttons">
-                    <input class="save" type="submit" value="\${message(code: 'default.button.update.label', default: 'Update')}" />
+                    <input class="save" type="submit" class="btn btn-primary" value="\${message(code: 'default.button.update.label', default: 'Update')}" />
                 </fieldset>
             </g:form>
         </div>

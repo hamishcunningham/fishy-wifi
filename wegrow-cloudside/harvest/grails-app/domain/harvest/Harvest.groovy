@@ -1,5 +1,7 @@
 package harvest
 
+import grails.plugin.springsecurity.SpringSecurityUtils
+
 class Harvest {
   Double weight
   WeightUnit unit
@@ -11,10 +13,15 @@ class Harvest {
   static transients = ['weight', 'unit', 'springSecurityService']
 
   static constraints = {
-    area()
+    area blank: false, validator: { val, obj -> if (val.space.user != obj.springSecurityService.currentUser) {
+        return "wrongUser"
+      }
+    }
+
     weight(greaterThan: new Double(0.0), bindable: true, display: true)
     weightGrammes greaterThan: new Double(0.0), display: false
     unit display: false, bindable: true
+
 
   }
 
@@ -51,5 +58,26 @@ class Harvest {
     }
   }
 
+  static def visibleHarvests(currentUser) {
+    if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
+      return Harvest
+    } else if (currentUser?.growingSpace != null) {
+      def growingSpace = currentUser.growingSpace
+      return Harvest.where {
+        area.space == growingSpace
+      }
+    }
+  }
+
+  def canEdit() {
+    if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
+      return true
+    }
+    else if (area.space.user == springSecurityService.currentUser) {
+      return true
+    }
+
+    return false
+  }
 
 }

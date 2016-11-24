@@ -13,11 +13,6 @@
         </g:link>
     </p>
 
-    <p>
-        <g:link class="btn btn-default btn-large" resource="report" action="index">
-            <g:message default="Get Crop Reports" code="reports.index.label" />
-        </g:link>
-    </p>
 
     <p>
         <g:link class="btn btn-default btn-large" resource="crop" action="index">

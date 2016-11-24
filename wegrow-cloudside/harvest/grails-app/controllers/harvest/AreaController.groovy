@@ -18,25 +18,23 @@ class AreaController {
     SpringSecurityService springSecurityService;
 
     def index(Integer max) {
-        def growingSpace = springSecurityService?.currentUser?.growingSpace
-        if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
-            respond Area.findAll(params), model:[areaCount: Area.count()]
-        } else if (growingSpace != null) {
-            params.max = Math.min(max ?: 10, 100)
-            respond Area.findAllBySpace(growingSpace, params), model:[areaCount: Area.count()]
-        }
+        def areas = Area.visibleAreas()
+        respond areas.findAll(), model:[areaCount: areas.count()]
+
     }
 
     def show(Area area) {
         respond area
     }
 
-    def create() {
-        def growingSpace = springSecurityService?.currentUser?.growingSpace
+    def create(params) {
+        def currentUser = springSecurityService?.currentUser
+        def growingSpace = currentUser?.growingSpace
 
         if (growingSpace != null) {
-            respond([area: new Area(params),
-                    areaList: Area.findAllBySpace(growingSpace), areaCount: Area.count()])
+            respond([
+                    area: new Area(),
+                    areaList: Area.visibleAreas(currentUser).findAll(), areaCount: Area.count()])
         } else {
             redirect resource: "growingSpace", action: "create"
         }
@@ -56,6 +54,12 @@ class AreaController {
             return
         }
 
+        if (!area.canEdit()) {
+            transactionStatus.setRollbackOnly()
+            notFound()
+            return
+        }
+
         area.save flush:true
 
         request.withFormat {
@@ -69,7 +73,11 @@ class AreaController {
     }
 
     def edit(Area area) {
-        respond area
+        if (area.canEdit()) {
+            respond area
+        } else {
+            notFound()
+        }
     }
 
     @Transactional
@@ -83,6 +91,12 @@ class AreaController {
         if (area.hasErrors()) {
             transactionStatus.setRollbackOnly()
             respond area.errors, view:'edit'
+            return
+        }
+
+        if (!area.canEdit()) {
+            transactionStatus.setRollbackOnly()
+            notFound()
             return
         }
 
@@ -101,6 +115,12 @@ class AreaController {
     def delete(Area area) {
 
         if (area == null) {
+            transactionStatus.setRollbackOnly()
+            notFound()
+            return
+        }
+
+        if (!area.canEdit()) {
             transactionStatus.setRollbackOnly()
             notFound()
             return

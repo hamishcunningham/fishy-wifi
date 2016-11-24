@@ -1,6 +1,7 @@
 package harvest
 
 import grails.plugin.springsecurity.SpringSecurityService
+import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.plugin.springsecurity.annotation.Secured
 
 import static org.springframework.http.HttpStatus.*
@@ -9,28 +10,51 @@ import grails.transaction.Transactional
 @Transactional(readOnly = true)
 @Secured("hasRole('ROLE_USER')")
 class HarvestController {
-
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
-  SpringSecurityService springSecurityService;
+    SpringSecurityService springSecurityService;
+    def exportService
 
     def index(Integer max) {
-      if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
-        respond Harvest.findAll()
-      } else {
-        def growingSpace = springSecurityService?.currentUser?.growingSpace
+        def harvests = Harvest.visibleHarvests(springSecurityService.currentUser)
 
-        if (growingSpace != null) {
-          def harvests = Harvest.where {
-            area.space == growingSpace
-          }
-          params.max = Math.min(max ?: 10, 100)
-          respond harvests.findAll(params)
+        if (params?.f) {
+            def data = harvests.findAll().collect { harvest ->
+                [
+                        id: harvest.id,
+                        area_id: harvest.area.id,
+                        area_m2: harvest.area.area,
+                        crop: harvest.area.crop,
+                        weight_g: harvest.weight,
+                        type: harvest.area.space.typeLabel,
+                        organic: harvest.area.space.isOrganic,
+                        all_data: harvest.area.space.submittingAllData
+                ]
+            }
+            def fields = ["id",
+                          "area_id",
+                          "area_m2",
+                          "weight_g",
+                          "crop",
+                          "type",
+                          "organic",
+                          "all_data"]
+
+            if (data.isEmpty()) {
+                flash.message = message(code: 'harvest.export.failed', default: "Export failed - no data available.")
+                respond harvests.findAll()
+            } else {
+                response.contentType = grailsApplication.config.grails.mime.types[params.f]
+                response.setHeader("Content-disposition", "attachment; filename=harvests.${params.extension}")
+                exportService.export(params.f, response.outputStream, data, fields, [:],[:],[:])
+            }
+        } else {
+            respond harvests.findAll()
         }
-      }
     }
 
     def show(Harvest harvest) {
-      if (harvest.area.space == springSecurityService.currentUser.growingSpace) {
+      if (harvest.area.space == springSecurityService.currentUser.growingSpace ||
+        SpringSecurityUtils.ifAllGranted("ROLE_ADMIN"))  {
         respond harvest
       } else {
         notFound()
@@ -38,12 +62,19 @@ class HarvestController {
     }
 
     def create() {
-        respond new Harvest(params)
+        def allowedAreas = Area.visibleAreas(springSecurityService.currentUser).findAll()
+        respond([harvest: new Harvest(params), allowedAreas: allowedAreas])
     }
 
     @Transactional
     def save(Harvest harvest) {
         if (harvest == null) {
+            transactionStatus.setRollbackOnly()
+            notFound()
+            return
+        }
+
+        if (!harvest.canEdit()) {
             transactionStatus.setRollbackOnly()
             notFound()
             return
@@ -60,19 +91,30 @@ class HarvestController {
         request.withFormat {
             form multipartForm {
                 flash.message = message(code: 'default.created.message', args: [message(code: 'harvest.label', default: 'Harvest'), harvest.id])
-                redirect harvest
+                redirect action: "create"
             }
             '*' { respond harvest, [status: CREATED] }
         }
     }
 
     def edit(Harvest harvest) {
+        if (!harvest.canEdit()) {
+            notFound()
+            return
+        }
+
         respond harvest
     }
 
     @Transactional
     def update(Harvest harvest) {
         if (harvest == null) {
+            transactionStatus.setRollbackOnly()
+            notFound()
+            return
+        }
+
+        if (!harvest.canEdit()) {
             transactionStatus.setRollbackOnly()
             notFound()
             return
@@ -104,6 +146,13 @@ class HarvestController {
             return
         }
 
+        if (!harvest.canEdit()) {
+            transactionStatus.setRollbackOnly()
+            notFound()
+            return
+        }
+
+
         harvest.delete flush:true
 
         request.withFormat {
@@ -124,4 +173,6 @@ class HarvestController {
             '*'{ render status: NOT_FOUND }
         }
     }
+
+
 }

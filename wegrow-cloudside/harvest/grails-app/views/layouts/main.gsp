@@ -7,7 +7,7 @@
         <g:layoutTitle default="Grails"/>
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-
+    <r:require module="export"/>
     <asset:stylesheet src="application.css"/>
 
     <g:ifHydro>
@@ -49,7 +49,7 @@
 
                         <li>
                             <g:link resource="area" action="create">
-                                 <g:message code="area.title" default="Manage Crops" />
+                                 <g:message code="area.title" default="Log a Crop" />
                             </g:link>
                          </li>
 

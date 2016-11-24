@@ -5,6 +5,10 @@
                 <g:set var="propTitle">${domainClass.propertyName}.${p.name}.label</g:set>
                 <g:sortableColumn property="${p.name}" title="${message(code: propTitle, default: p.naturalName)}" />
             </f:eachProperty>
+
+            <th>
+                ${message(code: "default.delete", default: "Delete")}
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -20,6 +24,14 @@
                         <td><f:display bean="${bean}" property="${p.name}"  displayStyle="${displayStyle?:'table'}" /></td>
                     </g:else>
                 </f:eachProperty>
+
+                <td>
+                    <g:form resource="${bean}" method="DELETE">
+                        <input class="delete btn btn-primary"
+                            type="submit" value="${message(code: 'default.button.delete.label', default: 'Delete')}"
+                            onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" />
+                    </g:form>
+                </td>
             </tr>
         </g:each>
     </tbody>

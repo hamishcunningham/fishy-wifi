@@ -16,8 +16,8 @@ class BootStrap {
       def garden = new Garden(areaMeters:100, yearsGrowing:25, isOrganic: false,
               submittingAllData: false, consentGiven: true, electronicSignature:"dom");
 
-      testUser.growingSpace = garden;
-      testUser.save()
+      adminUser.growingSpace = garden;
+      adminUser.save()
 
       UserRole.create adminUser, adminRole
 
