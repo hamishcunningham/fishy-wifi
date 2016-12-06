@@ -3,7 +3,7 @@ package harvest
 class Allotment extends GrowingSpace {
     String siteName
     Integer visitsPerWeek
-
+    String address
 
     static constraints = {
         user(display: false)
@@ -12,9 +12,12 @@ class Allotment extends GrowingSpace {
         area()
         unit()
         yearsGrowing()
+        monthsGrowing()
         isOrganic()
         submittingAllData()
-        consentGiven()
+        consentGiven validator: { value, object ->
+            value == true
+        }
         electronicSignature()
     }
 }

@@ -27,7 +27,9 @@ class HarvestController {
                         weight_g: harvest.weight,
                         type: harvest.area.space.typeLabel,
                         organic: harvest.area.space.isOrganic,
-                        all_data: harvest.area.space.submittingAllData
+                        all_data: harvest.area.space.submittingAllData,
+                        growingSpace: harvest.area.space.growingSpace
+
                 ]
             }
             def fields = ["id",
@@ -62,12 +64,17 @@ class HarvestController {
     }
 
     def create() {
-        def allowedAreas = Area.visibleAreas(springSecurityService.currentUser).findAll()
+        def allowedAreas = Area.selectableAreas(springSecurityService.currentUser).findAll()
+        if (allowedAreas.isEmpty()) {
+            flash.message = g.message code: "harvest.area.noCropRegistered", default: "No crop registered."
+            flash.messageType = "alert"
+            return redirect(controller: "area", action: "create")
+        }
         respond([harvest: new Harvest(params), allowedAreas: allowedAreas])
     }
 
     @Transactional
-    def save(Harvest harvest) {
+    def save(Harvest harvest, Boolean cropFinished) {
         if (harvest == null) {
             transactionStatus.setRollbackOnly()
             notFound()
@@ -87,6 +94,10 @@ class HarvestController {
         }
 
         harvest.save flush:true
+
+        harvest.area.finished = cropFinished
+        harvest.area.save()
+
 
         request.withFormat {
             form multipartForm {

@@ -21,6 +21,13 @@
             <g:form action="save">
                 <fieldset class="form">
                     <f:allWTransients bean="harvest"/>
+                    <div class="checkbox">
+                        <label>
+                              <g:checkBox name="cropFinished" />
+                              <g:message code="harvest.cropFinished.question" default="Crop finished" />
+                        </label>
+                    </div>
+
                 </fieldset>
                 <fieldset class="buttons">
                     <g:submitButton name="create" class="save" value="${message(code: 'default.button.create.label', default: 'Create')}" />

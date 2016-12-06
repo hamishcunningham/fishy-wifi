@@ -1,21 +1,24 @@
 package harvest
 
-class OtherGrowingSpace extends GrowingSpace {
+class OtherGrowingSpace extends PostcodeGrowingSpace {
     String type
 
     def getTypeLabel() {
         this.type
     }
-
-
+    
     static constraints = {
         type()
+        postCode()
         area()
         unit()
         yearsGrowing()
+        monthsGrowing()
         isOrganic()
         submittingAllData()
-        consentGiven()
+        consentGiven validator: { value, object ->
+            value == true
+        }
         electronicSignature()
 
     }

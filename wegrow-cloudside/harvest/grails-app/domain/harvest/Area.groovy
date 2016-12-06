@@ -9,6 +9,8 @@ class Area {
   private Double area;
   private AreaUnit unit;
 
+  Boolean finished
+
   def afterInsert() {
     if (space == null) {
       targetSpace = springSecurityService.currentUser.growingSpace
@@ -30,9 +32,15 @@ class Area {
     areaMeters display: false
     area bindable: true, display: true
     unit display: false, bindable: true
+    finished display: false
     harvests display: false
 
   }
+
+  static mapping = {
+    finished column: "finished", defaultValue: false
+  }
+
 
   Double getArea() {
     User currentUser = springSecurityService.currentUser
@@ -84,6 +92,21 @@ class Area {
 
       return Area.where {
         space == growingSpace
+      }
+    }
+  }
+
+  /**
+   * Provides a list of the areas that belong to the current user and are not finished.
+   * @param currentUser
+   * @return
+     */
+  static def selectableAreas(currentUser) {
+    if (currentUser?.growingSpace != null) {
+      def growingSpace = currentUser.growingSpace
+
+      return Area.where {
+        space == growingSpace && finished == false
       }
     }
   }

@@ -5,6 +5,7 @@ import grails.util.GrailsNameUtils
 
 class GrowingSpace {
     Integer yearsGrowing
+    Integer monthsGrowing
     Boolean submittingAllData
     Boolean isOrganic
     Boolean consentGiven
@@ -30,7 +31,6 @@ class GrowingSpace {
         harvests display: false
         areaMeters display: false
         areas display: false
-
         area bindable: true, display: true
         unit display: false, bindable: true
     }
