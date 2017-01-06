@@ -28,16 +28,12 @@ done
 shift `expr $OPTIND - 1`
 
 doit() {
-  while :
-  do
-    echo turn it on...
-    echo -e "\x55\xAA\x0D\x10\x00\x01\x00\x00\x00\x00\x00\x00\x00\x20\x77" > /dev/ttyUSB0 
-    sleep 2
-    echo turn it off
-    echo -e "\x55\xAA\x0D\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x77" > /dev/ttyUSB0
-
-    sleep 2
-  done
+  echo turn it on...
+  echo -e "\x55\xAA\x0D\x10\x00\x01\x00\x00\x00\x00\x00\x00\x00\x20\x77" > /dev/ttyUSB0 
+  sleep 2
+  echo turn it off
+  echo -e "\x55\xAA\x0D\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x77" > /dev/ttyUSB0
+  sleep 2
 }
 
 doit2() {
@@ -61,13 +57,16 @@ tellme() {
   od -t x1 -N13 < /dev/ttyUSB0 &2>od-out.txt &
   sleep 1
   echo -e '\x55\xAA\x05\x0F\xFE\x14\x77' >/dev/ttyUSB0
+  sleep 1
   cat od-out.txt
 }
 
-set -x
+#set -x
 init
 doit
-#tellme
+doit
+tellme
+doit
 
 
 #The -F switch says to configure the /dev/ttyUSB0 port (I am using a cheap USB RS485 transceiver for testing)
