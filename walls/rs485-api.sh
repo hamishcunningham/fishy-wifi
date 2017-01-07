@@ -38,7 +38,6 @@ doit() {
 
 doit2() {
   echo sending request
-  echo 'echo -e '\x55\xAA\x05\x10\xFE\x13\x77' >/dev/ttyUSB0'
   echo -e '\x55\xAA\x05\x10\xFE\x13\x77' >/dev/ttyUSB0
   #sleep 1
   #echo doing "cat </dev/ttyUSB0"; cat </dev/ttyUSB0
@@ -48,7 +47,7 @@ doit2() {
 
 init() {
   echo init
-  stty -F /dev/ttyUSB0 sane
+  # stty -F /dev/ttyUSB0 sane
   stty -F /dev/ttyUSB0 9600 cs8 -cstopb -parenb raw -echo
 }
 
@@ -67,20 +66,3 @@ doit
 doit
 tellme
 doit
-
-
-#The -F switch says to configure the /dev/ttyUSB0 port (I am using a cheap USB RS485 transceiver for testing)
-#
-#9600 is the baud, cs8 is 8 bits of data, -cstopb is 1 stop bit, -parenb is no parity.
-#
-#raw tells linux not to process the input per line, and -echo stops it echoing.
-#
-#Then I can use the command:
-#
-#od -t x1 -N13 < /dev/ttyUSB0
-#
-#the N13 says to stop after 13 bytes.
-#
-#If I run the od command in one terminal and in another:
-#
-#echo -e "\x55\xAA\x05\x0F\xFE\x14\x77" > /dev/ttyUSB0
