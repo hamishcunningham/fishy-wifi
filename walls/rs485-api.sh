@@ -3,12 +3,12 @@
 # standard locals
 alias cd='builtin cd'
 P="$0"
-USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-n(no xyz)] [-i [1|2|3|...]"
+USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-n(no xyz)] [-c command]"
 DBG=:
-OPTIONSTRING=hdni:
+OPTIONSTRING=hdnc:
 
 # specific locals
-ABC=0
+COMM=":"
 USEXYZ="1"
 
 # message & exit if exit num present
@@ -21,7 +21,7 @@ do
     h)	usage 0 ;;
     d)	DBG=echo ;;
     n)	USEXYZ="" ;;
-    i)	ABC="${OPTARG}" ;;
+    c)	COMM="${OPTARG}" ;;
     *)	usage 1 ;;
   esac
 done 
@@ -47,7 +47,7 @@ doit2() {
 
 init() {
   echo init
-  # stty -F /dev/ttyUSB0 sane
+  stty -F /dev/ttyUSB0 sane
   stty -F /dev/ttyUSB0 9600 cs8 -cstopb -parenb raw -echo
 }
 
@@ -61,8 +61,6 @@ tellme() {
 }
 
 #set -x
-init
-doit
-doit
-tellme
-doit
+# init; doit; doit; tellme; doit
+echo running $COMM $*
+$COMM $*
