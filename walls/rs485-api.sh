@@ -3,7 +3,14 @@
 # standard locals
 alias cd='builtin cd'
 P="$0"
-USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-n(no xyz)] [-c command]"
+USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-c command]\n
+\n
+Factory defaults:\n
+MA0=0x55, MA1=0xAA, MAE=0x77, SL0=0x56, SL1=0xAB, SLE=0x78, FC=9600, CN=0xFE\n
+\n
+Command format:\n
+MA0 MA1 BC CC Data… Data CS MAE\n
+"
 DBG=:
 OPTIONSTRING=hdnc:
 
@@ -37,12 +44,18 @@ doit() {
 }
 
 doit2() {
-  echo sending request
-  echo -e '\x55\xAA\x05\x10\xFE\x13\x77' >/dev/ttyUSB0
-  #sleep 1
-  #echo doing "cat </dev/ttyUSB0"; cat </dev/ttyUSB0
-  #echo doing tail -f
-  #tail -f /dev/ttyUSB0
+  SUM=$((2 + 0x0D + 0x10 + 0x00 + 0x01 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00))
+  printf "SUM: %d; checksum: 0x%X\n" $SUM $SUM
+  SUM=$((2 + 0x0D + 0x10 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00))
+  printf "SUM: %d; checksum: 0x%X\n" $SUM $SUM
+
+  SUM=0
+  for h in 0D 10 00 01 00 00 00 00 00 00 00
+  do
+    SUM="$((0x${SUM} + 0x${h}))"
+  done
+  #SUM="$((0x${SUM} + 2))"
+  printf "SUM: %d; checksum: 0x%X\n" $SUM $SUM
 }
 
 init() {
