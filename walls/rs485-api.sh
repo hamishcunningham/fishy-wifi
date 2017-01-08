@@ -10,6 +10,9 @@ MA0=0x55, MA1=0xAA, MAE=0x77, SL0=0x56, SL1=0xAB, SLE=0x78, FC=9600, CN=0xFE\n
 \n
 Command format:\n
 MA0 MA1 BC CC Data… Data CS MAE\n
+\n
+Manual:\n
+http://smarthardware.eu/manual/str2do14din_doc.pdf
 "
 DBG=:
 OPTIONSTRING=hdnc:
