@@ -39,6 +39,44 @@ do
 done 
 shift `expr $OPTIND - 1`
 
+bfi2bin() { # bit field index to binary
+  if [ $1 -eq 1 ]
+  then
+    echo 1
+  else
+    printf "1%0$((${1}-1))d " 0
+  fi
+}
+
+# relay on command examples:
+# R6 / 7th;  \x55\xAA\x0D\x10\x00\x40\x00\x00\x00\x00\x00\x00\x00\x5F\x77
+# R7 / 8th;  \x55\xAA\x0D\x10\x00\x80\x00\x00\x00\x00\x00\x00\x00\x9F\x77
+# R8 / 9th;  \x55\xAA\x0D\x10\x00\x00\x01\x00\x00\x00\x00\x00\x00\x20\x77
+# R9 / 10th; \x55\xAA\x0D\x10\x00\x00\x02\x00\x00\x00\x00\x00\x00\x21\x77
+
+ris2hex() { # convert relay index set to hex; counts from R1
+  BITS1="" # first byte: relays up to the 8th
+  BITS2="" # second byte: relays 9th to 14th
+  for r in $*
+  do
+    if [ $r -le 8 ]
+    then
+      [ ! -z "$BITS1" ] && BITS1+=" | "
+      BITS1+=2#`bfi2bin $r`
+    else
+      r=$((r - 8))
+      [ ! -z "$BITS2" ] && BITS2+=" | "
+      BITS2+=2#`bfi2bin $r`
+    fi
+  done
+  $DBG echo $* >&2
+  $DBG echo $BITS1 $BITS2 >&2
+  BIN1=$(( $BITS1 ))
+  BIN2=$(( $BITS2 ))
+  $DBG printf '%02X %02X\n' $BIN1 $BIN2 >&2
+  printf '%02X %02X\n' $BIN1 $BIN2
+}
+
 calculate-check-sum() {
   SUM="2 "
   for h in $*
@@ -46,7 +84,10 @@ calculate-check-sum() {
     SUM="${SUM} + 0x${h}"
   done
   SUM="\$((${SUM}))"
-  bash -c "printf '%x\n' ${SUM}"
+  $DBG SUM = $SUM >&2
+  S=`bash -c "printf '%X\n' ${SUM}"`
+  $DBG S = $S >&2
+  echo ${S: -2}
 }
 
 form-command() {
@@ -61,8 +102,15 @@ form-command() {
 }
 
 run-command() {
-  $DBG "echo -e "`form-command 10 00 07 00 00 00 00 00 00 00`" > ${PORT}"
-  echo -e "`form-command 10 00 07 00 00 00 00 00 00 00`" > ${PORT}
+  $DBG "echo -e "`form-command $*`" > ${PORT}"
+  echo -e "`form-command $*`" > ${PORT}
+}
+
+on() {
+  run-command 10 00 `ris2hex $*` 00 00 00 00 00 00
+}
+off() {
+  run-command 10 00 00 00 00 00 00 00 00 00
 }
 
 test-relay-on() {
