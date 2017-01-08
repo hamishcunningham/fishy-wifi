@@ -20,6 +20,7 @@ OPTIONSTRING=hdnc:
 # specific locals
 COMM=":"
 PORT='/dev/ttyUSB0'
+BC13=0D
 USEXYZ="1"
 
 # message & exit if exit num present
@@ -49,19 +50,25 @@ calculate-check-sum() {
 }
 
 form-command() {
-  C="\x55\xAA\x0D"
+  C="\x55\xAA\x${BC13}"
   for h in $*
   do
     C="${C}\x${h}"
   done
-  CHECKSUM=`calculate-check-sum 0D $*`
+  CHECKSUM=`calculate-check-sum ${BC13} $*`
   C="${C}\x${CHECKSUM}\x77"
   echo $C
 }
 
+run-command() {
+  $DBG "echo -e "`form-command 10 00 07 00 00 00 00 00 00 00`" > ${PORT}"
+  echo -e "`form-command 10 00 07 00 00 00 00 00 00 00`" > ${PORT}
+}
+
 test-relay-on() {
-  C=`form-command 10 00 01 00 00 00 00 00 00 00`
-  echo $C
+  run-command 10 00 07 00 00 00 00 00 00 00
+  sleep 2
+  run-command 10 00 00 00 00 00 00 00 00 00
 }
 
 doit() {
