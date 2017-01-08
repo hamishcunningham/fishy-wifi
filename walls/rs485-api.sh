@@ -1,5 +1,5 @@
 #!/bin/bash
-# CLI API for the STR2DO14 RS-485 controller
+# CLI API for the STR2DO14DIN RS-485 controller
 
 ### standard locals #########################################################
 alias cd='builtin cd'
@@ -43,12 +43,10 @@ shift `expr $OPTIND - 1`
 
 ### procedural interface ####################################################
 init() {
-  echo init
   stty -F ${PORT} sane
   stty -F ${PORT} 9600 cs8 -cstopb -parenb raw -echo
 }
-tellme() {
-  echo tellme
+tellme() { # TODO what's going on with the temp file?!
   od -t x1 -N13 < ${PORT} &2>od-out.txt &
   sleep 1
   echo -e '\x55\xAA\x05\x0F\xFE\x14\x77' >${PORT}
