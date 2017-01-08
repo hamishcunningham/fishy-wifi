@@ -19,6 +19,7 @@ OPTIONSTRING=hdnc:
 
 # specific locals
 COMM=":"
+PORT='/dev/ttyUSB0'
 USEXYZ="1"
 
 # message & exit if exit num present
@@ -37,12 +38,40 @@ do
 done 
 shift `expr $OPTIND - 1`
 
+calculate-check-sum() {
+  SUM="2 "
+  for h in $*
+  do
+    SUM="${SUM} + 0x${h}"
+  done
+  SUM="\$((${SUM}))"
+  bash -c "printf '%x\n' ${SUM}"
+}
+
+form-command() {
+  C="\x55\xAA\x0D"
+  for h in $*
+  do
+    C="${C}\x${h}"
+  done
+  CHECKSUM=`calculate-check-sum 0D $*`
+  C="${C}\x${CHECKSUM}\x77"
+  echo $C
+}
+
+test-relay-on() {
+  C=`form-command 10 00 01 00 00 00 00 00 00 00`
+  echo $C
+}
+
 doit() {
   echo turn it on...
-  echo -e "\x55\xAA\x0D\x10\x00\x01\x00\x00\x00\x00\x00\x00\x00\x20\x77" > /dev/ttyUSB0 
+  echo -e "\x55\xAA\x0D\x10\x00\x01\x00\x00\x00\x00\x00\x00\x00\x20\x77" \
+    > ${PORT} 
   sleep 2
   echo turn it off
-  echo -e "\x55\xAA\x0D\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x77" > /dev/ttyUSB0
+  echo -e "\x55\xAA\x0D\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x77" \
+    > ${PORT}
   sleep 2
 }
 
@@ -63,15 +92,15 @@ doit2() {
 
 init() {
   echo init
-  stty -F /dev/ttyUSB0 sane
-  stty -F /dev/ttyUSB0 9600 cs8 -cstopb -parenb raw -echo
+  stty -F ${PORT} sane
+  stty -F ${PORT} 9600 cs8 -cstopb -parenb raw -echo
 }
 
 tellme() {
   echo tellme
-  od -t x1 -N13 < /dev/ttyUSB0 &2>od-out.txt &
+  od -t x1 -N13 < ${PORT} &2>od-out.txt &
   sleep 1
-  echo -e '\x55\xAA\x05\x0F\xFE\x14\x77' >/dev/ttyUSB0
+  echo -e '\x55\xAA\x05\x0F\xFE\x14\x77' >${PORT}
   sleep 1
   cat od-out.txt
 }
