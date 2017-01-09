@@ -105,7 +105,7 @@ form-command() {
   echo $C
 }
 run-command() {
-  $DBG "echo -e "`form-command $*`" > ${PORT}"
+  $DBG "echo -e "`form-command $*`" > ${PORT}" >&2
   echo -e "`form-command $*`" > ${PORT}
 }
 on() {
@@ -133,11 +133,11 @@ test-relay-on() {
   run-command 10 00 00 00 00 00 00 00 00 00
 }
 doit() {
-  echo turn it on...
+  echo turn it on... >&2
   echo -e "\x55\xAA\x0D\x10\x00\x01\x00\x00\x00\x00\x00\x00\x00\x20\x77" \
     > ${PORT} 
   sleep 2
-  echo turn it off
+  echo turn it off >&2
   echo -e "\x55\xAA\x0D\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x77" \
     > ${PORT}
   sleep 2
