@@ -6,6 +6,7 @@ alias cd='builtin cd'
 P="$0"
 USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-c command]\n
 \n
+A CLI API for the STR2DO14DIN RS-485 controller.\n
 Commands: init, on, off, ...\n
 \n
 Factory defaults:\n
