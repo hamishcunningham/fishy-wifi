@@ -53,6 +53,7 @@ init() {
   stty -F ${PORT} 9600 cs8 -cstopb -parenb raw -echo
 }
 readstatus() { # TODO what's going on with the temp file?!
+# TODO interpret results
   od -t x1 -N13 < ${PORT} &2>od-out.txt &
   sleep 1
   echo -e "\x${MA0}\x${MA1}\x05\x0F\xFE\x14\x${MAE}" >${PORT}
