@@ -61,26 +61,42 @@ bfi2bin() { # bit field index to binary
   fi
 }
 ris2hex() { # convert relay index set to hex; counts from R1
-  BITS1="" # first byte: relays up to the 8th
-  BITS2="" # second byte: relays 9th to 14th
+  BITS1="" # first byte:  relays up to the 8th
+  BITS2="" # second byte: relays 9th to 16th
+  BITS3="" # third byte:  relays 17th to 24th
+  BITS4="" # fourth byte: relays 25th to 32nd
+
   for r in $*
   do
     if [ $r -le 8 ]
     then
       [ ! -z "$BITS1" ] && BITS1+=" | "
       BITS1+=2#`bfi2bin $r`
-    else
+    elif [ $r -le 16 ]
+    then
       r=$((r - 8))
       [ ! -z "$BITS2" ] && BITS2+=" | "
       BITS2+=2#`bfi2bin $r`
+    elif [ $r -le 24 ]
+    then
+      r=$((r - 16))
+      [ ! -z "$BITS3" ] && BITS3+=" | "
+      BITS3+=2#`bfi2bin $r`
+    elif [ $r -le 32 ]
+    then
+      r=$((r - 24))
+      [ ! -z "$BITS4" ] && BITS4+=" | "
+      BITS4+=2#`bfi2bin $r`
     fi
   done
   $DBG echo $* >&2
-  $DBG echo $BITS1 $BITS2 >&2
+  $DBG echo $BITS1 - $BITS2 - $BITS3 - $BITS4 >&2
   BIN1=$(( $BITS1 ))
   BIN2=$(( $BITS2 ))
-  $DBG printf '%02X %02X\n' $BIN1 $BIN2 >&2
-  printf '%02X %02X\n' $BIN1 $BIN2
+  BIN3=$(( $BITS3 ))
+  BIN4=$(( $BITS4 ))
+  $DBG printf '%02X %02X %02X %02X\n' $BIN1 $BIN2 $BIN3 $BIN4 >&2
+  printf '%02X %02X %02X %02X\n' $BIN1 $BIN2 $BIN3 $BIN4
 }
 calculate-check-sum() {
   SUM="2 "
@@ -109,10 +125,14 @@ run-command() {
   echo -e "`form-command $*`" > ${PORT}
 }
 on() {
-  run-command 10 00 `ris2hex $*` 00 00 00 00 00 00
+  run-command 10 00 `ris2hex $*` 00 00 00 00
 }
 off() {
   run-command 10 00 00 00 00 00 00 00 00 00
+}
+hpr() { # print hex number in decimal and binary
+  printf 'hex %X in decimal is %d and in base 2 is ' 0x$1 0x$1
+  bc <<< "ibase=16; obase=2; $1"
 }
 
 ### CLI access to procedures ################################################
