@@ -28,7 +28,9 @@ class FormFieldsHackTagLib extends FormFieldsTagLib  {
                 blacklist.addAll(scaffoldProp.exclude)
             }
             properties.removeAll { it.name in blacklist }
-            properties.removeAll { !it.domainClass.constrainedProperties[it.name]?.display }
+            properties.removeAll {
+                !it.domainClass.constrainedProperties[it.name]?.display
+            }
             properties.removeAll { it.derived }
 
             Collections.sort(properties, new org.grails.validation.DomainClassPropertyComparator(domainClass))

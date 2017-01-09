@@ -24,7 +24,7 @@ class AreaController {
     }
 
     def show(Area area) {
-        respond area
+        response areacro
     }
 
     def create(params) {

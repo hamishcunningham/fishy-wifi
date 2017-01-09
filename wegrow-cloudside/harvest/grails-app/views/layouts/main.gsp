@@ -33,10 +33,16 @@
                      <span class="icon-bar"></span>
                 </button>
                 <a class="navbar-brand" href="#"><g:message code="app.name" default="${meta(name:'info.app.name')}" /></a>
+
             </div>
 
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
                 <ul class="nav navbar-nav navbar-right">
+                    %{--<li id="spinner" style="display:none;">--}%
+                        %{--<g:message code="spinner.alt" default="Loading&hellip;"/>--}%
+                    %{--</li>--}%
+
                     <sec:ifNotLoggedIn>
                          <li>
                             <g:link resource="login" action="auth" ><g:message code="login" default="Login" /></g:link>
@@ -101,9 +107,6 @@
     </div>
     <div class="footer" role="contentinfo"></div>
 
-    <div id="spinner" class="spinner" style="display:none;">
-        <g:message code="spinner.alt" default="Loading&hellip;"/>
-    </div>
 
     <asset:javascript src="application.js"/>
 

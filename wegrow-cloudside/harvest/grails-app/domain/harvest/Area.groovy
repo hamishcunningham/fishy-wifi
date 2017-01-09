@@ -7,9 +7,11 @@ class Area {
   Double areaMeters
   transient springSecurityService
   private Double area;
-  private AreaUnit unit;
+  private harvest.AreaUnit unit;
+  Double canopyRadius
+  Boolean inGreenhouse
 
-  Boolean finished
+  Boolean finished = false
 
   def afterInsert() {
     if (space == null) {
@@ -29,11 +31,70 @@ class Area {
   static constraints = {
     crop()
     space display: false
-    areaMeters display: false
-    area bindable: true, display: true
-    unit display: false, bindable: true
-    finished display: false
+    areaMeters display: false, nullable: true, validator: { Double val, Area obj ->
+      if (obj.crop.isTree) {
+        if (val) {
+          return "isTree"
+        } else {
+          return true
+        }
+      }
+      if (!obj.crop.isTree) {
+        if (val) {
+          return true
+        }
+        else {
+          return "nullable"
+        }
+      }
+      return false
+    }
+    area bindable: true, display: true, nullable: true, blank: true
+
+    // Only trees have a canopy radius
+    canopyRadius bindable: true, display: true, nullable: true, blank: true, validator: { Double val, Area obj ->
+      if (obj.crop.isTree) {
+        if (val) {
+          return true
+        } else {
+          return "nullable"
+        }
+      }
+      if (!obj.crop.isTree) {
+        if (!val) {
+          return true
+        }
+        else {
+          return "isNotTree"
+        }
+      }
+      return false
+    }
+
+    // Only certain crops are sometimes grown indoors.
+    inGreenhouse nullable: true, blank: true, validator: { Boolean val, Area obj ->
+      if (obj.crop.isGreenhouseable) {
+        if (val != null) {
+          return true
+        } else {
+          return "nullable"
+        }
+      }
+      if (!obj.crop.isGreenhouseable) {
+        if (!val) {
+          return true
+        }
+        else {
+          return "isNotGreenhouseable"
+        }
+      }
+      return false
+    }
+
+    unit display: false, bindable: true, nullable: true
+    finished display: false, nullable: true
     harvests display: false
+
 
   }
 
@@ -124,7 +185,12 @@ class Area {
   @Override
   public String toString() {
     try {
-      return "${crop?.type} growing in ${getArea()}${getUnit().name}";
+      if (crop?.isTree) {
+        return "${crop?.type} with canopy ${getCanopyRadius()}";
+      }
+      else {
+        return "${crop?.type} growing in ${getArea()}${getUnit().name}";
+      }
     } catch (LazyInitializationException e) {
       return "${getArea()}${getUnit().name}"
     }

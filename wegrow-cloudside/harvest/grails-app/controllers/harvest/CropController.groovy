@@ -10,4 +10,11 @@ import grails.transaction.Transactional
 class CropController {
 
   static scaffold = Crop
+
+  @Secured("hasRole('ROLE_USER')")
+  def show(Crop crop) {
+    respond crop
+  }
+
+
 }
