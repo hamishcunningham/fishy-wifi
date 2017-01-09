@@ -4,9 +4,11 @@
 ### standard locals #########################################################
 alias cd='builtin cd'
 P="$0"
-USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-c command]\n
+USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-B base] [-c command]\n
 \n
 Commands: init, on, off, ...\n
+\n
+Base (00,01,02 or 03) is for use with command 10, as exposed in e.g. 'on'\n
 \n
 Factory defaults:\n
 MA0=0x55, MA1=0xAA, MAE=0x77, SL0=0x56, SL1=0xAB, SLE=0x78, FC=9600, CN=0xFE\n
@@ -18,12 +20,16 @@ Manual:\n
 http://smarthardware.eu/manual/str2do14din_doc.pdf
 "
 DBG=:
-OPTIONSTRING=hdc:
+OPTIONSTRING=hdc:B:
 
 ### specific locals ##########################################################
+MA0='55'
+MA1='AA'
+MAE='77'
+BC13='0D'
 COMM=":"
 PORT='/dev/ttyUSB0'
-BC13='0D'
+BASE=00
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
@@ -35,6 +41,7 @@ do
     h)	usage 0 ;;
     d)	DBG=echo ;;
     c)	COMM="${OPTARG}" ;;
+    B)	BASE="${OPTARG}" ;;
     *)	usage 1 ;;
   esac
 done 
@@ -61,14 +68,14 @@ bfi2bin() { # bit field index to binary
   fi
 }
 ris2hex() { # convert relay index set to hex; counts from R1
-  BITS1="" # first byte:  relays up to the 8th
-  BITS2="" # second byte: relays 9th to 16th
-  BITS3="" # third byte:  17th to 24th
-  BITS4="" # fourth byte: 25th to 32nd
-  BITS5="" # fifth byte:  33rd to 40th
-  BITS6="" # sixth byte:  41st to 48th
-  BITS7="" # seventh byte: 49th to 56th
-  BITS8="" # eighth byte: 57th to 64th
+  BITS1=""  # first byte:   relays up to the 8th
+  BITS2=""  # second byte:  relays 9th to 16th
+  BITS3=""  # third byte:   17th to 24th
+  BITS4=""  # fourth byte:  25th to 32nd
+  BITS5=""  # fifth byte:   33rd to 40th
+  BITS6=""  # sixth byte:   41st to 48th
+  BITS7=""  # seventh byte: 49th to 56th
+  BITS8=""  # eighth byte:  57th to 64th
 
   for r in `sort <<< $*`
   do
@@ -152,10 +159,10 @@ run-command() {
   echo -e "`form-command $*`" > ${PORT}
 }
 on() {
-  run-command 10 00 `ris2hex $*`
+  run-command 10 ${BASE} `ris2hex $*`
 }
 off() {
-  run-command 10 00 00 00 00 00 00 00 00 00
+  run-command 10 ${BASE} 00 00 00 00 00 00 00 00
 }
 hpr() { # print hex number in decimal and binary
   printf 'hex %X in decimal is %d and in base 2 is ' 0x$1 0x$1
