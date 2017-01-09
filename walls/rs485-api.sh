@@ -23,8 +23,7 @@ OPTIONSTRING=hdc:
 ### specific locals ##########################################################
 COMM=":"
 PORT='/dev/ttyUSB0'
-BC13=0D
-USEXYZ="1"
+BC13='0D'
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
