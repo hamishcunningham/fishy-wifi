@@ -55,9 +55,12 @@ init() {
 }
 readstatus() { # TODO what's going on with the temp file?!
 # TODO interpret results
-  od -t x1 -N13 < ${PORT} &2>od-out.txt &
+  $DBG "od -t x1 -N13 < ${PORT} &2>od-out.txt &"
+  #od -t x1 -N13 < ${PORT} &2>od-out.txt &
+  od -t x1 -N1 < ${PORT} &2>od-out.txt &
   sleep 1
-  echo -e "\x${MA0}\x${MA1}\x05\x0F\xFE\x14\x${MAE}" >${PORT}
+  #echo -e "\x${MA0}\x${MA1}\x06\x11\x01\x1A\x${MAE}" >${PORT}
+  echo -e "\x${MA0}\x${MA1}\x05\x0F\x01\x17\x${MAE}" >${PORT}
   sleep 1
   cat od-out.txt
 }
