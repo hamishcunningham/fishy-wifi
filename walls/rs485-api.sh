@@ -116,7 +116,7 @@ off() {
 }
 
 ### CLI access to procedures ################################################
-echo running $COMM $*
+echo running $COMM $* >&2
 $COMM $*
 
 ### test code and docs ######################################################
