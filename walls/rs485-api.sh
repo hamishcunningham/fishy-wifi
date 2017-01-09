@@ -63,10 +63,14 @@ bfi2bin() { # bit field index to binary
 ris2hex() { # convert relay index set to hex; counts from R1
   BITS1="" # first byte:  relays up to the 8th
   BITS2="" # second byte: relays 9th to 16th
-  BITS3="" # third byte:  relays 17th to 24th
-  BITS4="" # fourth byte: relays 25th to 32nd
+  BITS3="" # third byte:  17th to 24th
+  BITS4="" # fourth byte: 25th to 32nd
+  BITS5="" # fifth byte:  33rd to 40th
+  BITS6="" # sixth byte:  41st to 48th
+  BITS7="" # seventh byte: 49th to 56th
+  BITS8="" # eighth byte: 57th to 64th
 
-  for r in $*
+  for r in `sort <<< $*`
   do
     if [ $r -le 8 ]
     then
@@ -87,16 +91,39 @@ ris2hex() { # convert relay index set to hex; counts from R1
       r=$((r - 24))
       [ ! -z "$BITS4" ] && BITS4+=" | "
       BITS4+=2#`bfi2bin $r`
+    elif [ $r -le 40 ]
+    then
+      r=$((r - 32))
+      [ ! -z "$BITS5" ] && BITS5+=" | "
+      BITS5+=2#`bfi2bin $r`
+    elif [ $r -le 48 ]
+    then
+      r=$((r - 40))
+      [ ! -z "$BITS6" ] && BITS6+=" | "
+      BITS6+=2#`bfi2bin $r`
+    elif [ $r -le 56 ]
+    then
+      r=$((r - 48))
+      [ ! -z "$BITS7" ] && BITS7+=" | "
+      BITS7+=2#`bfi2bin $r`
+    elif [ $r -le 64 ]
+    then
+      r=$((r - 56))
+      [ ! -z "$BITS8" ] && BITS8+=" | "
+      BITS8+=2#`bfi2bin $r`
     fi
   done
   $DBG echo $* >&2
-  $DBG echo $BITS1 - $BITS2 - $BITS3 - $BITS4 >&2
-  BIN1=$(( $BITS1 ))
-  BIN2=$(( $BITS2 ))
-  BIN3=$(( $BITS3 ))
-  BIN4=$(( $BITS4 ))
-  $DBG printf '%02X %02X %02X %02X\n' $BIN1 $BIN2 $BIN3 $BIN4 >&2
-  printf '%02X %02X %02X %02X\n' $BIN1 $BIN2 $BIN3 $BIN4
+  $DBG echo $BITS1 - $BITS2 - $BITS3 - $BITS4 - \
+    $BITS5 - $BITS6 - $BITS7 - $BITS8 >&2
+  BIN1=$(( $BITS1 )); BIN2=$(( $BITS2 ))
+  BIN3=$(( $BITS3 )); BIN4=$(( $BITS4 ))
+  BIN5=$(( $BITS5 )); BIN6=$(( $BITS6 ))
+  BIN7=$(( $BITS7 )); BIN8=$(( $BITS8 ))
+  $DBG printf '%02X %02X %02X %02X %02X %02X %02X %02X\n' \
+    $BIN1 $BIN2 $BIN3 $BIN4 $BIN5 $BIN6 $BIN7 $BIN8 >&2
+  printf '%02X %02X %02X %02X %02X %02X %02X %02X\n' \
+    $BIN1 $BIN2 $BIN3 $BIN4 $BIN5 $BIN6 $BIN7 $BIN8
 }
 calculate-check-sum() {
   SUM="2 "
@@ -125,7 +152,7 @@ run-command() {
   echo -e "`form-command $*`" > ${PORT}
 }
 on() {
-  run-command 10 00 `ris2hex $*` 00 00 00 00
+  run-command 10 00 `ris2hex $*`
 }
 off() {
   run-command 10 00 00 00 00 00 00 00 00 00
