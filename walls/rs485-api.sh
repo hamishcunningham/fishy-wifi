@@ -55,7 +55,7 @@ init() {
 readstatus() { # TODO what's going on with the temp file?!
   od -t x1 -N13 < ${PORT} &2>od-out.txt &
   sleep 1
-  echo -e '\x55\xAA\x05\x0F\xFE\x14\x77' >${PORT}
+  echo -e "\x${MA0}\x${MA1}\x05\x0F\xFE\x14\x${MAE}" >${PORT}
   sleep 1
   cat od-out.txt
 }
@@ -145,13 +145,13 @@ calculate-check-sum() {
   echo ${S: -2}
 }
 form-command() {
-  C="\x55\xAA\x${BC13}"
+  C="\x${MA0}\x${MA1}\x${BC13}"
   for h in $*
   do
     C="${C}\x${h}"
   done
   CHECKSUM=`calculate-check-sum ${BC13} $*`
-  C="${C}\x${CHECKSUM}\x77"
+  C="${C}\x${CHECKSUM}\x${MAE}"
   echo $C
 }
 run-command() {
