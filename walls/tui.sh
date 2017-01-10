@@ -103,10 +103,12 @@ do_water_control() {
        "${SOLENOIDS_A[@]}" "
   SOLENOIDS=`bash -c "${C} 3>&1 1>&2 2>&3"`
   RET=$?
+  SOLENOIDS=`echo $SOLENOIDS |sed 's,",,g'`
   [ $RET -eq 1 ] && return 0
   [ $RET -eq 0 ] && \
     {
-      whiptail --msgbox "Preparing to water ${SOLENOIDS}" \
+      whiptail --msgbox \
+      "Preparing to water cartridges\n${SOLENOIDS}\n(get yer wellies on!)" \
         --title "Watering" \
         $WT_HEIGHT $(( $WT_WIDTH / 2 )) $WT_MENU_HEIGHT
       return 0
