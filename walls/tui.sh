@@ -51,7 +51,7 @@ calc_wt_size() {
   if [ "$WT_WIDTH" -gt 178 ]; then
     WT_WIDTH=120
   fi
-  WT_MENU_HEIGHT=$(($WT_HEIGHT-10))
+  WT_MENU_HEIGHT=$(($WT_HEIGHT-8))
 }
 calc_wt_size
 
@@ -62,6 +62,55 @@ do_about() {
 
     Version ${VERSION}.
     " $WT_HEIGHT $(( $WT_WIDTH / 2 )) $WT_MENU_HEIGHT
+}
+
+# control water supply solenoids
+PAD="                       "  # for whiptail formatting
+SOLENOIDS_A=(
+#  n=desciption=========================================default
+   1 "\"${PAD}\""       off
+   2 '" "'              off
+   3 '" "'              off
+   4 '" "'              off
+   5 '" "'              off
+   6 '" "'              off
+   7 '" "'              off
+   8 '" "'              off
+   9 '" "'              off
+  10 '" "'              off
+  11 '" "'              off
+  12 '" "'              off
+  13 '" "'              off
+  14 '" "'              off
+  15 '" "'              off
+  16 '" "'              off
+  17 '" "'              off
+  18 '" "'              off
+  19 '" "'              off
+  20 '" "'              off
+  21 '" "'              off
+  22 '" "'              off
+  23 '" "'              off
+  24 '" "'              off
+)
+SOLENOIDS=""
+do_water_control() {
+  TITLE='Specify Number of Cells'
+  C="whiptail --title \"${TITLE}\" \
+       --checklist \"Specify carts to water\" \
+       $WT_HEIGHT $(( $WT_WIDTH / 2 + 9 )) $WT_MENU_HEIGHT \
+       --cancel-button \"Cancel\" --ok-button \"Next\" \
+       "${SOLENOIDS_A[@]}" "
+  SOLENOIDS=`bash -c "${C} 3>&1 1>&2 2>&3"`
+  RET=$?
+  [ $RET -eq 1 ] && return 0
+  [ $RET -eq 0 ] && \
+    {
+      whiptail --msgbox "Preparing to water ${SOLENOIDS}" \
+        --title "Watering" \
+        $WT_HEIGHT $(( $WT_WIDTH / 2 )) $WT_MENU_HEIGHT
+      return 0
+    }
 }
 
 # main loop
