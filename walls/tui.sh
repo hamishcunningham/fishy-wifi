@@ -63,38 +63,50 @@ do_about() {
     Version ${VERSION}.
     " $WT_HEIGHT $(( $WT_WIDTH / 2 )) $WT_MENU_HEIGHT
 }
+do_cli_command() {
+  $CLI $*
+}
 
 # control water supply solenoids
-PAD="                       "  # for whiptail formatting
 SOLENOIDS_A=(
 #  n=desciption=========================================default
-   1 "\"${PAD}\""       off
-   2 '" "'              off
-   3 '" "'              off
-   4 '" "'              off
-   5 '" "'              off
-   6 '" "'              off
-   7 '" "'              off
-   8 '" "'              off
-   9 '" "'              off
-  10 '" "'              off
-  11 '" "'              off
-  12 '" "'              off
-  13 '" "'              off
-  14 '" "'              off
-  15 '" "'              off
-  16 '" "'              off
-  17 '" "'              off
-  18 '" "'              off
-  19 '" "'              off
-  20 '" "'              off
-  21 '" "'              off
-  22 '" "'              off
-  23 '" "'              off
-  24 '" "'              off
+   1 "\" \""    off
+   2 '" "'      off
+   3 '" "'      off
+   4 '" "'      off
+   5 '" "'      off
+   6 '" "'      off
+   7 '" "'      off
+   8 '" "'      off
+   9 '" "'      off
+  10 '" "'      off
+  11 '" "'      off
+  12 '" "'      off
+  13 '" "'      off
+  14 '" "'      off
+  15 '" "'      off
+  16 '" "'      off
+  17 '" "'      off
+  18 '" "'      off
+  19 '" "'      off
+  20 '" "'      off
+  21 '" "'      off
+  22 '" "'      off
+  23 '" "'      off
+  24 '" "'      off
 )
-SOLENOIDS=""
+get_solenoid() { echo ${SOLENOIDS_A[$(( ($1 * 3) - 1 ))]}; } # get $1 state
+set_solenoid() { SOLENOIDS_A[$(( ($1 * 3) - 1 ))]=$2; } # set $1 to state $2
+# set_solenoid 3 on
+do_get_solenoid_status() {
+  slen=$(( ${#SOLENOIDS_A[@]} / 3 ))
+  for i in `seq 1 ${slen}`
+  do
+    get_solenoid $i
+  done
+}
 do_water_control() {
+  do_get_solenoid_status
   TITLE='Specify Number of Cells'
   C="whiptail --title \"${TITLE}\" \
        --checklist \"Specify carts to water\" \
@@ -104,15 +116,32 @@ do_water_control() {
   SOLENOIDS=`bash -c "${C} 3>&1 1>&2 2>&3"`
   RET=$?
   SOLENOIDS=`echo $SOLENOIDS |sed 's,",,g'`
-  [ $RET -eq 1 ] && return 0
-  [ $RET -eq 0 ] && \
-    {
-      whiptail --msgbox \
-      "Preparing to water cartridges\n${SOLENOIDS}\n(get yer wellies on!)" \
-        --title "Watering" \
-        $WT_HEIGHT $(( $WT_WIDTH / 2 )) $WT_MENU_HEIGHT
-      return 0
-    }
+  if [ $RET -eq 1 ] 
+  then
+    return 0
+  elif [ $RET -eq 0 ]
+  then
+    whiptail --yesno \
+    "Preparing to water cartridges\n  ${SOLENOIDS}\n(get yer wellies on!)" \
+      --title "Watering" \
+      --no-button "Cancel" --yes-button "Go for it!" \
+      $WT_HEIGHT $(( $WT_WIDTH / 2 + 10 )) $WT_MENU_HEIGHT
+    RET=$?
+
+    if [ $RET -eq 1 ]
+    then 
+      MESS="Cancelled"
+    elif [ $RET -eq 0 ]
+    then 
+      do_cli_command -c on ${SOLENOIDS}
+      MESS="Command sent to wall. Good luck!"
+    else
+      MESS="Oops! Internal error, RET was ${RET}"
+    fi
+    whiptail --msgbox "${MESS}" 20 60 1
+    
+    return 0
+  fi
 }
 
 # main loop
