@@ -119,7 +119,7 @@ do_about() {
     " $WT_HEIGHT $(( $WT_WIDTH / 2 )) $WT_MENU_HEIGHT
 }
 do_water_control() {
-  TITLE='Specify Number of Cells'
+  TITLE='Control Water Supply'
   C="whiptail --title \"${TITLE}\" \
        --checklist \"Specify carts to water\" \
        $WT_HEIGHT $(( $WT_WIDTH / 2 + 9 )) $WT_MENU_HEIGHT \
