@@ -6,7 +6,7 @@ class Harvest {
   Double weight
   WeightUnit unit
   transient springSecurityService
-
+  Date dateCreated
   Double weightGrammes
 
   static belongsTo = [area:Area]

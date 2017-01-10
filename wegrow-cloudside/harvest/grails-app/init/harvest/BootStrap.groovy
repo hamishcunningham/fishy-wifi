@@ -9,10 +9,10 @@ class BootStrap {
       def adminRole = new Role(authority: 'ROLE_ADMIN').save()
       def userRole = new Role(authority: 'ROLE_USER').save()
 
-      def testUser = new User(username: 'me', password: 'x').save()
+      def testUser = new User(username: 'me', password: 'x', email: "me@example.com").save()
       UserRole.create testUser, userRole
 
-      def adminUser = new User(username: 'admin', password: 'x').save()
+      def adminUser = new User(username: 'admin', password: 'x', email:"admin@example.com").save()
 //      def garden = new Garden(areaMeters:100, yearsGrowing:25, isOrganic: false,
 //              submittingAllData: false, consentGiven: true, postCode: "S6", electronicSignature:"dom");
 //

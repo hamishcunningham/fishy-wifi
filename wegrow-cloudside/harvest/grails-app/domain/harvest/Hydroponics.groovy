@@ -8,7 +8,9 @@ class Hydroponics extends GrowingSpace {
         yearsGrowing()
         isOrganic()
         submittingAllData()
-        consentGiven()
+        consentGiven  validator: { value, object ->
+            value == true
+        }
         electronicSignature()
     }
 }

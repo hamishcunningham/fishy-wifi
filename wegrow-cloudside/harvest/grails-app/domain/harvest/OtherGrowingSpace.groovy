@@ -13,7 +13,6 @@ class OtherGrowingSpace extends PostcodeGrowingSpace {
         area()
         unit()
         yearsGrowing()
-        monthsGrowing()
         isOrganic()
         submittingAllData()
         consentGiven validator: { value, object ->

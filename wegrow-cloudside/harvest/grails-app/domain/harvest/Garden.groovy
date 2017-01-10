@@ -5,7 +5,7 @@ class Garden extends PostcodeGrowingSpace {
 		area bindable: true, display: true
 		postCode()
 		yearsGrowing()
-		monthsGrowing()
+
 		isOrganic()
 		submittingAllData()
 		consentGiven validator: { value, object ->

@@ -11,7 +11,7 @@ class Area {
   Double canopyRadius
   Boolean inGreenhouse
 
-  Boolean finished = false
+  Boolean finished
 
   def afterInsert() {
     if (space == null) {
@@ -92,15 +92,13 @@ class Area {
     }
 
     unit display: false, bindable: true, nullable: true
-    finished display: false, nullable: true
+    finished nullable: true
     harvests display: false
 
 
   }
 
-  static mapping = {
-    finished column: "finished", defaultValue: false
-  }
+
 
 
   Double getArea() {
@@ -167,7 +165,7 @@ class Area {
       def growingSpace = currentUser.growingSpace
 
       return Area.where {
-        space == growingSpace && finished == false
+        space == growingSpace && (finished != true)
       }
     }
   }

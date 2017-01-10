@@ -26,6 +26,7 @@ class GrowingSpace {
     }
 
     static constraints = {
+        monthsGrowing(display:false)
         typeLabel display:false, bindable:false
         user nullable: true, display: false
         harvests display: false

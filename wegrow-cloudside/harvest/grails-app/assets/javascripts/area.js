@@ -1,6 +1,8 @@
 $(function() {
     var updateSelectedCrop = function (cropId) {
-        $.getJSON("/crop/show.json", {id:cropId}, hideOrShowAreaFields);
+        if (cropId) {
+            $.getJSON("/crop/show.json", {id:cropId}, hideOrShowAreaFields);
+        }
     }
     var hideOrShowAreaFields = function (cropData) {
         if (cropData.isTree) {

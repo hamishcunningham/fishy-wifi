@@ -15,6 +15,7 @@ class User implements Serializable {
 	WeightUnit preferredWeightUnit = WeightUnit.GRAMMES
 
 	String username
+	String email
 	String password
 	boolean enabled = true
 	boolean accountExpired

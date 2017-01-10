@@ -27,10 +27,14 @@
             </g:hasErrors>
             <g:form action="save">
                 <fieldset class="form">
-                    <f:allWTransients bean="area"/>
+                    <f:field bean="area" property="crop"/>
+                    <f:field bean="area" property="area"/>
+                    <f:field bean="area" property="canopyRadius"/>
+                    <f:field bean="area" property="inGreenhouse"/>
                 </fieldset>
+
                 <fieldset class="buttons">
-                    <g:submitButton name="create" class="save" value="${message(code: 'default.button.create.label', default: 'Create')}" />
+                    <g:submitButton name="create" class="save btn btn-primary" value="${message(code: 'default.button.create.label', default: 'Create')}" />
                 </fieldset>
             </g:form>
         </div>

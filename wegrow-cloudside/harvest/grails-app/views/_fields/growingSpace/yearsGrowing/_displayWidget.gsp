@@ -1,0 +1,1 @@
+${value} years and ${bean.monthsGrowing} months

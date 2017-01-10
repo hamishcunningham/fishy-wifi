@@ -18,13 +18,15 @@ class AreaController {
     SpringSecurityService springSecurityService;
 
     def index(Integer max) {
-        def areas = Area.visibleAreas()
+        def currentUser = springSecurityService?.currentUser
+
+        def areas = Area.visibleAreas(currentUser)
         respond areas.findAll(), model:[areaCount: areas.count()]
 
     }
 
     def show(Area area) {
-        response areacro
+        respond area
     }
 
     def create(params) {
@@ -59,6 +61,8 @@ class AreaController {
             notFound()
             return
         }
+
+        area.finished = false
 
         area.save flush:true
 

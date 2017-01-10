@@ -6,6 +6,8 @@
         <title><g:message code="default.edit.label" args="[entityName]" /></title>
     </head>
     <body>
+
+
         <div id="edit-preferences" class="content scaffold-edit" role="main">
             <h1><g:message code="user.preferences.title" default="User Preferences" /></h1>
             <g:if test="${flash.message}">

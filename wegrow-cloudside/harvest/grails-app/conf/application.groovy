@@ -6,6 +6,8 @@ grails.plugin.springsecurity.authority.className = 'harvest.Role'
 
 grails.plugin.springsecurity.controllerAnnotations.staticRules = [
   [pattern: '/',               access: ['permitAll']],
+  [pattern: '/greenmail/**',        access: ['permitAll']],
+
   [pattern: '/error',          access: ['permitAll']],
   [pattern: '/index',          access: ['permitAll']],
   [pattern: '/index_default.gsp',      access: ['permitAll']],
@@ -17,8 +19,9 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
   [pattern: '/**/favicon.ico', access: ['permitAll']],
   [pattern: '/console/**',        access: 'ROLE_ADMIN'],
   [pattern: '/static/console/**', access: 'ROLE_ADMIN'],
-
   [pattern: '/user/**',        access: 'ROLE_ADMIN'],
+
+  [pattern: '/user/**',        access: ['ROLE_ADMIN']],
   [pattern: '/admin/**',       access: ['ROLE_ADMIN', 'isFullyAuthenticated()']],
   [pattern: '/login/**',       access: ['permitAll']],
   [pattern: '/logout/**',      access: ['permitAll']],
@@ -42,3 +45,19 @@ grails.plugin.springsecurity.roleHierarchy = '''
 // TODO delete this when logout changed to POST in gsps; see
 // https://grails-plugins.github.io/grails-spring-security-core/v3/index.html
 grails.plugin.springsecurity.logout.postOnly = false
+grails.plugin.springsecurity.ui.register.defaultRoleNames = ['ROLE_USER']
+grails.plugin.springsecurity.ui.register.postRegisterUrl = '/growingSpace/create'
+
+environments {
+    production {
+        grails.serverURL = "http://www.changeme.com"
+    }
+    development {
+        grails.mail.port = com.icegreen.greenmail.util.ServerSetupTest.SMTP.port
+        grails.serverURL = "http://localhost:8080/"
+    }
+    test {
+        grails.mail.port = com.icegreen.greenmail.util.ServerSetupTest.SMTP.port
+        grails.serverURL = "http://localhost:8080/"
+    }
+}

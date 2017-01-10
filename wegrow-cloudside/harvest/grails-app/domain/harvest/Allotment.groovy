@@ -8,11 +8,11 @@ class Allotment extends GrowingSpace {
     static constraints = {
         user(display: false)
         siteName()
+        address()
         visitsPerWeek()
         area()
         unit()
         yearsGrowing()
-        monthsGrowing()
         isOrganic()
         submittingAllData()
         consentGiven validator: { value, object ->

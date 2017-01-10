@@ -16,23 +16,29 @@ class HarvestController {
 
     def index(Integer max) {
         def harvests = Harvest.visibleHarvests(springSecurityService.currentUser)
+        def data = harvests.findAll().collect { Harvest harvest ->
+            [
+                    email: harvest.area.space.user.email,
+                    id: harvest.id,
+                    area_id: harvest.area.id,
+                    area_m2: harvest.area.areaMeters,
+                    crop: harvest.area.crop,
+                    logged_at: harvest.dateCreated,
+                    yield_m2: harvest.weightGrammes / harvest.area.areaMeters,
+                    weight_g: harvest.weightGrammes,
+                    type: harvest.area.space.typeLabel,
+                    organic: harvest.area.space.isOrganic,
+                    all_data: harvest.area.space.submittingAllData,
+                    growing_space: harvest.area.space.typeLabel
+            ]
+        }
 
         if (params?.f) {
-            def data = harvests.findAll().collect { harvest ->
-                [
-                        id: harvest.id,
-                        area_id: harvest.area.id,
-                        area_m2: harvest.area.area,
-                        crop: harvest.area.crop,
-                        weight_g: harvest.weight,
-                        type: harvest.area.space.typeLabel,
-                        organic: harvest.area.space.isOrganic,
-                        all_data: harvest.area.space.submittingAllData,
-                        growingSpace: harvest.area.space.growingSpace
-
-                ]
-            }
             def fields = ["id",
+                          "logged_at",
+                          "growing_space",
+                          "email",
+                          "yield_m2",
                           "area_id",
                           "area_m2",
                           "weight_g",
@@ -50,7 +56,7 @@ class HarvestController {
                 exportService.export(params.f, response.outputStream, data, fields, [:],[:],[:])
             }
         } else {
-            respond harvests.findAll()
+            respond harvestList: data
         }
     }
 
@@ -95,14 +101,14 @@ class HarvestController {
 
         harvest.save flush:true
 
-        harvest.area.finished = cropFinished
+        harvest.area.finished = (cropFinished == true)
         harvest.area.save()
 
 
         request.withFormat {
             form multipartForm {
-                flash.message = message(code: 'default.created.message', args: [message(code: 'harvest.label', default: 'Harvest'), harvest.id])
-                redirect action: "create"
+                flash.message = message(code:"harvest.logged");
+                redirect action: "index"
             }
             '*' { respond harvest, [status: CREATED] }
         }

@@ -2,6 +2,7 @@ package harvest
 import grails.plugin.formfields.FormFieldsTagLib
 import grails.core.GrailsDomainClass
 import grails.core.GrailsDomainClassProperty
+import grails.plugin.springsecurity.ui.CommandObject
 import org.grails.validation.DomainClassPropertyComparator
 
 import static grails.util.GrailsClassUtils.getStaticPropertyValue
@@ -49,13 +50,14 @@ class FormFieldsHackTagLib extends FormFieldsTagLib  {
         if (!attrs.bean) throwTagError("Tag [allWTransients] is missing required attribute [bean]")
         def bean = resolveBean(attrs.bean)
         def domainClass = resolveDomainClass(bean)
+
         def prefix = resolvePrefix(attrs.prefix)
 
         if (domainClass) {
             for (property in resolveAllProperties(domainClass, attrs)) {
                 out << f.field(bean: bean, property: property.name, prefix: prefix)
             }
-        } else {
+        }  else {
             throwTagError('Tag [allWTransients] currently only supports domain types')
         }
     }
