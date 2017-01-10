@@ -19,7 +19,7 @@ usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
 
 # write a log; get recent log entries
 log() { logger "${LOG_STRING}: $*"; }
-log_grep() { grep -i $LOG_STRING /var/log/syslog |tail -${WT_HEIGHT}; }
+log_grep() { grep -i $LOG_STRING /var/log/syslog |tail -15; }
 
 # process options
 while getopts $OPTIONSTRING OPTION
@@ -86,9 +86,16 @@ SOLENOIDS_A=(
   22 '" "'      off
   23 '" "'      off
   24 '" "'      off
+  25 '" "'      off
+  26 '" "'      off
+  27 '" "'      off
+  28 '" "'      off
 )
 get_solenoid() { echo ${SOLENOIDS_A[$(( ($1 * 3) - 1 ))]}; } # get $1 state
 set_solenoid() { SOLENOIDS_A[$(( ($1 * 3) - 1 ))]=$2; } # set $1 to state $2
+clear_solenoid_state() {
+  for i in `seq 1 $(( ${#SOLENOIDS_A[@]} / 3 ))`; do set_solenoid $i off; done
+}
 print_solenoid_state() {
   slen=$(( ${#SOLENOIDS_A[@]} / 3 ))
   for i in `seq 1 ${slen}`
@@ -139,8 +146,9 @@ do_water_control() {
     elif [ $RET -eq 0 ]
     then 
       cli_command -c on ${SOLENOIDS}
+      clear_solenoid_state
       for s in ${SOLENOIDS}; do set_solenoid $s on; done
-      log "wrote ${SOLENOIDS} to board"
+      log "wrote <<${SOLENOIDS}>> to board"
       MESS="Command sent to wall. Good luck!"
     else
       MESS="Oops! Internal error, RET was ${RET}"
@@ -177,7 +185,7 @@ while true; do
       2\ *) whiptail --title "Status" --msgbox \
               "`print_solenoid_state |pr -e -t2 -w76 |expand`" \
               $WT_HEIGHT 78 1 ;;
-      3\ *) whiptail --title "Log Entries" --msgbox \
+      3\ *) whiptail --title "Recent Log Entries" --msgbox \
               "`log_grep`" $WT_HEIGHT $WT_WIDTH 1 ;;
       4\ *) do_about ;;
       *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
