@@ -97,16 +97,20 @@ SOLENOIDS_A=(
 )
 get_solenoid() { echo ${SOLENOIDS_A[$(( ($1 * 3) - 1 ))]}; } # get $1 state
 set_solenoid() { SOLENOIDS_A[$(( ($1 * 3) - 1 ))]=$2; } # set $1 to state $2
-# set_solenoid 3 on
-do_get_solenoid_status() {
+print_solenoid_state() {
   slen=$(( ${#SOLENOIDS_A[@]} / 3 ))
   for i in `seq 1 ${slen}`
   do
+    printf "%2d: " ${i}
     get_solenoid $i
   done
 }
+read_board() {
+  # TODO set SOLENOIDS_A state according to board state
+  # e.g. set_solenoid 3 on
+  :
+}
 do_water_control() {
-  do_get_solenoid_status
   TITLE='Specify Number of Cells'
   C="whiptail --title \"${TITLE}\" \
        --checklist \"Specify carts to water\" \
@@ -144,8 +148,12 @@ do_water_control() {
   fi
 }
 
-# main loop
+# initialisation
 clear
+do_cli_command -c init  # configure USB port
+read_board              # read board & init internal model of solenoid state
+
+# main loop
 while true; do
   SEL=$(whiptail --title "Text mode wall UI (tui)" \
     --menu "\n" \
@@ -163,7 +171,8 @@ while true; do
     case "$SEL" in
       1\ *) do_water_control ;;
       2\ *) whiptail --title "Status" --msgbox \
-              "`${CLI} -e |pr -e -t2 -w76 |expand`" $WT_HEIGHT 78 1 ;;
+              "`print_solenoid_state |pr -e -t2 -w76 |expand`" \
+              $WT_HEIGHT 78 1 ;;
       3\ *) whiptail --title "Log Entries" --msgbox \
               "`do_log_grep`" $WT_HEIGHT $WT_WIDTH 1 ;;
       4\ *) do_about ;;

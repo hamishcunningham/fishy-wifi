@@ -53,7 +53,7 @@ init() {
   stty -F ${PORT} sane
   stty -F ${PORT} 9600 cs8 -cstopb -parenb raw -echo
 }
-readstatus() { # TODO what's going on with the temp file?!
+read_status() { # TODO what's going on with the temp file?!
 # TODO interpret results
 # $DBG "od -t x1 -N15 < ${PORT} &2>od-out.txt &"
 # od -t x1 -N13 < ${PORT} &2>od-out.txt &
@@ -168,7 +168,7 @@ ris2hex() { # convert relay index set to hex; counts from R1
   printf '%02X %02X %02X %02X %02X %02X %02X %02X\n' \
     $BIN1 $BIN2 $BIN3 $BIN4 $BIN5 $BIN6 $BIN7 $BIN8
 }
-calculate-check-sum() {
+calculate_check_sum() {
   SUM="2 "
   for h in $*
   do
@@ -180,25 +180,25 @@ calculate-check-sum() {
   $DBG S = $S >&2
   echo ${S: -2}
 }
-form-command() {
+form_command() {
   C="\x${MA0}\x${MA1}\x${BC13}"
   for h in $*
   do
     C="${C}\x${h}"
   done
-  CHECKSUM=`calculate-check-sum ${BC13} $*`
+  CHECKSUM=`calculate_check_sum ${BC13} $*`
   C="${C}\x${CHECKSUM}\x${MAE}"
   echo $C
 }
-run-command() {
-  $DBG "echo -e "`form-command $*`" > ${PORT}" >&2
-  echo -e "`form-command $*`" > ${PORT}
+run_command() {
+  $DBG "echo -e "`form_command $*`" > ${PORT}" >&2
+  echo -e "`form_command $*`" > ${PORT}
 }
 on() {
-  run-command 10 ${BASE} `ris2hex $*`
+  run_command 10 ${BASE} `ris2hex $*`
 }
 off() {
-  run-command 10 ${BASE} 00 00 00 00 00 00 00 00
+  run_command 10 ${BASE} 00 00 00 00 00 00 00 00
 }
 hpr() { # print hex number in decimal and binary
   printf 'hex %X in decimal is %d and in base 2 is ' 0x$1 0x$1
@@ -217,10 +217,10 @@ $COMM $*
 # R8 / 9th;  \x55\xAA\x0D\x10\x00\x00\x01\x00\x00\x00\x00\x00\x00\x20\x77
 # R9 / 10th; \x55\xAA\x0D\x10\x00\x00\x02\x00\x00\x00\x00\x00\x00\x21\x77
 #
-test-relay-on() {
-  run-command 10 00 07 00 00 00 00 00 00 00
+test_relay_on() {
+  run_command 10 00 07 00 00 00 00 00 00 00
   sleep 2
-  run-command 10 00 00 00 00 00 00 00 00 00
+  run_command 10 00 00 00 00 00 00 00 00 00
 }
 doit() {
   echo turn it on... >&2
