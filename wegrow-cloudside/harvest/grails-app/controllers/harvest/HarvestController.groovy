@@ -14,9 +14,12 @@ class HarvestController {
     SpringSecurityService springSecurityService;
     def exportService
 
-    def index(Integer max) {
+    def index(Integer offset, Integer max) {
         def harvests = Harvest.visibleHarvests(springSecurityService.currentUser)
-        def data = harvests.findAll().collect { Harvest harvest ->
+        max = max?:10
+        offset = offset != null? offset :0
+
+        def data = harvests.list(max: max, offset: offset).collect { Harvest harvest ->
             [
                     email: harvest.area.space.user.email,
                     id: harvest.id,
@@ -29,7 +32,9 @@ class HarvestController {
                     type: harvest.area.space.typeLabel,
                     organic: harvest.area.space.isOrganic,
                     all_data: harvest.area.space.submittingAllData,
-                    growing_space: harvest.area.space.typeLabel
+                    growing_space: harvest.area.space.typeLabel,
+                    radius: harvest.area.canopyRadius,
+                    in_greenhouse: harvest.area.inGreenhouse
             ]
         }
 
@@ -41,10 +46,12 @@ class HarvestController {
                           "yield_m2",
                           "area_id",
                           "area_m2",
+                          "radius",
                           "weight_g",
                           "crop",
                           "type",
                           "organic",
+                          "in_greenhouse",
                           "all_data"]
 
             if (data.isEmpty()) {
@@ -56,17 +63,17 @@ class HarvestController {
                 exportService.export(params.f, response.outputStream, data, fields, [:],[:],[:])
             }
         } else {
-            respond harvestList: data
+            respond harvestList: data, harvestCount: harvests.count()
         }
     }
 
     def show(Harvest harvest) {
-      if (harvest.area.space == springSecurityService.currentUser.growingSpace ||
-        SpringSecurityUtils.ifAllGranted("ROLE_ADMIN"))  {
-        respond harvest
-      } else {
-        notFound()
-      }
+        if (harvest.area.space == springSecurityService.currentUser.growingSpace ||
+                SpringSecurityUtils.ifAllGranted("ROLE_ADMIN"))  {
+            respond harvest
+        } else {
+            notFound()
+        }
     }
 
     def create() {
