@@ -17,8 +17,9 @@ VERSION=0.000001
 # message & exit if exit num present
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
 
-# get recent log entries
-do_log_grep() { grep -i $LOG_STRING /var/log/syslog |tail -${WT_HEIGHT}; }
+# write a log; get recent log entries
+log() { logger "${LOG_STRING}: $*"; }
+log_grep() { grep -i $LOG_STRING /var/log/syslog |tail -${WT_HEIGHT}; }
 
 # process options
 while getopts $OPTIONSTRING OPTION
@@ -27,7 +28,7 @@ do
     h)	usage 0 ;;
     v)	echo $P is at version $VERSION; exit 0 ;;
     d)	DBG=echo; CLI=echo ;;
-    l)  do_log_grep; exit 0 ;;
+    l)  log_grep; exit 0 ;;
     *)	usage 3 ;;
   esac
 done 
@@ -55,17 +56,8 @@ calc_wt_size() {
 }
 calc_wt_size
 
-# menu actions etc.
-do_about() {
-  whiptail --title "About" --msgbox "\
-    This is a control tool for Aquaponic Green Walls.
-
-    Version ${VERSION}.
-    " $WT_HEIGHT $(( $WT_WIDTH / 2 )) $WT_MENU_HEIGHT
-}
-do_cli_command() {
-  $CLI $*
-}
+# helper functions
+cli_command() { $CLI $*; }
 
 # control water supply solenoids
 SOLENOIDS_A=(
@@ -110,6 +102,15 @@ read_board() {
   # e.g. set_solenoid 3 on
   :
 }
+
+# menu actions etc.
+do_about() {
+  whiptail --title "About" --msgbox "\
+    This is a control tool for Aquaponic Green Walls.
+
+    Version ${VERSION}.
+    " $WT_HEIGHT $(( $WT_WIDTH / 2 )) $WT_MENU_HEIGHT
+}
 do_water_control() {
   TITLE='Specify Number of Cells'
   C="whiptail --title \"${TITLE}\" \
@@ -137,7 +138,9 @@ do_water_control() {
       MESS="Cancelled"
     elif [ $RET -eq 0 ]
     then 
-      do_cli_command -c on ${SOLENOIDS}
+      cli_command -c on ${SOLENOIDS}
+      for s in ${SOLENOIDS}; do set_solenoid $s on; done
+      log "wrote ${SOLENOIDS} to board"
       MESS="Command sent to wall. Good luck!"
     else
       MESS="Oops! Internal error, RET was ${RET}"
@@ -150,8 +153,9 @@ do_water_control() {
 
 # initialisation
 clear
-do_cli_command -c init  # configure USB port
-read_board              # read board & init internal model of solenoid state
+cli_command -c init  # configure USB port
+read_board           # read board & init internal model of solenoid state
+log initialised
 
 # main loop
 while true; do
@@ -174,7 +178,7 @@ while true; do
               "`print_solenoid_state |pr -e -t2 -w76 |expand`" \
               $WT_HEIGHT 78 1 ;;
       3\ *) whiptail --title "Log Entries" --msgbox \
-              "`do_log_grep`" $WT_HEIGHT $WT_WIDTH 1 ;;
+              "`log_grep`" $WT_HEIGHT $WT_WIDTH 1 ;;
       4\ *) do_about ;;
       *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $SEL" 20 60 1
