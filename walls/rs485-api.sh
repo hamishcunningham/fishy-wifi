@@ -55,14 +55,45 @@ init() {
 }
 readstatus() { # TODO what's going on with the temp file?!
 # TODO interpret results
-  $DBG "od -t x1 -N13 < ${PORT} &2>od-out.txt &"
-  #od -t x1 -N13 < ${PORT} &2>od-out.txt &
+# $DBG "od -t x1 -N15 < ${PORT} &2>od-out.txt &"
+# od -t x1 -N13 < ${PORT} &2>od-out.txt &
+# sleep 1
+  #$DBG "echo -e "\x${MA0}\x${MA1}\x06\x11\x01\x00\x1A\x${MAE}" >${PORT}"
+  #echo -e "\x${MA0}\x${MA1}\x06\x11\x01\x00\x1A\x${MAE}" >${PORT}
+
+#<0x11> Read Digital Outputs ...
+#-> 55 AA 06 11 01 00 1A 77
+#<- 56 AB 0D 01 00 00 00 00 00 00 00 00 00 10 78
+#<0x11> Read Digital Outputs ...
+#-> 55 AA 06 11 02 00 1B 77
+#<- 56 AB 0D 02 00 00 00 00 00 00 00 00 00 11 78
+
+echo read from controller 1, then 2
+set -x
+init
+sleep 1
+od -t x1 -N14 </dev/ttyUSB0 &
+echo -e '\x55\xAA\x06\x11\x01\x00\x1A\x77' >/dev/ttyUSB0
+sleep 1
+init
+sleep 1
+od -t x1 -N14 </dev/ttyUSB0 &
+echo -e '\x55\xAA\x06\x11\x02\x00\x1B\x77' >/dev/ttyUSB0 
+sleep 1
+return
+
+  # get status of outputs
+  od -t x1 -N1 <${PORT}
   od -t x1 -N1 < ${PORT} &2>od-out.txt &
+  #echo -e "\x55\xAA\x06\x11\x01\x00\x1A\x77" >${PORT}
   sleep 1
-  #echo -e "\x${MA0}\x${MA1}\x06\x11\x01\x1A\x${MAE}" >${PORT}
-  echo -e "\x${MA0}\x${MA1}\x05\x0F\x01\x17\x${MAE}" >${PORT}
-  sleep 1
-  cat od-out.txt
+
+  # get type etc. from controller 01
+# CN=01
+# od -t x1 -N13 < ${PORT} &2>od-out.txt &
+# sleep 1
+# echo -e "\x${MA0}\x${MA1}\x05\x0F\x${CN}\x17\x${MAE}" >${PORT}
+# sleep 1
 }
 bfi2bin() { # bit field index to binary
   if [ $1 -eq 1 ]
