@@ -4,10 +4,12 @@
 ### standard locals #########################################################
 alias cd='builtin cd'
 P="$0"
-USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-B base] [-c command]\n
+USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-B base] [-C(controller num)] [-c command]\n
 \n
 A CLI API for the STR2DO14DIN RS-485 controller.\n
 Commands: init, on, off, ...\n
+\n
+Controller (00,01,...) is for use with command 11, as exposed in e.g. 'read_status'\n
 \n
 Base (00,01,02 or 03) is for use with command 10, as exposed in e.g. 'on'\n
 \n
@@ -21,15 +23,17 @@ Manual:\n
 http://smarthardware.eu/manual/str2do14din_doc.pdf
 "
 DBG=:
-OPTIONSTRING=hdc:B:
+OPTIONSTRING=hdc:B:C:
 
 ### specific locals ##########################################################
 MA0='55'
 MA1='AA'
 MAE='77'
+BC06='06'
 BC13='0D'
 COMM=":"
 PORT='/dev/ttyUSB0'
+CN=00
 BASE=00
 
 ### message & exit if exit num present ######################################
@@ -43,6 +47,7 @@ do
     d)	DBG=echo ;;
     c)	COMM="${OPTARG}" ;;
     B)	BASE="${OPTARG}" ;;
+    C)	CN="${OPTARG}" ;;
     *)	usage 1 ;;
   esac
 done 
@@ -53,47 +58,9 @@ init() {
   stty -F ${PORT} sane
   stty -F ${PORT} 9600 cs8 -cstopb -parenb raw -echo
 }
-read_status() { # TODO what's going on with the temp file?!
-# TODO interpret results
-# $DBG "od -t x1 -N15 < ${PORT} &2>od-out.txt &"
-# od -t x1 -N13 < ${PORT} &2>od-out.txt &
-# sleep 1
-  #$DBG "echo -e "\x${MA0}\x${MA1}\x06\x11\x01\x00\x1A\x${MAE}" >${PORT}"
-  #echo -e "\x${MA0}\x${MA1}\x06\x11\x01\x00\x1A\x${MAE}" >${PORT}
-
-#<0x11> Read Digital Outputs ...
-#-> 55 AA 06 11 01 00 1A 77
-#<- 56 AB 0D 01 00 00 00 00 00 00 00 00 00 10 78
-#<0x11> Read Digital Outputs ...
-#-> 55 AA 06 11 02 00 1B 77
-#<- 56 AB 0D 02 00 00 00 00 00 00 00 00 00 11 78
-
-echo read from controller 1, then 2
-set -x
-init
-sleep 1
-od -t x1 -N14 </dev/ttyUSB0 &
-echo -e '\x55\xAA\x06\x11\x01\x00\x1A\x77' >/dev/ttyUSB0
-sleep 1
-init
-sleep 1
-od -t x1 -N14 </dev/ttyUSB0 &
-echo -e '\x55\xAA\x06\x11\x02\x00\x1B\x77' >/dev/ttyUSB0 
-sleep 1
-return
-
-  # get status of outputs
-  od -t x1 -N1 <${PORT}
-  od -t x1 -N1 < ${PORT} &2>od-out.txt &
-  #echo -e "\x55\xAA\x06\x11\x01\x00\x1A\x77" >${PORT}
-  sleep 1
-
-  # get type etc. from controller 01
-# CN=01
-# od -t x1 -N13 < ${PORT} &2>od-out.txt &
-# sleep 1
-# echo -e "\x${MA0}\x${MA1}\x05\x0F\x${CN}\x17\x${MAE}" >${PORT}
-# sleep 1
+read_status() { # TODO interpret results
+  run_command -b ${BC06} 11 ${CN} 00 &
+  hd -n 15 <${PORT} |cut -c 11- |cut -d '|' -f 1
 }
 bfi2bin() { # bit field index to binary
   if [ $1 -eq 1 ]
@@ -181,18 +148,22 @@ calculate_check_sum() {
   echo ${S: -2}
 }
 form_command() {
-  C="\x${MA0}\x${MA1}\x${BC13}"
+  BC=${BC13}
+  [ x$1 = x-b ] && { BC=$2; shift; shift; }
+  C="\x${MA0}\x${MA1}\x${BC}"
   for h in $*
   do
     C="${C}\x${h}"
   done
-  CHECKSUM=`calculate_check_sum ${BC13} $*`
+  CHECKSUM=`calculate_check_sum ${BC} $*`
   C="${C}\x${CHECKSUM}\x${MAE}"
+  echo "`echo ${C} |sed 's,\\\x, ,g'`" >&2
   echo $C
 }
 run_command() {
-  $DBG "echo -e "`form_command $*`" > ${PORT}" >&2
-  echo -e "`form_command $*`" > ${PORT}
+  C="`form_command $*`"
+  $DBG "echo -ne ${C} > ${PORT}" >&2
+  echo -ne "${C}" > ${PORT}
 }
 on() {
   run_command 10 ${BASE} `ris2hex $*`
@@ -224,11 +195,11 @@ test_relay_on() {
 }
 doit() {
   echo turn it on... >&2
-  echo -e "\x55\xAA\x0D\x10\x00\x01\x00\x00\x00\x00\x00\x00\x00\x20\x77" \
+  echo -ne "\x55\xAA\x0D\x10\x00\x01\x00\x00\x00\x00\x00\x00\x00\x20\x77" \
     > ${PORT} 
   sleep 2
   echo turn it off >&2
-  echo -e "\x55\xAA\x0D\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x77" \
+  echo -ne "\x55\xAA\x0D\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x77" \
     > ${PORT}
   sleep 2
 }
