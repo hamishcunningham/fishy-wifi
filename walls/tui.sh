@@ -174,7 +174,8 @@ while true; do
       "1 Watering"              "Control water supply to the wall" \
       "2 Status"                "Show current status from the wall" \
       "3 Show Log Entries"      "Show the most recent log entries" \
-      "4 About"                 "Information about this tool" \
+      "4 TODO list"             "What's on the development stack?" \
+      "9 About"                 "Information about this tool" \
     3>&1 1>&2 2>&3)
   RET=$?
   if [ $RET -eq 1 ]; then
@@ -187,7 +188,12 @@ while true; do
               $WT_HEIGHT 78 1 ;;
       3\ *) whiptail --title "Recent Log Entries" --msgbox \
               "`log_grep`" $WT_HEIGHT $WT_WIDTH 1 ;;
-      4\ *) do_about ;;
+      # TODO s
+      4\ *) whiptail --title "TODOs" --msgbox \
+"Add ability to specify an on time per solenoid.
+Get it to make tea.
+"             $WT_HEIGHT $WT_WIDTH 1 ;;
+      9\ *) do_about ;;
       *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $SEL" 20 60 1
   else
