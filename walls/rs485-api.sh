@@ -23,6 +23,9 @@ Manual:\n
 http://smarthardware.eu/manual/str2do14din_doc.pdf
 "
 DBG=:
+RED='\033[0;31m'   # red
+GREEN='\033[0;32m' #green
+NC='\033[0m'       # no color
 OPTIONSTRING=hdc:B:C:
 
 ### specific locals ##########################################################
@@ -123,15 +126,13 @@ ris2hex() { # convert relay index set to hex; counts from R1
       BITS8+=2#`bfi2bin $r`
     fi
   done
-  $DBG echo $* >&2
-  $DBG echo $BITS1 - $BITS2 - $BITS3 - $BITS4 - \
-    $BITS5 - $BITS6 - $BITS7 - $BITS8 >&2
+  $DBG -e "${RED}$*${NC}" >&2
+  $DBG -e "${RED}$BITS1 - $BITS2 - $BITS3 - $BITS4 - \
+    $BITS5 - $BITS6 - $BITS7 - $BITS8${NC}" >&2
   BIN1=$(( $BITS1 )); BIN2=$(( $BITS2 ))
   BIN3=$(( $BITS3 )); BIN4=$(( $BITS4 ))
   BIN5=$(( $BITS5 )); BIN6=$(( $BITS6 ))
   BIN7=$(( $BITS7 )); BIN8=$(( $BITS8 ))
-  $DBG printf '%02X %02X %02X %02X %02X %02X %02X %02X\n' \
-    $BIN1 $BIN2 $BIN3 $BIN4 $BIN5 $BIN6 $BIN7 $BIN8 >&2
   printf '%02X %02X %02X %02X %02X %02X %02X %02X\n' \
     $BIN1 $BIN2 $BIN3 $BIN4 $BIN5 $BIN6 $BIN7 $BIN8
 }
@@ -142,9 +143,9 @@ calculate_check_sum() {
     SUM="${SUM} + 0x${h}"
   done
   SUM="\$((${SUM}))"
-  $DBG SUM = $SUM >&2
+  $DBG -e "${RED}SUM = $SUM${NC}" >&2
   S=`bash -c "printf '%X\n' ${SUM}"`
-  $DBG S = $S >&2
+  $DBG -e "${RED}S = $S${NC}" >&2
   echo ${S: -2}
 }
 form_command() {
@@ -157,12 +158,12 @@ form_command() {
   done
   CHECKSUM=`calculate_check_sum ${BC} $*`
   C="${C}\x${CHECKSUM}\x${MAE}"
-  echo "`echo ${C} |sed 's,\\\x, ,g'`" >&2
+  echo -e "${RED}`echo ${C} |sed 's,\\\x, ,g'`${NC}" >&2
   echo $C
 }
 run_command() {
   C="`form_command $*`"
-  $DBG "echo -ne ${C} > ${PORT}" >&2
+  $DBG -ne "$RED" >&2; $DBG -n "echo -ne ${C} > ${PORT}" >&2; $DBG -e "$NC"
   echo -ne "${C}" > ${PORT}
 }
 on() {
@@ -177,7 +178,7 @@ hpr() { # print hex number in decimal and binary
 }
 
 ### CLI access to procedures ################################################
-echo running $COMM $* >&2
+echo -e "${RED}running $COMM $*${NC}" >&2
 $COMM $*
 
 ### test code and docs ######################################################
