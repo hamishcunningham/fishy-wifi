@@ -107,14 +107,8 @@ print_solenoid_state() {
   done
 }
 read_board() { # grungey late-night code: enter at your peril!
-  # TODO set SOLENOIDS_A state according to board state
-  # e.g. set_solenoid 3 on
   for CN in `seq 1 $NUM_CONTROLLERS`
   do
-
-# TODO this works for the first 14 relays but not beyond that -- needs to
-# interact with CN?
-
     set `cli_command -C $CN -c read_status`
     shift 5
     echo solenoid data from read_status: $* >&2
@@ -132,9 +126,15 @@ read_board() { # grungey late-night code: enter at your peril!
     for r in `seq $(( (${CN} - 1) * 14 + 1 )) $(( ${CN} * 14 ))`
     do
       # check if least sig bit is on
-      echo $r is `bc <<< "obase=2; $(( 2#${BIN_BITS} & 2#1 ))"`
-      # TODO set_solenoid $r [on|off]
-      BIN_BITS=`bc <<< "obase=2; $(( 2#${BIN_BITS} >> 1 ))"` # shift by one bit
+      if [ `bc <<< "obase=2; $(( 2#${BIN_BITS} & 2#1 ))"` = 1 ]
+      then
+        set_solenoid $r on
+        echo $r is on
+      else
+        set_solenoid $r off
+        echo $r is off
+      fi
+      BIN_BITS=`bc <<< "obase=2; $(( 2#${BIN_BITS} >> 1 ))"` # shift by 1 bit
     done
   done
 }
