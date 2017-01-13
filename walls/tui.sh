@@ -121,12 +121,9 @@ read_board() { # grungey late-night code: enter at your peril!
     HEX_BITS=""
     for h in $1 $2 $3 $4 $5 $6 $7 $8
     do
-      [ ${h} = 00 ] && continue
       HEX_BITS="$HEX_BITS`rev <<< $h |tr '[a-z]' '[A-Z]'`"
     done
     HEX_BITS=`rev <<< $HEX_BITS`
-    # TODO trim all the trailing zero args; translate each to binary; flip
-    # each bit field; run through the bits
     echo HEX_BITS: $HEX_BITS >&2
     [ x$HEX_BITS = x ] && continue
     cli_command -C $CN -c hpr $HEX_BITS >&2
@@ -134,9 +131,9 @@ read_board() { # grungey late-night code: enter at your peril!
     BIN_BITS=`bc <<< "ibase=16; obase=2; ${HEX_BITS}"`
     for r in `seq $(( (${CN} - 1) * 14 + 1 )) $(( ${CN} * 14 ))`
     do
-      echo $BIN_BITS
-      # check if least sig bit is on and set_solenoid $r [on|off]
+      # check if least sig bit is on
       echo $r is `bc <<< "obase=2; $(( 2#${BIN_BITS} & 2#1 ))"`
+      # TODO set_solenoid $r [on|off]
       BIN_BITS=`bc <<< "obase=2; $(( 2#${BIN_BITS} >> 1 ))"` # shift by one bit
     done
   done
