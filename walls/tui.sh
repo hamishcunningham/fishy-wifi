@@ -222,6 +222,8 @@ while true; do
       # TODO s
       4\ *) whiptail --title "TODOs" --msgbox \
 "Add ability to specify an on time per solenoid.
+More abstractions: rows, columns, areas.
+Sequencing.
 Get it to make tea.
 "             $WT_HEIGHT $WT_WIDTH 1 ;;
       9\ *) do_about ;;
