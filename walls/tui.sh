@@ -13,6 +13,8 @@ INST_DIR=`dirname ${P}`
 CLI=${INST_DIR}/rs485-api.sh
 LOG_STRING=tui
 VERSION=0.000001
+CONTROLLERS="01 02"
+NUM_SOLENOIDS=28
 
 # message & exit if exit num present
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
@@ -107,7 +109,33 @@ print_solenoid_state() {
 read_board() {
   # TODO set SOLENOIDS_A state according to board state
   # e.g. set_solenoid 3 on
-  :
+  for CN in $CONTROLLERS
+  do
+    set `cli_command -C $CN -c read_status`
+    shift 5
+    echo solenoid data from read_status: $* >&2
+    HEX_BITS=""
+    for h in $1 $2 $3 $4 $5 $6 $7 $8
+    do
+      [ ${h} = 00 ] && continue
+      HEX_BITS="$HEX_BITS`rev <<< $h |tr '[a-z]' '[A-Z]'`"
+    done
+    HEX_BITS=`rev <<< $HEX_BITS`
+    # TODO trim all the trailing zero args; translate each to binary; flip
+    # each bit field; run through the bits
+    echo HEX_BITS: $HEX_BITS >&2
+    [ x$HEX_BITS = x ] && continue
+    cli_command -C $CN -c hpr $HEX_BITS >&2
+
+    BIN_BITS=`bc <<< "ibase=16; obase=2; ${HEX_BITS}"`
+    for r in `seq 1 ${NUM_SOLENOIDS}`
+    do
+      echo $BIN_BITS
+      # check if least sig bit is on and set_solenoid $r [on|off]
+      echo $r is `bc <<< "obase=2; $(( 2#${BIN_BITS} & 2#1 ))"`
+      BIN_BITS=`bc <<< "obase=2; $(( 2#${BIN_BITS} >> 1 ))"` # shift by one bit
+    done
+  done
 }
 
 # menu actions etc.
@@ -160,10 +188,11 @@ do_water_control() {
 }
 
 # initialisation
-clear
+echo
 cli_command -c init  # configure USB port
 read_board           # read board & init internal model of solenoid state
 log initialised
+[ x$1 = xquit ] && exit 0
 
 # main loop
 while true; do
