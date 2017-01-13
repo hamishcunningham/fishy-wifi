@@ -167,14 +167,19 @@ run_command() {
   echo -ne "${C}" > ${PORT}
 }
 on() {
-  run_command 10 ${BASE} `ris2hex $*`
+  if [ x$1 = xall ]
+  then
+    run_command 10 ${BASE} `ris2hex \`seq 1 $2\``
+  else
+    run_command 10 ${BASE} `ris2hex $*`
+  fi
 }
 off() {
   run_command 10 ${BASE} 00 00 00 00 00 00 00 00
 }
 hpr() { # print hex number in decimal and binary
   printf 'hex %X in decimal is %d and in base 2 is ' 0x$1 0x$1
-  bc <<< "ibase=16; obase=2; $1"
+  bc <<< "ibase=16; obase=2; `echo $1 |tr '[a-z]' '[A-Z]'`"
 }
 
 ### CLI access to procedures ################################################
