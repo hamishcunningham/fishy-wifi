@@ -13,7 +13,7 @@ INST_DIR=`dirname ${P}`
 CLI=${INST_DIR}/rs485-api.sh
 LOG_STRING=tui
 VERSION=0.000001
-CONTROLLERS="01 02"
+NUM_CONTROLLERS=2
 NUM_SOLENOIDS=28
 
 # message & exit if exit num present
@@ -106,10 +106,10 @@ print_solenoid_state() {
     get_solenoid $i
   done
 }
-read_board() {
+read_board() { # grungey late-night code: enter at your peril!
   # TODO set SOLENOIDS_A state according to board state
   # e.g. set_solenoid 3 on
-  for CN in $CONTROLLERS
+  for CN in `seq 1 $NUM_CONTROLLERS`
   do
 
 # TODO this works for the first 14 relays but not beyond that -- needs to
@@ -132,7 +132,7 @@ read_board() {
     cli_command -C $CN -c hpr $HEX_BITS >&2
 
     BIN_BITS=`bc <<< "ibase=16; obase=2; ${HEX_BITS}"`
-    for r in `seq 1 ${NUM_SOLENOIDS}`
+    for r in `seq $(( (${CN} - 1) * 14 + 1 )) $(( ${CN} * 14 ))`
     do
       echo $BIN_BITS
       # check if least sig bit is on and set_solenoid $r [on|off]
