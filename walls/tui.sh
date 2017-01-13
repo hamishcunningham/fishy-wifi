@@ -111,6 +111,10 @@ read_board() {
   # e.g. set_solenoid 3 on
   for CN in $CONTROLLERS
   do
+
+# TODO this works for the first 14 relays but not beyond that -- needs to
+# interact with CN?
+
     set `cli_command -C $CN -c read_status`
     shift 5
     echo solenoid data from read_status: $* >&2
