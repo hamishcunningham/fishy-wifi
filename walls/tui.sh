@@ -176,6 +176,7 @@ do_water_control() {
     then 
       cli_command -c on ${SOLENOIDS}
       clear_solenoid_state
+# TODO read_board here instead?
       for s in ${SOLENOIDS}; do set_solenoid $s on; done
       log "wrote <<${SOLENOIDS}>> to board"
       MESS="Command sent to wall. Good luck!"
