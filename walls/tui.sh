@@ -9,7 +9,7 @@ alias cd='builtin cd'
 DBG=:
 RED='\033[0;31m'   # red
 GR='\033[0;32m'    # green
-BLUE='\033[1;34'   # blue
+BLUE='\033[1;34m'  # blue
 NC='\033[0m'       # no color
 
 # specific locals
