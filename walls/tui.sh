@@ -117,16 +117,20 @@ read_board() { # grungey late-night code: enter at your peril!
     shift 5
     echo -e "${GR}solenoid data from read_status: $*${NC}" >&2
     HEX_BITS=""
+    # cycle over all the data bytes returned, which are hex pairs
     for h in $1 $2 $3 $4 $5 $6 $7 $8
     do
+      # each pair specifies lower number solenoids first, then higher, so we
+      # need to reverse each pair in the composite hex string we build up
       HEX_BITS="$HEX_BITS`rev <<< $h |tr '[a-z]' '[A-Z]'`"
     done
+    # the composite hex is reversed to put the lower-number bits last
     HEX_BITS=`rev <<< $HEX_BITS`
-    echo -e "${GR}HEX_BITS: $HEX_BITSR${NC}" >&2
+    echo -e "${GR}HEX_BITS: $HEX_BITS${NC}" >&2
     [ x$HEX_BITS = x ] && continue
     cli_command -C $CN -c hpr $HEX_BITS >&2
 
-    BIN_BITS=`bc <<< "ibase=16; obase=2; ${HEX_BITS}"`
+    BIN_BITS=`bc <<< "ibase=16; obase=2; ${HEX_BITS}"` # convert to binary
     echo -ne "${GR}" >&2
     for r in `seq $(( (${CN} - 1) * 14 + 1 )) $(( ${CN} * 14 ))`
     do
