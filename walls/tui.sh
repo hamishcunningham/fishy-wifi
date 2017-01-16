@@ -7,6 +7,10 @@ USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-v(ersion)] [-l(og entries)]"
 OPTIONSTRING=hdvl
 alias cd='builtin cd'
 DBG=:
+RED='\033[0;31m'   # red
+GR='\033[0;32m'    # green
+BLUE='\033[1;34'   # blue
+NC='\033[0m'       # no color
 
 # specific locals
 INST_DIR=`dirname ${P}`
@@ -111,31 +115,33 @@ read_board() { # grungey late-night code: enter at your peril!
   do
     set `cli_command -C $CN -c read_status`
     shift 5
-    echo solenoid data from read_status: $* >&2
+    echo -e "${GR}solenoid data from read_status: $*${NC}" >&2
     HEX_BITS=""
     for h in $1 $2 $3 $4 $5 $6 $7 $8
     do
       HEX_BITS="$HEX_BITS`rev <<< $h |tr '[a-z]' '[A-Z]'`"
     done
     HEX_BITS=`rev <<< $HEX_BITS`
-    echo HEX_BITS: $HEX_BITS >&2
+    echo -e "${GR}HEX_BITS: $HEX_BITSR${NC}" >&2
     [ x$HEX_BITS = x ] && continue
     cli_command -C $CN -c hpr $HEX_BITS >&2
 
     BIN_BITS=`bc <<< "ibase=16; obase=2; ${HEX_BITS}"`
+    echo -ne "${GR}" >&2
     for r in `seq $(( (${CN} - 1) * 14 + 1 )) $(( ${CN} * 14 ))`
     do
       # check if least sig bit is on
       if [ `bc <<< "obase=2; $(( 2#${BIN_BITS} & 2#1 ))"` = 1 ]
       then
         set_solenoid $r on
-        echo $r is on
+        echo -n "$r is on; " >&2
       else
         set_solenoid $r off
-        echo $r is off
+        echo -n "$r is off; " >&2
       fi
       BIN_BITS=`bc <<< "obase=2; $(( 2#${BIN_BITS} >> 1 ))"` # shift by 1 bit
     done
+    echo -e "${NC}" >&2
   done
 }
 
@@ -190,7 +196,6 @@ do_water_control() {
 }
 
 # initialisation
-echo
 cli_command -c init  # configure USB port
 read_board           # read board & init internal model of solenoid state
 log initialised

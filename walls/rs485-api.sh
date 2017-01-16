@@ -24,7 +24,8 @@ http://smarthardware.eu/manual/str2do14din_doc.pdf
 "
 DBG=:
 RED='\033[0;31m'   # red
-GREEN='\033[0;32m' #green
+GR='\033[0;32m'    # green
+BLUE='\033[1;34m'  # blue
 NC='\033[0m'       # no color
 OPTIONSTRING=hdc:B:C:
 
@@ -178,8 +179,11 @@ off() {
   run_command 10 ${BASE} 00 00 00 00 00 00 00 00
 }
 hpr() { # print hex number in decimal and binary
-  printf 'hex %X in decimal is %d and in base 2 is ' 0x$1 0x$1
-  bc <<< "ibase=16; obase=2; `echo $1 |tr '[a-z]' '[A-Z]'`"
+  echo -ne "${BLUE} \
+    `printf 'hex %X in decimal is %d and in base 2 is ' 0x$1 0x$1`"
+  echo -ne "${BLUE} \
+    `bc <<< \"ibase=16; obase=2; \`echo $1 |tr '[a-z]' '[A-Z]'\`\"`"
+  echo -e "${NC}"
 }
 
 ### CLI access to procedures ################################################
