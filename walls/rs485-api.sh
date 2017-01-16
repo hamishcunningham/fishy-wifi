@@ -198,12 +198,12 @@ $COMM $*
 # R8 / 9th;  \x55\xAA\x0D\x10\x00\x00\x01\x00\x00\x00\x00\x00\x00\x20\x77
 # R9 / 10th; \x55\xAA\x0D\x10\x00\x00\x02\x00\x00\x00\x00\x00\x00\x21\x77
 #
-test_relay_on() {
+test_relay_on1() {
   run_command 10 00 07 00 00 00 00 00 00 00
   sleep 2
   run_command 10 00 00 00 00 00 00 00 00 00
 }
-doit() {
+test_relay_on2() {
   echo turn it on... >&2
   echo -ne "\x55\xAA\x0D\x10\x00\x01\x00\x00\x00\x00\x00\x00\x00\x20\x77" \
     > ${PORT} 
@@ -213,7 +213,7 @@ doit() {
     > ${PORT}
   sleep 2
 }
-doit2() {
+test_relay_on3() {
   SUM=$((2 + 0x0D + 0x10 + 0x00 + 0x01 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00))
   printf "SUM: %d; checksum: 0x%X\n" $SUM $SUM
   SUM=$((2 + 0x0D + 0x10 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00))
