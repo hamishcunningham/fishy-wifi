@@ -24,10 +24,12 @@ class HarvestController {
                     email: harvest.area.space.user.email,
                     id: harvest.id,
                     area_id: harvest.area.id,
-                    area_m2: harvest.area.areaMeters,
+                    area_m2: !harvest.area.crop.isTree ? // Use the radius to get the area for trees.
+                            harvest.area.areaMeters : (harvest.area.canopyRadius ** 2) * Math.PI,
                     crop: harvest.area.crop,
                     logged_at: harvest.dateCreated,
-                    yield_m2: harvest.weightGrammes / harvest.area.areaMeters,
+                    yield_m2: harvest.weightGrammes / (!harvest.area.crop.isTree ? // Use the radius to get the area for trees.
+                            harvest.area.areaMeters : (harvest.area.canopyRadius ** 2) * Math.PI),
                     weight_g: harvest.weightGrammes,
                     type: harvest.area.space.typeLabel,
                     organic: harvest.area.space.isOrganic,
@@ -76,14 +78,17 @@ class HarvestController {
         }
     }
 
-    def create() {
+    def create(Integer areaId) {
+
         def allowedAreas = Area.selectableAreas(springSecurityService.currentUser).findAll()
         if (allowedAreas.isEmpty()) {
             flash.message = g.message code: "harvest.area.noCropRegistered", default: "No crop registered."
             flash.messageType = "alert"
             return redirect(controller: "area", action: "create")
         }
-        respond([harvest: new Harvest(params), allowedAreas: allowedAreas])
+
+        def selectedArea = Area.selectableAreas(springSecurityService.currentUser).findById(areaId)
+        respond([harvest: new Harvest(params), allowedAreas: allowedAreas, selectedArea: selectedArea])
     }
 
     @Transactional

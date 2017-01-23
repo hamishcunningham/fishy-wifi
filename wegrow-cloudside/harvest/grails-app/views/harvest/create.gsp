@@ -20,7 +20,9 @@
             </g:hasErrors>
             <g:form action="save">
                 <fieldset class="form">
-                    <f:allWTransients bean="harvest"/>
+                    <f:field bean="harvest" property="area" value="${selectedArea}" />
+                    <f:field bean="harvest" property="weight"/>
+
                     <div class="checkbox">
                         <label>
                               <g:checkBox name="cropFinished" />

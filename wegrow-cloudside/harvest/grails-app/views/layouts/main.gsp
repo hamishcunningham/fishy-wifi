@@ -26,13 +26,15 @@
     <div class="navbar navbar-default navbar-static-top" role="navigation">
         <div class="container-fluid">
             <div class="navbar-header">
-                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                     <span class="sr-only">Toggle navigation</span>
-                     <span class="icon-bar"></span>
-                     <span class="icon-bar"></span>
-                     <span class="icon-bar"></span>
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#"><g:message code="app.name" default="${meta(name:'info.app.name')}" /></a>
+                <g:link class="navbar-brand" uri="/">
+                    <img src="${asset.assetPath(src: "LOGO/WEB/MyHarvest-WEB.png")}" alt="website logo"  />
+                </g:link>
 
             </div>
 
@@ -58,16 +60,10 @@
                                  <g:message code="area.title" default="Log a Crop" />
                             </g:link>
                          </li>
-
-                        <li>
-                            <g:link resource="harvest" action="create" >
-                                 <g:message code="harvests.create.title" default="Log a Harvest" />
-                            </g:link>
-                         </li>
-
+                        
                         <li>
                             <g:link resource="harvest" action="index" >
-                                 <g:message code="harvests.index.title" default="Past Harvests" />
+                                 <g:message code="harvest.title" default="Past Harvests" />
                             </g:link>
                          </li>
 

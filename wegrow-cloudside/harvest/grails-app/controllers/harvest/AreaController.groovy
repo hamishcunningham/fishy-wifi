@@ -20,13 +20,16 @@ class AreaController {
     def index(Integer max) {
         def currentUser = springSecurityService?.currentUser
 
-        def areas = Area.visibleAreas(currentUser)
-        respond areas.findAll(), model:[areaCount: areas.count()]
+        if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
+            respond areas.findAll(), model:[areaCount: areas.count()]
+        } else {
+            redirect action: "create"
+        }
 
     }
 
     def show(Area area) {
-        respond area
+        redirect action: "edit", id: area.id
     }
 
     def create(params) {
@@ -109,7 +112,7 @@ class AreaController {
         request.withFormat {
             form multipartForm {
                 flash.message = message(code: 'default.updated.message', args: [message(code: 'area.label', default: 'Area'), area.id])
-                redirect area
+                redirect action: "create"
             }
             '*'{ respond area, [status: OK] }
         }

@@ -12,16 +12,70 @@
             <p><g:message code="area.question" /></p>
 
             <div id="list-area">
-                <f:table collection="${areaList}" />
+                <g:if test="${areaList}">
+                    <table class="table table-striped">
+                    <tr>
+                        <th>Crop</th><th>Area/Radius</th><th>In Greenhouse?</th><th>Finished</th><th>Controls</th>
+                    </tr>
+
+                <g:each var="area" in="${areaList}">
+                    <tr>
+                        <td>${area.crop}</td>
+                        <td>
+                            <g:if test="${area.crop.isTree}">
+                                <g:formatNumber number="${area.canopyRadius}" type="number" maxFractionDigits="2" />m (canopy)
+                            </g:if>
+                            <g:else>
+                                <g:formatNumber number="${area.area}" type="number" maxFractionDigits="2" />${area.unit.name}
+                            </g:else>
+                        </td>
+                        <td>
+                            ${area.inGreenhouse ? "In Greenhouse" : "Outdoors"}
+                        </td>
+                        <td>
+                            ${area.finished ? "Finished" : "Not finished"}
+                        </td>
+                        <td>
+                            <g:form controller="area" class="form-inline controls-form" action="delete" id="${area.id}" method="DELETE">
+                                <input class="delete btn btn-danger"
+                                       type="submit" value="${message(code: 'default.button.delete.label', default: 'Delete')}"
+                                       onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');"/>
+                            </g:form>
+                            <g:link class="btn btn-primary" action="edit" id="${area.id}">Edit</g:link>
+                            <g:form controller="area" class="form-inline controls-form" action="update" id="${area.id}" method="PUT">
+                                <g:if test="${area.finished != true}">
+                                    <input type="hidden" name="finished" value="true" />
+                                    <input class="delete btn btn-success"
+                                           type="submit" value="${message(code: 'area.button.finished', default: 'Done Harvesting')}"/>
+                                </g:if>
+                                <g:else>
+                                    <input type="hidden" name="finished" value="false" />
+
+                                    %{--<input class="delete btn btn-primary"--}%
+                                           %{--type="submit" value="${message(code: 'area.button.finished', default: 'Continue Harvesting')}"/>--}%
+
+                                </g:else>
+
+                            </g:form>
+
+                            <g:if test="${area.finished != true}">
+                                <g:link class="btn btn-primary" controller="harvest" action="create" params="${[areaId: area.id]}">Log a harvest</g:link>
+                            </g:if>
+                        </td>
+                    </tr>
+                </g:each>
+                </table>
+                </g:if>
+
             </div>
 
             <g:if test="${flash.message}">
-                <div class="message" role="status">${flash.message}</div>
+                <div class="message alert alert-danger" role="status">${flash.message}</div>
             </g:if>
             <g:hasErrors bean="${this.area}">
             <ul class="errors" role="alert">
                 <g:eachError bean="${this.area}" var="error">
-                <li <g:if test="${error in org.springframework.validation.FieldError}">data-field-id="${error.field}"</g:if>><g:message error="${error}"/></li>
+                    <li <g:if test="${error in org.springframework.validation.FieldError}">data-field-id="${error.field}"</g:if>><g:message error="${error}"/></li>
                 </g:eachError>
             </ul>
             </g:hasErrors>
