@@ -7,18 +7,25 @@ USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-v(ersion)] [-l(og entries)]"
 OPTIONSTRING=hdvl
 alias cd='builtin cd'
 DBG=:
+RED='\033[0;31m'   # red
+GR='\033[0;32m'    # green
+BLUE='\033[1;34m'  # blue
+NC='\033[0m'       # no color
 
 # specific locals
 INST_DIR=`dirname ${P}`
 CLI=${INST_DIR}/rs485-api.sh
 LOG_STRING=tui
 VERSION=0.000001
+NUM_CONTROLLERS=2
+NUM_SOLENOIDS=28
 
 # message & exit if exit num present
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
 
-# get recent log entries
-do_log_grep() { grep -i $LOG_STRING /var/log/syslog |tail -${WT_HEIGHT}; }
+# write a log; get recent log entries
+log() { logger "${LOG_STRING}: $*"; }
+log_grep() { grep -i $LOG_STRING /var/log/syslog |tail -15; }
 
 # process options
 while getopts $OPTIONSTRING OPTION
@@ -27,7 +34,7 @@ do
     h)	usage 0 ;;
     v)	echo $P is at version $VERSION; exit 0 ;;
     d)	DBG=echo; CLI=echo ;;
-    l)  do_log_grep; exit 0 ;;
+    l)  log_grep; exit 0 ;;
     *)	usage 3 ;;
   esac
 done 
@@ -55,17 +62,8 @@ calc_wt_size() {
 }
 calc_wt_size
 
-# menu actions etc.
-do_about() {
-  whiptail --title "About" --msgbox "\
-    This is a control tool for Aquaponic Green Walls.
-
-    Version ${VERSION}.
-    " $WT_HEIGHT $(( $WT_WIDTH / 2 )) $WT_MENU_HEIGHT
-}
-do_cli_command() {
-  $CLI $*
-}
+# helper functions
+cli_command() { $CLI $*; }
 
 # control water supply solenoids
 SOLENOIDS_A=(
@@ -94,20 +92,73 @@ SOLENOIDS_A=(
   22 '" "'      off
   23 '" "'      off
   24 '" "'      off
+  25 '" "'      off
+  26 '" "'      off
+  27 '" "'      off
+  28 '" "'      off
 )
 get_solenoid() { echo ${SOLENOIDS_A[$(( ($1 * 3) - 1 ))]}; } # get $1 state
 set_solenoid() { SOLENOIDS_A[$(( ($1 * 3) - 1 ))]=$2; } # set $1 to state $2
-# set_solenoid 3 on
-do_get_solenoid_status() {
+clear_solenoid_state() {
+  for i in `seq 1 $(( ${#SOLENOIDS_A[@]} / 3 ))`; do set_solenoid $i off; done
+}
+print_solenoid_state() {
   slen=$(( ${#SOLENOIDS_A[@]} / 3 ))
   for i in `seq 1 ${slen}`
   do
+    printf "%2d: " ${i}
     get_solenoid $i
   done
 }
+read_board() { # grungey late-night code: enter at your peril!
+  for CN in `seq 1 $NUM_CONTROLLERS`
+  do
+    set `cli_command -C $CN -c read_status`
+    shift 5
+    echo -e "${GR}solenoid data from read_status: $*${NC}" >&2
+    HEX_BITS=""
+    # cycle over all the data bytes returned, which are hex pairs
+    for h in $1 $2 $3 $4 $5 $6 $7 $8
+    do
+      # each pair specifies lower number solenoids first, then higher, so we
+      # need to reverse each pair in the composite hex string we build up
+      HEX_BITS="$HEX_BITS`rev <<< $h |tr '[a-z]' '[A-Z]'`"
+    done
+    # the composite hex is reversed to put the lower-number bits last
+    HEX_BITS=`rev <<< $HEX_BITS`
+    echo -e "${GR}HEX_BITS: $HEX_BITS${NC}" >&2
+    [ x$HEX_BITS = x ] && continue
+    cli_command -C $CN -c hpr $HEX_BITS >&2
+
+    BIN_BITS=`bc <<< "ibase=16; obase=2; ${HEX_BITS}"` # convert to binary
+    echo -ne "${GR}" >&2
+    for r in `seq $(( (${CN} - 1) * 14 + 1 )) $(( ${CN} * 14 ))`
+    do
+      # check if least sig bit is on
+      if [ `bc <<< "obase=2; $(( 2#${BIN_BITS} & 2#1 ))"` = 1 ]
+      then
+        set_solenoid $r on
+        echo -n "$r is on; " >&2
+      else
+        set_solenoid $r off
+        echo -n "$r is off; " >&2
+      fi
+      BIN_BITS=`bc <<< "obase=2; $(( 2#${BIN_BITS} >> 1 ))"` # shift by 1 bit
+    done
+    echo -e "${NC}" >&2
+  done
+}
+
+# menu actions etc.
+do_about() {
+  whiptail --title "About" --msgbox "\
+    This is a control tool for Aquaponic Green Walls.
+
+    Version ${VERSION}.
+    " $WT_HEIGHT $(( $WT_WIDTH / 2 )) $WT_MENU_HEIGHT
+}
 do_water_control() {
-  do_get_solenoid_status
-  TITLE='Specify Number of Cells'
+  TITLE='Control Water Supply'
   C="whiptail --title \"${TITLE}\" \
        --checklist \"Specify carts to water\" \
        $WT_HEIGHT $(( $WT_WIDTH / 2 + 9 )) $WT_MENU_HEIGHT \
@@ -133,7 +184,11 @@ do_water_control() {
       MESS="Cancelled"
     elif [ $RET -eq 0 ]
     then 
-      do_cli_command -c on ${SOLENOIDS}
+      cli_command -c on ${SOLENOIDS}
+      clear_solenoid_state
+# TODO read_board here instead?
+      for s in ${SOLENOIDS}; do set_solenoid $s on; done
+      log "wrote <<${SOLENOIDS}>> to board"
       MESS="Command sent to wall. Good luck!"
     else
       MESS="Oops! Internal error, RET was ${RET}"
@@ -144,8 +199,13 @@ do_water_control() {
   fi
 }
 
+# initialisation
+cli_command -c init  # configure USB port
+read_board           # read board & init internal model of solenoid state
+log initialised
+[ x$1 = xquit ] && exit 0
+
 # main loop
-clear
 while true; do
   SEL=$(whiptail --title "Text mode wall UI (tui)" \
     --menu "\n" \
@@ -154,7 +214,8 @@ while true; do
       "1 Watering"              "Control water supply to the wall" \
       "2 Status"                "Show current status from the wall" \
       "3 Show Log Entries"      "Show the most recent log entries" \
-      "4 About"                 "Information about this tool" \
+      "4 TODO list"             "What's on the development stack?" \
+      "9 About"                 "Information about this tool" \
     3>&1 1>&2 2>&3)
   RET=$?
   if [ $RET -eq 1 ]; then
@@ -163,10 +224,18 @@ while true; do
     case "$SEL" in
       1\ *) do_water_control ;;
       2\ *) whiptail --title "Status" --msgbox \
-              "`${CLI} -e |pr -e -t2 -w76 |expand`" $WT_HEIGHT 78 1 ;;
-      3\ *) whiptail --title "Log Entries" --msgbox \
-              "`do_log_grep`" $WT_HEIGHT $WT_WIDTH 1 ;;
-      4\ *) do_about ;;
+              "`print_solenoid_state |pr -e -t2 -w76 |expand`" \
+              $WT_HEIGHT 78 1 ;;
+      3\ *) whiptail --title "Recent Log Entries" --msgbox \
+              "`log_grep`" $WT_HEIGHT $WT_WIDTH 1 ;;
+      # TODO s
+      4\ *) whiptail --title "TODOs" --msgbox \
+"Add ability to specify an on time per solenoid.
+More abstractions: rows, columns, areas.
+Sequencing.
+Get it to make tea.
+"             $WT_HEIGHT $WT_WIDTH 1 ;;
+      9\ *) do_about ;;
       *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $SEL" 20 60 1
   else
