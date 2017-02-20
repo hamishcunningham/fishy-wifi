@@ -5,6 +5,12 @@ class Allotment extends GrowingSpace {
     Integer visitsPerWeek
     String address
 
+    @Override
+    String getLocationString() {
+        "${address}, ${siteName}"
+    }
+
+
     static constraints = {
         user(display: false)
         siteName()

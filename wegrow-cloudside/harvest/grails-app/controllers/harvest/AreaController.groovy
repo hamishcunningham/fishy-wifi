@@ -21,7 +21,7 @@ class AreaController {
         def currentUser = springSecurityService?.currentUser
 
         if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
-            respond areas.findAll(), model:[areaCount: areas.count()]
+            respond Area.findAll(), model:[areaCount: Area.count()]
         } else {
             redirect action: "create"
         }
@@ -29,7 +29,12 @@ class AreaController {
     }
 
     def show(Area area) {
-        redirect action: "edit", id: area.id
+        if (area != null) {
+            redirect action: "edit", id: area.id
+        } else {
+            notFound()
+            return
+        }
     }
 
     def create(params) {

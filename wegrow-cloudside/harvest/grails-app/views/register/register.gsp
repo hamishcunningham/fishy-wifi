@@ -26,7 +26,7 @@
 
                     <f:field bean="registerCommand" property="username"/>
                     <f:field bean="registerCommand" property="email"/>
-                    <f:field bean="registerCommand" property="password"/>
+                    <f:field bean="registerCommand" widget-type="password" property="password"/>
                     <f:field bean="registerCommand" widget-type="password" property="password2"/>
                 </fieldset>
                 <fieldset class="buttons">

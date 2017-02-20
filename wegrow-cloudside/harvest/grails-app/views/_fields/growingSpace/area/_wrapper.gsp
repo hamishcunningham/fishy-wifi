@@ -9,11 +9,7 @@
       <span class="input-group-addon">
         <g:each in="${harvest.AreaUnit}" var="unit">
             <label>
-                <g:if test="${unit == harvest.AreaUnit.getDefault()}">
-                    <input type="radio" aria-label="meters" value="${unit.toString()}" name="unit" checked="checked" /> <%= unit.getName() %>
-                </g:if><g:else>
-                    <input type="radio" aria-label="meters" value="${unit.toString()}" name="unit" /> <%= unit.getName() %>
-                </g:else>
+                <g:unitRadio unit="${unit}" preference="preferredAreaUnit" name="unit" />
             </label>
         </g:each>
       </span>

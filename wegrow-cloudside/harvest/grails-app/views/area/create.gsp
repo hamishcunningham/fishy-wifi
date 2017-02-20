@@ -15,27 +15,30 @@
                 <g:if test="${areaList}">
                     <table class="table table-striped">
                     <tr>
-                        <th>Crop</th><th>Area/Radius</th><th>In Greenhouse?</th><th>Finished</th><th>Controls</th>
+                        <th>Crop</th>
+                        <th class="text-center">Area/Radius</th>
+                        <th class="text-center" >Indoors/Outdoors?</th>
+                        <th class="text-center">Finished</th>
+                        <th></th>
                     </tr>
-
                 <g:each var="area" in="${areaList}">
                     <tr>
                         <td>${area.crop}</td>
-                        <td>
+                        <td class="text-center">
                             <g:if test="${area.crop.isTree}">
-                                <g:formatNumber number="${area.canopyRadius}" type="number" maxFractionDigits="2" />m (canopy)
+                                <g:formatNumberUnit number="${area.canopyRadius}" type="radius" maxFractionDigits="2" />
                             </g:if>
                             <g:else>
-                                <g:formatNumber number="${area.area}" type="number" maxFractionDigits="2" />${area.unit.name}
+                                <g:formatNumberUnit number="${area.areaMeters}" type="area" maxFractionDigits="2" />
                             </g:else>
                         </td>
-                        <td>
+                        <td class="text-center">
                             ${area.inGreenhouse ? "In Greenhouse" : "Outdoors"}
                         </td>
-                        <td>
+                        <td class="text-center">
                             ${area.finished ? "Finished" : "Not finished"}
                         </td>
-                        <td>
+                        <td class="text-right">
                             <g:form controller="area" class="form-inline controls-form" action="delete" id="${area.id}" method="DELETE">
                                 <input class="delete btn btn-danger"
                                        type="submit" value="${message(code: 'default.button.delete.label', default: 'Delete')}"
@@ -70,7 +73,7 @@
             </div>
 
             <g:if test="${flash.message}">
-                <div class="message alert alert-danger" role="status">${flash.message}</div>
+                <div class="message alert" role="status">${flash.message}</div>
             </g:if>
             <g:hasErrors bean="${this.area}">
             <ul class="errors" role="alert">

@@ -55,12 +55,22 @@
                     </sec:ifNotLoggedIn>
                     <sec:ifLoggedIn>
 
+                        <sec:access expression="!hasRole('ROLE_ADMIN')">
                         <li>
                             <g:link resource="area" action="create">
                                  <g:message code="area.title" default="Log a Crop" />
                             </g:link>
                          </li>
-                        
+                        </sec:access>
+
+                        <sec:access expression="hasRole('ROLE_ADMIN')">
+                            <li>
+                                <g:link resource="crop" action="index">
+                                    <g:message code="crops.title" default="Manage Crops" />
+                                </g:link>
+                            </li>
+                        </sec:access>
+
                         <li>
                             <g:link resource="harvest" action="index" >
                                  <g:message code="harvest.title" default="Past Harvests" />

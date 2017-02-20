@@ -79,4 +79,7 @@ class GrowingSpace {
         }
     }
 
+    String getLocationString() {
+        return "unknown"
+    }
 }

@@ -1,6 +1,8 @@
 package harvest
 
 class Garden extends PostcodeGrowingSpace {
+
+
 	static constraints = {
 		area bindable: true, display: true
 		postCode()

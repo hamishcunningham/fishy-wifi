@@ -1,7 +1,7 @@
 package harvest
 
 public enum WeightUnit {
-  GRAMMES('g'),
+  KILOGRAMMES('kg'),
   OUNCES('oz')
 
   String name
@@ -11,13 +11,13 @@ public enum WeightUnit {
   }
 
   public static WeightUnit getDefault() {
-    GRAMMES
+    KILOGRAMMES
   }
 
   public Double normalise(Double weight) {
     switch (this) {
-      case GRAMMES:
-        return weight;
+      case KILOGRAMMES:
+        return weight * 1000;
       case OUNCES:
         return weight * 28.3495;
     }
@@ -25,8 +25,8 @@ public enum WeightUnit {
 
   public Double denormalise(Double weight) {
     switch (this) {
-      case GRAMMES:
-        return weight;
+      case KILOGRAMMES:
+        return weight / 1000;
       case OUNCES:
         return weight / 28.3495;
     }

@@ -80,5 +80,9 @@ class Harvest {
     return false
   }
 
+  def getYield() {
+     weightGrammes / (!area.crop.isTree ? // Use the radius to get the area for trees.
+             area.areaMeters : (area.canopyRadius ** 2) * Math.PI)
+  }
 
 }

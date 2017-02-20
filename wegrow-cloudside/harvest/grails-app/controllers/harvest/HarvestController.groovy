@@ -15,32 +15,28 @@ class HarvestController {
     def exportService
 
     def index(Integer offset, Integer max) {
-        def harvests = Harvest.visibleHarvests(springSecurityService.currentUser)
-        max = max?:10
-        offset = offset != null? offset :0
-
-        def data = harvests.list(max: max, offset: offset).collect { Harvest harvest ->
-            [
-                    email: harvest.area.space.user.email,
-                    id: harvest.id,
-                    area_id: harvest.area.id,
-                    area_m2: !harvest.area.crop.isTree ? // Use the radius to get the area for trees.
-                            harvest.area.areaMeters : (harvest.area.canopyRadius ** 2) * Math.PI,
-                    crop: harvest.area.crop,
-                    logged_at: harvest.dateCreated,
-                    yield_m2: harvest.weightGrammes / (!harvest.area.crop.isTree ? // Use the radius to get the area for trees.
-                            harvest.area.areaMeters : (harvest.area.canopyRadius ** 2) * Math.PI),
-                    weight_g: harvest.weightGrammes,
-                    type: harvest.area.space.typeLabel,
-                    organic: harvest.area.space.isOrganic,
-                    all_data: harvest.area.space.submittingAllData,
-                    growing_space: harvest.area.space.typeLabel,
-                    radius: harvest.area.canopyRadius,
-                    in_greenhouse: harvest.area.inGreenhouse
-            ]
-        }
-
         if (params?.f) {
+            def harvests = Harvest.visibleHarvests(springSecurityService.currentUser)
+
+            def data = harvests.list().collect { Harvest harvest ->
+                [
+                        email: harvest.area.space.user.email,
+                        id: harvest.id,
+                        area_id: harvest.area.id,
+                        area_m2: !harvest.area.crop.isTree ? // Use the radius to get the area for trees.
+                                harvest.area.areaMeters : (harvest.area.canopyRadius ** 2) * Math.PI,
+                        crop: harvest.area.crop,
+                        logged_at: harvest.dateCreated,
+                        yield_m2: harvest.yield,
+                        weight_g: harvest.weightGrammes,
+                        type: harvest.area.space.typeLabel,
+                        organic: harvest.area.space.isOrganic,
+                        all_data: harvest.area.space.submittingAllData,
+                        growing_space: harvest.area.space.typeLabel,
+                        radius: harvest.area.canopyRadius,
+                        in_greenhouse: harvest.area.inGreenhouse
+                ]
+            }
             def fields = ["id",
                           "logged_at",
                           "growing_space",
@@ -65,7 +61,12 @@ class HarvestController {
                 exportService.export(params.f, response.outputStream, data, fields, [:],[:],[:])
             }
         } else {
-            respond harvestList: data, harvestCount: harvests.count()
+            // Group harvests by area and then display.
+            max = max?:10
+            offset = offset != null? offset :0
+
+            def visible = Area.visibleAreas(springSecurityService.currentUser)
+            respond areaList: visible.list(max: max, offset: offset), areaCount: visible.count()
         }
     }
 

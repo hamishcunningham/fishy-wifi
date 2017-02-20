@@ -12,7 +12,8 @@ class User implements Serializable {
 	transient springSecurityService
 
 	AreaUnit preferredAreaUnit = AreaUnit.SQ_METERS
-	WeightUnit preferredWeightUnit = WeightUnit.GRAMMES
+	WeightUnit preferredWeightUnit = WeightUnit.KILOGRAMMES
+	LengthUnit preferredLengthUnit = LengthUnit.METERS
 
 	String username
 	String email

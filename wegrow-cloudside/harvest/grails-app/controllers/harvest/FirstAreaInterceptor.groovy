@@ -22,8 +22,6 @@ class FirstAreaInterceptor {
             def growingSpace = springSecurityService.currentUser.growingSpace
 
             if (growingSpace != null && (growingSpace.areas == null || growingSpace.areas.size() == 0)) {
-                flash.message = "Please tell us about the area you will be using to grow a crop."
-
                 redirect(controller:"area", action: "create")
             } else {
                 true

@@ -193,4 +193,28 @@ class Area {
       return "${getArea()}${getUnit().name}"
     }
   }
+
+  def getYield() {
+    def yields = harvests.yield
+
+    if (yields.isEmpty()) {
+      return 0 // Yields may be entry which would be a divide by zero. Just assume 0/0 is 0 for now.
+    } else {
+      return yields.sum() / yields.size()
+    }
+  }
+
+  def getAmountGrammes() {
+    def weights = harvests.weightGrammes
+    return weights.sum()
+  }
+
+  def getAmount() {
+    return amountUnit.denormalise(amountGrammes)
+  }
+
+  harvest.WeightUnit getAmountUnit() {
+      return springSecurityService.currentUser?.preferredWeightUnit
+  }
+
 }
