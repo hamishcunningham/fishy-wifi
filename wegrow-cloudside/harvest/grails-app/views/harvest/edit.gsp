@@ -23,6 +23,13 @@
                 <fieldset class="form">
                     <f:allWTransients bean="harvest"/>
                 </fieldset>
+                <div class="checkbox">
+                    <label>
+                        <g:checkBox name="cropFinished" />
+                        <g:message code="harvest.cropFinished.question" default="Crop finished" />
+                    </label>
+                </div>
+
                 <fieldset class="buttons">
                     <input class="save" type="submit" value="${message(code: 'default.button.update.label', default: 'Update')}" />
                 </fieldset>

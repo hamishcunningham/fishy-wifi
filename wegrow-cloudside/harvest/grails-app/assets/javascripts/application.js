@@ -17,6 +17,7 @@ if (typeof jQuery !== 'undefined') {
         }).ajaxStop(function() {
             $('#spinner').fadeOut();
         });
+        $('.stacktable').stacktable({myClass:'stacktable'});
     })(jQuery);
 }
 

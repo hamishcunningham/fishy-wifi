@@ -9,7 +9,12 @@
 *
 *= require_self
 */
-
+@font-face {
+  font-family: 'Glyphicons Halflings';
+  src: url("glyphicons-halflings-regular.eot");
+  src: url("glyphicons-halflings-regular.eot?#iefix") format("embedded-opentype"),
+      url("glyphicons-halflings-regular.woff") format("woff"), url("glyphicons-halflings-regular.ttf") format("truetype"), url("glyphicons-halflings-regular.svg#glyphicons_halflingsregular") format("svg");
+}
 @import "bootstrap/bootstrap.less";
 
 
@@ -144,4 +149,24 @@ form.inline {
 .pagination .step, .currentStep, .nextLink, .prevLink {
   margin-left: 0.5em;
   margin-right: 0.5em;
+}
+
+/* RESPONSIVE EXAMPLE */
+
+.stacktable.large-only { display: table; }
+.stacktable.small-only { display: none; }
+
+@media (max-width: 800px) {
+  .stacktable.large-only { display: none; }
+  .stacktable.small-only { display: table; }
+}
+
+
+.small-only { display: none; }
+tr.small-only th.st-head-row {
+  border-top: none;
+}
+
+@media (max-width: 800px) {
+  .small-only { display: table; }
 }

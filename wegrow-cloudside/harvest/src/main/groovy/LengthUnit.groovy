@@ -1,7 +1,7 @@
 package harvest
 
 public enum LengthUnit {
-  METERS('m'),
+  METRES('m'),
   FEET('ft')
 
   String name
@@ -11,7 +11,7 @@ public enum LengthUnit {
   }
 
   public static LengthUnit getDefault() {
-    METERS
+    METRES
   }
   /**
    * Convert units to meters for normalised storage in the database
@@ -20,7 +20,7 @@ public enum LengthUnit {
      */
   public Double normalise(Double length) {
     switch (this) {
-      case METERS:
+      case METRES:
         return length;
       case FEET:
         return length * 0.3048;
@@ -34,7 +34,7 @@ public enum LengthUnit {
      */
   public Double denormalise(Double length) {
     switch (this) {
-      case METERS:
+      case METRES:
         return length;
       case FEET:
         return length / 0.3048;

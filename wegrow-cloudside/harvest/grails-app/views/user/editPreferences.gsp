@@ -10,6 +10,10 @@
 
         <div id="edit-preferences" class="content scaffold-edit" role="main">
             <h1><g:message code="user.preferences.title" default="User Preferences" /></h1>
+            <p class="lead">
+                These are the units displayed when you look at your harvest record in Manage Harvests.
+                You will still be able to enter new growing areas and harvest weights in either unit
+            </p>
             <g:if test="${flash.message}">
             <div class="message" role="status">${flash.message}</div>
             </g:if>

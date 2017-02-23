@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta name="layout" content="main" />
+        <meta name="layout" content="12col" />
         <g:set var="entityName" value="${message(code: 'growingSpace.label', default: 'GrowingSpace')}" />
         <title><g:message code="default.create.label" args="[entityName]" /></title>
     </head>
     <body>
         <div id="create-growingSpace" class="content scaffold-create container" role="main">
             <g:if test="${flash.message}">
-            <div class="message" role="status">${flash.message}</div>
+                <div class="message" role="status">${flash.message}</div>
             </g:if>
 
 
-            <div class="container growingSpaceSelector">
+            <div class="growingSpaceSelector">
                 <h1 class="display-3">Tell us about you</h1>
 
                 <p class="lead">What type of growing space do you have?</p>
-                <div class="row">
                     <div class="col-lg-4">
                         <g:img class="img-circle" file="allotment_circle.png"></g:img>
                         <h2>Allotment</h2>
@@ -54,7 +53,6 @@
                         <g:link class="btn btn-default" controller="otherGrowingSpace" action="create" >Get Started</g:link>
                     </div>
 
-                </div>
             </div>
         </div>
     </body>

@@ -24,7 +24,7 @@ class HarvestController {
                         id: harvest.id,
                         area_id: harvest.area.id,
                         area_m2: !harvest.area.crop.isTree ? // Use the radius to get the area for trees.
-                                harvest.area.areaMeters : (harvest.area.canopyRadius ** 2) * Math.PI,
+                                harvest.area.areaMeters : (harvest.area.canopyRadiusMeters ** 2) * Math.PI,
                         crop: harvest.area.crop,
                         logged_at: harvest.dateCreated,
                         yield_m2: harvest.yield,
@@ -33,7 +33,7 @@ class HarvestController {
                         organic: harvest.area.space.isOrganic,
                         all_data: harvest.area.space.submittingAllData,
                         growing_space: harvest.area.space.typeLabel,
-                        radius: harvest.area.canopyRadius,
+                        radius: harvest.area.canopyRadiusMeters,
                         in_greenhouse: harvest.area.inGreenhouse
                 ]
             }
@@ -71,8 +71,7 @@ class HarvestController {
     }
 
     def show(Harvest harvest) {
-        if (harvest.area.space == springSecurityService.currentUser.growingSpace ||
-                SpringSecurityUtils.ifAllGranted("ROLE_ADMIN"))  {
+        if (harvest.canEdit())  {
             respond harvest
         } else {
             notFound()
@@ -137,7 +136,7 @@ class HarvestController {
     }
 
     @Transactional
-    def update(Harvest harvest) {
+    def update(Harvest harvest, Boolean cropFinished) {
         if (harvest == null) {
             transactionStatus.setRollbackOnly()
             notFound()
@@ -157,6 +156,8 @@ class HarvestController {
         }
 
         harvest.save flush:true
+        harvest.area.finished = (cropFinished == true)
+        harvest.area.save()
 
         request.withFormat {
             form multipartForm {

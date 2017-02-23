@@ -14,7 +14,7 @@
         <div class="message" role="status">${flash.message}</div>
     </g:if>
     <g:if test="${areaList}">
-        <table class="table">
+        <table class="table stacktable">
             <tr>
                 <th >Crop</th>
                 <sec:access expression="hasRole('ROLE_ADMIN')">
@@ -27,9 +27,9 @@
                 <th />
         </tr>
 
-            <g:each var="area" in="${areaList}">
+            <g:each var="area" in="${areaList}" >
                 <tr class="harvestHeadingRow">
-                    <td>${area.crop}</td>
+                    <td class="large-only">${area.crop}</td>
 
                     <sec:access expression="hasRole('ROLE_ADMIN')">
                         <td class="text-center">${area.space.user.email}</td>
@@ -38,7 +38,7 @@
 
                     <td class="text-center">
                         <g:if test="${area.crop.isTree}">
-                            <g:formatNumberUnit number="${area.canopyRadius}" type="radius" maxFractionDigits="2" /> (canopy)
+                            <g:formatNumberUnit number="${area.canopyRadiusMeters}" type="radius" maxFractionDigits="2" /> (canopy)
                         </g:if>
                         <g:else>
                             <g:formatNumberUnit number="${area.areaMeters}" type="area" maxFractionDigits="2" />
@@ -50,21 +50,28 @@
                     </td>
                     <td class="text-center"><g:formatNumberUnit number="${area.yield}" type="yield" maxFractionDigits="2" /></td>
 
-                    <td />
+                    <td></td>
                     <td class="text-right">
-                        <g:link class="btn btn-success" controller="harvest" action="create" params="${[areaId: area.id]}">Log a harvest</g:link>
+                        <g:if test="${area.finished != true}">
+                            <g:link class="btn btn-primary" controller="harvest" action="create" params="${[areaId: area.id]}">Log a harvest</g:link>
+                        </g:if>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-default" data-toggle="collapse" data-target=".rows-${area.id}">
+                        <span class="glyphicon glyphicon-menu-down"></span>
+                        </button>
+
                     </td>
 
                 </tr>
-
-                <g:each var="harvest" in="${area.harvests}">
-                    <tr>
-                        <td />
-                        <td />
+                <g:each var="harvest" in="${area.harvests.sort {it.dateCreated}}">
+                    <tr class="rows-${area.id}">
+                        <td></td>
+                        <td></td>
 
                         <sec:access expression="hasRole('ROLE_ADMIN')">
-                            <td />
-                            <td />
+                            <td></td>
+                            <td></td>
                         </sec:access>
                         <td class="text-center"><g:formatNumberUnit number="${harvest.weightGrammes}" type="weight" maxFractionDigits="2" /></td>
                         <td class="text-center"><g:formatNumberUnit number="${harvest.yield}" type="yield" maxFractionDigits="2" /></td>
@@ -91,13 +98,15 @@
         <div class="paginate">
             <g:paginate total="${harvestCount ?: 0}"/>
         </div>
+        <p class="lead">
+            Download your harvest record:
+        </p>
         <export:formats formats="['csv', 'excel', 'xml']"></export:formats>
 
 
 
         <div class="text-center"><g:link class="create" action="create" class="btn btn-lg btn-primary">
             <g:message code="harvest.create.title" /></g:link></div>
-
         <div>
 
     </g:if>

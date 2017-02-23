@@ -8,8 +8,12 @@ class Area {
   transient springSecurityService
   private Double area;
   private harvest.AreaUnit unit;
-  Double canopyRadius
+  private canopyRadius
+  Double canopyRadiusMeters
+
   Boolean inGreenhouse
+  private harvest.LengthUnit radiusUnit;
+
 
   Boolean finished
 
@@ -23,6 +27,8 @@ class Area {
 
   static transients = ['area',
                        'unit',
+                      'canopyRadius',
+                       'radiusUnit',
                        'springSecurityService']
 
   static belongsTo = [space:GrowingSpace, crop:Crop]
@@ -52,7 +58,7 @@ class Area {
     area bindable: true, display: true, nullable: true, blank: true
 
     // Only trees have a canopy radius
-    canopyRadius bindable: true, display: true, nullable: true, blank: true, validator: { Double val, Area obj ->
+    canopyRadiusMeters bindable: true, display: true, nullable: true, blank: true, validator: { Double val, Area obj ->
       if (obj.crop.isTree) {
         if (val) {
           return true
@@ -92,6 +98,11 @@ class Area {
     }
 
     unit display: false, bindable: true, nullable: true
+
+    canopyRadius bindable: true, display: true, nullable: true, blank: true
+    radiusUnit bindable: true, display: true, nullable: true, blank: true
+
+
     finished nullable: true
     harvests display: false
 
@@ -112,7 +123,7 @@ class Area {
     }
   }
 
-  AreaUnit getUnit() {
+  harvest.AreaUnit getUnit() {
     if (this.unit != null) {
       return this.unit
     } else if (springSecurityService.currentUser != null) {
@@ -135,6 +146,44 @@ class Area {
       areaMeters = unit.normalise(area)
     }
   }
+
+  def setCanopyRadius(radius) {
+    this.canopyRadius = radius
+    if (radius != null && this.radiusUnit != null) {
+      this.canopyRadiusMeters = radiusUnit.normalise(radius)
+    }
+  }
+
+  Double getCanopyRadius() {
+    User currentUser = springSecurityService.currentUser
+    if (this.canopyRadius != null) {
+      return this.canopyRadius
+    } else if (canopyRadiusMeters != null) {
+      return getRadiusUnit().denormalise(canopyRadiusMeters)
+    } else {
+      return canopyRadiusMeters
+    }
+  }
+
+  harvest.LengthUnit getRadiusUnit() {
+    if (this.radiusUnit != null) {
+      return this.radiusUnit
+    } else if (springSecurityService.currentUser != null) {
+      return springSecurityService.currentUser?.preferredLengthUnit
+    } else {
+      return LengthUnit.default
+    }
+  }
+
+  def setRadiusUnit(radiusUnit) {
+    this.radiusUnit = radiusUnit
+    if (canopyRadius != null && radiusUnit != null) {
+      canopyRadiusMeters = radiusUnit.normalise(canopyRadius)
+    }
+  }
+
+
+
 
   def beforeValidate() {
     if (space == null) {
@@ -195,18 +244,22 @@ class Area {
   }
 
   def getYield() {
-    def yields = harvests.yield
+    def weights = harvests.weightGrammes
 
-    if (yields.isEmpty()) {
-      return 0 // Yields may be entry which would be a divide by zero. Just assume 0/0 is 0 for now.
+    def m2 = (!crop.isTree ? // Use the radius to get the area for trees.
+            areaMeters : (canopyRadiusMeters ** 2) * Math.PI)
+
+    if (m2 > 0 && weights) {
+      return weights.sum() / m2
     } else {
-      return yields.sum() / yields.size()
+      return 0
     }
+
   }
 
   def getAmountGrammes() {
     def weights = harvests.weightGrammes
-    return weights.sum()
+    return weights.sum() ?: 0
   }
 
   def getAmount() {

@@ -1,7 +1,7 @@
 package harvest
 
 public enum AreaUnit {
-  SQ_METERS('m²'),
+  SQ_METRES('m²'),
   SQ_FEET('ft²')
 
   String name
@@ -11,7 +11,7 @@ public enum AreaUnit {
   }
 
   public static AreaUnit getDefault() {
-    SQ_METERS
+    SQ_METRES
   }
   /**
    * Convert units to meters for normalised storage in the database
@@ -20,7 +20,7 @@ public enum AreaUnit {
      */
   public Double normalise(Double area) {
     switch (this) {
-      case SQ_METERS:
+      case SQ_METRES:
         return area;
       case SQ_FEET:
         return area * 0.3048;
@@ -34,7 +34,7 @@ public enum AreaUnit {
      */
   public Double denormalise(Double area) {
     switch (this) {
-      case SQ_METERS:
+      case SQ_METRES:
         return area;
       case SQ_FEET:
         return area / 0.3048;

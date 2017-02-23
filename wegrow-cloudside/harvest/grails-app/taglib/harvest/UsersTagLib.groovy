@@ -23,24 +23,24 @@ class UsersTagLib {
         if (objectType.equalsIgnoreCase("WEIGHT")) {
             def unit = springSecurityService.currentUser.preferredWeightUnit
 
-            def formattedValue = unit.denormalise(value)
+            def formattedValue = value ? unit.denormalise(value) : value
             attrs.number = formattedValue
             out << g.formatNumber(attrs) << unit.name
         } else if (objectType.equalsIgnoreCase("AREA")) {
             def unit = springSecurityService.currentUser.preferredAreaUnit
+            def formattedValue = value ? unit.denormalise(value) : value
 
-            def formattedValue = unit.denormalise(value)
             attrs.number = formattedValue
             out << g.formatNumber(attrs) << unit.name
         } else if (objectType.equalsIgnoreCase("RADIUS")) {
-            def unit = springSecurityService.currentUser.preferredRadiusUnit
+            def unit = springSecurityService.currentUser.preferredLengthUnit
 
-            def formattedValue = unit.denormalise(value)
+            def formattedValue = value ? unit.denormalise(value) : value
             attrs.number = formattedValue
             out << g.formatNumber(attrs) << unit.name
         } else if (objectType.equalsIgnoreCase("YIELD")) {
-            attrs.number = value
-            out << g.formatNumber(attrs) << "g/m²"
+            attrs.number = value / 1000
+            out << g.formatNumber(attrs) << " kg/m²"
         }
     }
 
