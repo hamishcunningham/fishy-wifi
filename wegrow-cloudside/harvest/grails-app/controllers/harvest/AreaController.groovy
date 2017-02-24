@@ -23,7 +23,7 @@ class AreaController {
         if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
             respond Area.findAll(), model:[areaCount: Area.count()]
         } else {
-            redirect action: "create"
+            redirect controller: "harvest"
         }
 
     }
@@ -78,7 +78,7 @@ class AreaController {
             form multipartForm {
                 flash.message = message(code: 'default.created.message',
                         args: [message(code: 'area.label', default: 'Area'), area.toString()])
-                redirect action: "create"
+                redirect controller: "harvest", action: "index"
             }
             '*' { respond area, [status: CREATED] }
         }

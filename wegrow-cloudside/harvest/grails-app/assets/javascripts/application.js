@@ -18,6 +18,25 @@ if (typeof jQuery !== 'undefined') {
             $('#spinner').fadeOut();
         });
         $('.stacktable').stacktable({myClass:'stacktable'});
+
+        $('[data-toggle="tooltip"]').tooltip()
+
+
+        $('.harvest-count').each(function (idx, count) {
+            $($(count).data("target")).on("hidden.bs.collapse", function() {
+                $(count).find(".glyphicon")
+                    .removeClass("glyphicon-chevron-down")
+                    .addClass("glyphicon-chevron-right");
+            });
+
+            $($(count).data("target")).on("shown.bs.collapse", function() {
+                $(count).find(".glyphicon")
+                    .removeClass("glyphicon-chevron-right")
+                    .addClass("glyphicon-chevron-down");
+            });
+
+        });
+
     })(jQuery);
 }
 

@@ -143,7 +143,11 @@ form.inline {
 }
 
 .harvestHeadingRow {
-  color: rgb(125, 69, 26);
+  font-size: large;
+}
+
+.harvestHeadingRow.finished {
+  color:#8c8c8c;
 }
 
 .pagination .step, .currentStep, .nextLink, .prevLink {
@@ -156,7 +160,7 @@ form.inline {
 .stacktable.large-only { display: table; }
 .stacktable.small-only { display: none; }
 
-@media (max-width: 800px) {
+@media (max-width: 768px) {
   .stacktable.large-only { display: none; }
   .stacktable.small-only { display: table; }
 }
@@ -167,6 +171,54 @@ tr.small-only th.st-head-row {
   border-top: none;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 768px) {
   .small-only { display: table; }
+}
+
+.statsBox {
+  .make-md-column(2);
+}
+.statsBox .icon {
+  .pull-left;
+}
+
+.statsBox .statsLabel {
+  .pull-right;
+  display: block;
+}
+
+.statsBox .value {
+  .pull-right;
+  display: block;
+
+}
+.harvestControls {
+  .make-md-column(4);
+}
+
+@media (min-width: 992px) {
+  .harvestControls {
+    .make-md-column-offset(8);
+    .text-right;
+  }
+}
+
+.harvest-row{
+  display: none;
+}
+
+.harvest-count:hover {
+  text-decoration: none;
+}
+
+.myharvest-orange {
+  color: #D3714B;
+}
+
+.myharvest-green {
+  color: #C8DC5F;
+}
+
+.icon-key {
+  list-style: none;
 }

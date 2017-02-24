@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta name="layout" content="main" />
+        <meta name="layout" content="small-form" />
         <g:set var="entityName" value="${message(code: 'harvest.label', default: 'Harvest')}" />
         <title><g:message code="default.create.label" args="[entityName]" /></title>
     </head>
@@ -32,7 +32,7 @@
 
                 </fieldset>
                 <fieldset class="buttons">
-                    <g:submitButton name="create" class="save" value="${message(code: 'default.button.create.label', default: 'Create')}" />
+                    <g:submitButton name="create" class="save btn btn-primary btn-lg" value="${message(code: 'default.button.create.label', default: 'Create')}" />
                 </fieldset>
             </g:form>
         </div>

@@ -22,6 +22,7 @@
     <g:layoutHead/>
 </head>
 <body>
+
     <div class="navbar navbar-default navbar-static-top" role="navigation">
         <div class="container-fluid">
             <div class="navbar-header">
@@ -53,14 +54,6 @@
                           </li>
                     </sec:ifNotLoggedIn>
                     <sec:ifLoggedIn>
-
-                        <sec:access expression="!hasRole('ROLE_ADMIN')">
-                        <li>
-                            <g:link resource="area" action="create">
-                                 <g:message code="area.title" default="Log a Crop" />
-                            </g:link>
-                         </li>
-                        </sec:access>
 
                         <sec:access expression="hasRole('ROLE_ADMIN')">
                             <li>
