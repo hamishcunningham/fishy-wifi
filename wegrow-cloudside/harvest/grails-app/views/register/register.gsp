@@ -14,7 +14,7 @@
                 </div>
             </g:if>
         </div>
-s
+
         <div class="col-md-4 col-md-offset-4">
 
             <g:if test='${flash.message}'>
