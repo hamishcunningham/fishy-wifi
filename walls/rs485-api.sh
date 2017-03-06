@@ -19,6 +19,14 @@ MA0=0x55, MA1=0xAA, MAE=0x77, SL0=0x56, SL1=0xAB, SLE=0x78, FC=9600, CN=0xFE\n
 Command format:\n
 MA0 MA1 BC CC Data… Data CS MAE\n
 \n
+Each controller must be programmed with a CN in ascending order from 1,\n
+and each relay must be programmed with a digital output number in ascending\n
+order from 1. The API then allows addressing of the relays in groups of 64\n
+spread across the 4 bases (0-3) -- i.e. the 1st relay on controller 6 is\n
+base 1 / output 70, but via the API is addressed as base 1 relay 7, turned\n
+on by:\n
+rs485-api.sh -B 1 -c on 7\n
+\n
 Manual:\n
 http://smarthardware.eu/manual/str2do14din_doc.pdf
 "
