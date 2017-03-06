@@ -17,8 +17,6 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
   [pattern: '/**/css/**',      access: ['permitAll']],
   [pattern: '/**/images/**',   access: ['permitAll']],
   [pattern: '/**/favicon.ico', access: ['permitAll']],
-  [pattern: '/console/**',        access: 'ROLE_ADMIN'],
-  [pattern: '/static/console/**', access: 'ROLE_ADMIN'],
   [pattern: '/user/**',        access: 'ROLE_ADMIN'],
 
   [pattern: '/user/**',        access: ['ROLE_ADMIN']],
@@ -48,16 +46,32 @@ grails.plugin.springsecurity.logout.postOnly = false
 grails.plugin.springsecurity.ui.register.defaultRoleNames = ['ROLE_USER']
 grails.plugin.springsecurity.ui.register.postRegisterUrl = '/growingSpace/create'
 
+
+grails {
+    mail {
+        host = "smtp.gmail.com"
+        port = 465
+        username = harvest.Passwords.EMAIL_ADDR
+        password = harvest.Passwords.EMAIL_PWD
+        props = ["mail.smtp.auth":"true",
+                 "mail.smtp.socketFactory.port":"465",
+                 "mail.smtp.socketFactory.class":"javax.net.ssl.SSLSocketFactory",
+                 "mail.smtp.socketFactory.fallback":"false"]
+    }
+}
+
+
 environments {
     production {
-        grails.serverURL = "http://www.changeme.com"
+        grails {
+            serverURL = "http://submit.myharvest.org.uk"
+        }
     }
+
     development {
-        grails.mail.port = com.icegreen.greenmail.util.ServerSetupTest.SMTP.port
         grails.serverURL = "http://localhost:8080/"
     }
     test {
-        grails.mail.port = com.icegreen.greenmail.util.ServerSetupTest.SMTP.port
         grails.serverURL = "http://localhost:8080/"
     }
 }

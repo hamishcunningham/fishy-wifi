@@ -31,8 +31,19 @@
                 </g:each>
                 </fieldset>
                 <fieldset class="buttons">
-                    <input class="save" type="submit" value="${message(code: 'default.button.update.label', default: 'Update')}" />
+                    <input class="save btn btn-primary btn-lg" type="submit" value="${message(code: 'default.button.update.label', default: 'Update')}" />
                 </fieldset>
+            </g:form>
+
+
+            <g:link action="changePassword">
+                <g:message code="spring.security.ui.resetPassword.title"></g:message>
+            </g:link>
+
+            <g:form controller="user" class="form-inline controls-form" action="delete" id="${user.id}" method="DELETE">
+                <input class="delete btn btn-danger"
+                       type="submit" value="${message(code: 'default.button.delete.label', default: 'Delete')}"
+                       onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure? This will also delete all data')}');"/>
             </g:form>
         </div>
     </body>

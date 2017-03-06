@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="grails-app/assets/stylesheets/application_conventional.less"/><link rel="stylesheet" type="text/css" href="grails-app/assets/stylesheets/application_conventional.less"/><link rel="stylesheet" type="text/css" href="grails-app/assets/stylesheets/application_conventional.less"/><meta name="layout" content="main"/>
+    <link rel="stylesheet" type="text/css" href="grails-app/assets/stylesheets/application_conventional.less"/><link rel="stylesheet" type="text/css" href="grails-app/assets/stylesheets/application_conventional.less"/><link rel="stylesheet" type="text/css" href="grails-app/assets/stylesheets/application_conventional.less"/><link rel="stylesheet" type="text/css" href="grails-app/assets/stylesheets/application_conventional.less"/><meta name="layout" content="main"/>
     <g:set var="entityName" value="${message(code: 'harvest.label', default: 'Harvest')}"/>
     <title><g:message code="harvest.title"/></title>
 </head>
@@ -11,7 +11,7 @@
 <div id="list-harvest" class="content scaffold-list" role="main">
     <h1><g:message code="harvest.title"/></h1>
     <%
-        def colCount = grails.plugin.springsecurity.SpringSecurityUtils.ifAllGranted('ROLE_ADMIN') ? 8: 6
+        def colCount = grails.plugin.springsecurity.SpringSecurityUtils.ifAllGranted('ROLE_ADMIN') ? 12: 9
     %>
     <g:if test="${flash.message}">
         <div class="message" role="status">${flash.message}</div>
@@ -19,7 +19,11 @@
     <g:if test="${areaList}">
         <table class="table stacktable">
             <tr>
+                <th >Name</th>
+
                 <th >Crop</th>
+                <th >Variety</th>
+
                 <sec:access expression="hasRole('ROLE_ADMIN')">
                     <th class="text-center">Email address</th><th class="text-center">Location</th>
                 </sec:access>
@@ -54,16 +58,14 @@
                         <span class="myharvest-orange glyphicon glyphicon-chevron-right"></span> Show harvests for this crop
                     </li>
 
-                    <li>
-                        <span class="myharvest-green glyphicon glyphicon-plus"></span> Log a new harvest for this crop
-                    </li>
 
                 </ul>
             </div>
             <g:each var="area" in="${areaList}" >
                 <tr class="harvestHeadingRow ${area.finished?'finished':''}" data-toggle="collapse" data-target=".rows-${area.id}">
-                    <td >${area.crop}
-                    </td>
+                    <td >${area.toString()}</td>
+                    <td >${area.crop}</td>
+                    <td >${area.variety}</td>
 
                     <sec:access expression="hasRole('ROLE_ADMIN')">
                         <td class="text-center">${area.space.user.email}</td>
@@ -85,6 +87,16 @@
                     <td class="text-center"><g:formatNumberUnit number="${area.yield}" type="yield" maxFractionDigits="2" /></td>
 
                     <td class="text-right">
+                        <g:if test="${area.finished}">
+                                <span class="label harvest-green-label" aria-hidden="true"
+                                      data-toggle="tooltip" title="You've recorded the last harvest for this crop">
+                                    HARVEST COMPLETE
+                                </span>
+
+
+                        </g:if>
+
+
                         <g:form controller="area" action="delete" id="${area.id}" class="inline" method="DELETE">
                         <button class="delete btn btn-link"
                                type="submit"
@@ -117,6 +129,7 @@
                         <g:if test="${area.harvests}">
                         <a class="btn btn-link harvest-count myharvest-orange" data-toggle="collapse" data-target=".rows-${area.id}">
                             %{--<span class="harvest-count-num">${area.harvests.size()}</span>--}%
+                            <span>${area.harvests.size()}</span>
                             <span data-toggle="tooltip" title="Show or hide Harvests"
                                   class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
                             <span class="sr-only">Show/Hide Harvests</span>
@@ -124,14 +137,11 @@
                         </g:if>
 
                         <g:if test="${area.finished != true}">
-                            <g:link class="btn btn-link myharvest-green" controller="harvest" action="create" params="${[areaId: area.id]}">
-                                <span class="glyphicon glyphicon-plus" aria-hidden="true"
-                                      data-toggle="tooltip" title="Add a Harvest"
-                                      ></span>
-                                <span class="sr-only">Add a harvest</span
+                            <g:link class="btn btn-harvest-orange myharvest-orange" controller="harvest" action="create" params="${[areaId: area.id]}">
+                                <g:img file="ICONS-BLOCK/ICONS-BLOCK-WEIGH-SMALL.png" alt="Add a Harvest" data-toggle="tooltip" title="Add a Harvest"></g:img>
+                                <span>Add Harvest</span>
                             </g:link>
                         </g:if>
-
                     </td>
 
                     %{--</td>--}%
@@ -217,28 +227,6 @@
                             </div>
                             </div>
                         </td>
-                        %{--<td></td>--}%
-
-                        %{--<sec:access expression="hasRole('ROLE_ADMIN')">--}%
-                            %{--<td></td>--}%
-                            %{--<td></td>--}%
-                        %{--</sec:access>--}%
-                        %{--<td class="text-center"><g:formatNumberUnit number="${harvest.weightGrammes}" type="weight" maxFractionDigits="2" /></td>--}%
-                        %{--<td class="text-center"><g:formatNumberUnit number="${harvest.yield}" type="yield" maxFractionDigits="2" /></td>--}%
-                        %{--<td class="text-center">--}%
-                            %{--<g:formatDate date="${harvest.dateCreated}"--}%
-                                      %{--format="EEEE, d MMMM yyyy" locale="gb"/>--}%
-                        %{--</td>--}%
-                        %{--<td class="text-right">--}%
-
-                            %{--<g:form controller="harvest" action="delete" id="${harvest.id}" class="inline" method="DELETE">--}%
-                                %{--<input class="delete btn btn-danger"--}%
-                                       %{--type="submit" value="${message(code: 'default.button.delete.label', default: 'Delete')}"--}%
-                                       %{--onclick="return confirm('${message(code: 'default.button.delete.confmlirm.message', default: 'Are you sure?')}');"/>--}%
-                            %{--</g:form>--}%
-                            %{--<g:link class="btn btn-primary" action="edit" id="${harvest.id}">Edit</g:link>--}%
-
-                        %{--</td>--}%
 
                     </tr>
                 </g:each>

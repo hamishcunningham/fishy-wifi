@@ -117,7 +117,7 @@ class AreaController {
         request.withFormat {
             form multipartForm {
                 flash.message = message(code: 'default.updated.message', args: [message(code: 'area.label', default: 'Area'), area.id])
-                redirect action: "create"
+                redirect controller: "harvest", action: "index"
             }
             '*'{ respond area, [status: OK] }
         }
@@ -143,7 +143,7 @@ class AreaController {
         request.withFormat {
             form multipartForm {
                 flash.message = message(code: 'default.deleted.message', args: [message(code: 'area.label', default: 'Area'), area.id])
-                redirect action:"index", method:"GET"
+                redirect controller: "harvest", action: "index"
             }
             '*'{ render status: NO_CONTENT }
         }
@@ -153,7 +153,7 @@ class AreaController {
         request.withFormat {
             form multipartForm {
                 flash.message = message(code: 'default.not.found.message', args: [message(code: 'area.label', default: 'Area'), params.id])
-                redirect action: "index", method: "GET"
+                redirect controller: "harvest", action: "index"
             }
             '*'{ render status: NOT_FOUND }
         }

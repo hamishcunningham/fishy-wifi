@@ -25,19 +25,19 @@ class UsersTagLib {
 
             def formattedValue = value ? unit.denormalise(value) : value
             attrs.number = formattedValue
-            out << g.formatNumber(attrs) << unit.name
+            out << g.formatNumber(attrs) << " " << unit.name
         } else if (objectType.equalsIgnoreCase("AREA")) {
             def unit = springSecurityService.currentUser.preferredAreaUnit
             def formattedValue = value ? unit.denormalise(value) : value
 
             attrs.number = formattedValue
-            out << g.formatNumber(attrs) << unit.name
+            out << g.formatNumber(attrs) << " " << unit.name
         } else if (objectType.equalsIgnoreCase("RADIUS")) {
             def unit = springSecurityService.currentUser.preferredLengthUnit
 
             def formattedValue = value ? unit.denormalise(value) : value
             attrs.number = formattedValue
-            out << g.formatNumber(attrs) << unit.name
+            out << g.formatNumber(attrs) << " " << unit.name
         } else if (objectType.equalsIgnoreCase("YIELD")) {
             attrs.number = value / 1000
             out << g.formatNumber(attrs) << " kg/m²"
