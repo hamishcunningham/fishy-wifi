@@ -17,8 +17,8 @@ INST_DIR=`dirname ${P}`
 CLI=${INST_DIR}/rs485-api.sh
 LOG_STRING=tui
 VERSION=0.000001
-NUM_CONTROLLERS=2
-NUM_SOLENOIDS=28
+NUM_CONTROLLERS=14
+NUM_SOLENOIDS=196
 
 # message & exit if exit num present
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
