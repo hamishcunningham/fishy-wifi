@@ -51,7 +51,8 @@ class BootStrap {
       if (!User.list()) {
         def adminRole = new Role(authority: 'ROLE_ADMIN').save()
         def userRole = new Role(authority: 'ROLE_USER').save()
-        def adminUser = new User(username: 'admin', password: 'myHarvestPassword', email: "admin@example.com").save()
+        def adminUser = new User(username: 'admin', password: harvest.Passwords.ADMIN_PWD,
+                email: harvest.Passwords.EMAIL_ADDR).save()
         UserRole.create adminUser, adminRole
         UserRole.withSession {
           it.flush()

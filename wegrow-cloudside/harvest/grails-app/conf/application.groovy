@@ -51,8 +51,8 @@ grails {
     mail {
         host = "smtp.gmail.com"
         port = 465
-        username = "myharvest@gate.ac.uk"
-        password = "5CdhTq9CKh"
+        username = harvest.Passwords.EMAIL_ADDR
+        password = harvest.Passwords.EMAIL_PWD
         props = ["mail.smtp.auth":"true",
                  "mail.smtp.socketFactory.port":"465",
                  "mail.smtp.socketFactory.class":"javax.net.ssl.SSLSocketFactory",
