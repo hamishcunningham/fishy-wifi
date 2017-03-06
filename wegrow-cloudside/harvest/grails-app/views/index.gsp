@@ -18,17 +18,10 @@
             </p>
 
             <p class="text-center">
-                Thank you for participating in this project. To tell us about what crops you are growing and where, click the button below.
+                To tell us about what crops you are growing and what you have harvested, click the button below
             </p>
             <p class="text-center">
-                <g:link controller="area" action="create" class="btn btn-default btn-lg"><g:message code="area.title" /></g:link>
-            </p>
-
-            <p class="text-center">
-                If you've already added your crops, tell us what you've harvested.
-            </p>
-            <p class="text-center">
-                <g:link controller="harvest" action="create" class="btn btn-default btn-lg"><g:message code="harvest.create.title" /></g:link>
+                <g:link controller="harvest" action="index" class="btn btn-default btn-lg"><g:message code="harvest.title" /></g:link>
             </p>
 
         </sec:ifLoggedIn>

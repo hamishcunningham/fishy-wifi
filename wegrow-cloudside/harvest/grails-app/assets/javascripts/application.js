@@ -22,17 +22,20 @@ if (typeof jQuery !== 'undefined') {
         $('[data-toggle="tooltip"]').tooltip()
 
 
-        $('.harvest-count').each(function (idx, count) {
+        $('.harvestHeadingRow').each(function (idx, count) {
             $($(count).data("target")).on("hidden.bs.collapse", function() {
-                $(count).find(".glyphicon")
+                $(count).find(".harvest-count > .glyphicon")
                     .removeClass("glyphicon-chevron-down")
                     .addClass("glyphicon-chevron-right");
+                $(count).removeClass("in");
             });
 
             $($(count).data("target")).on("shown.bs.collapse", function() {
-                $(count).find(".glyphicon")
+                $(count).find(".harvest-count > .glyphicon")
                     .removeClass("glyphicon-chevron-right")
                     .addClass("glyphicon-chevron-down");
+                $(count).addClass("in");
+
             });
 
         });

@@ -7,7 +7,6 @@ class FirstAreaInterceptor {
     int order = LOWEST_PRECEDENCE - 20
 
     FirstAreaInterceptor() {
-        match(controller: "harvest")
         match(controller: "growingSpace", action:"show")
         match(controller: "garden", action:"show")
         match(controller: "allotment", action:"show")
@@ -22,7 +21,7 @@ class FirstAreaInterceptor {
             def growingSpace = springSecurityService.currentUser.growingSpace
 
             if (growingSpace != null && (growingSpace.areas == null || growingSpace.areas.size() == 0)) {
-                redirect(controller:"area", action: "create")
+                redirect(controller:"harvest", action: "index")
             } else {
                 true
             }

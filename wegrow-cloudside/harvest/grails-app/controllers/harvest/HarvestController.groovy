@@ -22,19 +22,22 @@ class HarvestController {
                 [
                         email: harvest.area.space.user.email,
                         id: harvest.id,
+                        area_label: harvest.area.name,
+
                         area_id: harvest.area.id,
                         area_m2: !harvest.area.crop.isTree ? // Use the radius to get the area for trees.
                                 harvest.area.areaMeters : (harvest.area.canopyRadiusMeters ** 2) * Math.PI,
                         crop: harvest.area.crop,
+                        variety: harvest.area.variety,
                         logged_at: harvest.dateCreated,
                         yield_m2: harvest.yield,
                         weight_g: harvest.weightGrammes,
                         type: harvest.area.space.typeLabel,
-                        organic: harvest.area.space.isOrganic,
-                        all_data: harvest.area.space.submittingAllData,
-                        growing_space: harvest.area.space.typeLabel,
+                        organic: harvest.area.space.isOrganic ? "yes" : "no",
+                        all_data: harvest.area.space.submittingAllData ? "yes" : "no",
+                        growing_space: harvest.area.space.typeLabel ? "yes" : "no",
                         radius: harvest.area.canopyRadiusMeters,
-                        in_greenhouse: harvest.area.inGreenhouse
+                        in_greenhouse: harvest.area.inGreenhouse ? "yes" : "no"
                 ]
             }
             def fields = ["id",
@@ -42,11 +45,13 @@ class HarvestController {
                           "growing_space",
                           "email",
                           "yield_m2",
+                          "area_label",
                           "area_id",
                           "area_m2",
                           "radius",
                           "weight_g",
                           "crop",
+                          "variety",
                           "type",
                           "organic",
                           "in_greenhouse",

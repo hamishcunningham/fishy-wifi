@@ -9,7 +9,7 @@
         <div id="create-area" class="content scaffold-create" role="main">
 
             <h1><g:message code="area.title" /></h1>
-            <p><g:message code="area.question" /></p>
+            %{--<p><g:message code="area.question" /></p>--}%
 
             <g:if test="${flash.message}">
                 <div class="message alert" role="status">${flash.message}</div>
@@ -23,7 +23,10 @@
             </g:hasErrors>
             <g:form action="save">
                 <fieldset class="form">
+                    <f:field bean="area" property="name"
+                             widget-placeholder="${message(code:"area.name.placeholder")}"/>
                     <f:field bean="area" property="crop"/>
+                    <f:field bean="area" property="variety"/>
                     <f:field bean="area" property="area"/>
                     <f:field bean="area" property="canopyRadius"/>
                     <f:field bean="area" property="inGreenhouse"/>

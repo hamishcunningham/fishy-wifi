@@ -3,6 +3,7 @@ package harvest
 import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.plugin.springsecurity.annotation.Secured
 import grails.transaction.Transactional
+import org.springframework.security.core.context.SecurityContextHolder
 
 import static org.springframework.http.HttpStatus.NO_CONTENT
 
@@ -53,17 +54,24 @@ class UserController {
             return
         }
 
-        if (!SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
+        if (!SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")
+                && user != springSecurityService.currentUser ) {
             transactionStatus.setRollbackOnly()
             notFound()
             return
         }
 
+//        if (user == springSecurityService.currentUser) {
+//            transactionStatus.setRollbackOnly()
+//            flash.message = "User are not allowed to delete themselves."
+//            redirect action: "index"
+//            return
+//        }
+
+        def deletedMe = false
         if (user == springSecurityService.currentUser) {
-            transactionStatus.setRollbackOnly()
-            flash.message = "User are not allowed to delete themselves."
-            redirect action: "index"
-            return
+            SecurityContextHolder.clearContext()
+            deletedMe = true
         }
         def userRoles = UserRole.findAllByUser(user)
 
@@ -73,8 +81,13 @@ class UserController {
 
         request.withFormat {
             form multipartForm {
-                flash.message = message(code: 'default.deleted.message', args: [message(code: 'user.label', default: 'User'), user.id])
-                redirect action:"index", method:"GET"
+                if (!deletedMe) {
+                    flash.message = message(code: 'default.deleted.message', args: [message(code: 'user.label', default: 'User'), user.id])
+                    redirect action:"index", method:"GET"
+                } else {
+                    flash.message = message(code: 'harvest.selfdeleted')
+                    redirect(uri:"/")
+                }
             }
             '*'{ render status: NO_CONTENT }
         }
@@ -135,6 +148,6 @@ class UserController {
 
         flash.message = "Password changed successfully"
         flash.messageType = "success"
-        redirect "/"
+        redirect(action:"editPreferences")
     }
 }

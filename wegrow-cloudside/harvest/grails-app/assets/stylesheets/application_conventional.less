@@ -143,11 +143,20 @@ form.inline {
 }
 
 .harvestHeadingRow {
-  font-size: large;
 }
 
+.harvestHeadingRow > td {
+  font-size: inherit;
+  vertical-align: middle!important;
+}
+
+.harvestHeadingRow.in {
+  font-weight: bold;
+}
+
+
 .harvestHeadingRow.finished {
-  color:#8c8c8c;
+  color: rgba(200, 220, 95, 0.38);
 }
 
 .pagination .step, .currentStep, .nextLink, .prevLink {
@@ -221,4 +230,22 @@ tr.small-only th.st-head-row {
 
 .icon-key {
   list-style: none;
+}
+
+.harvest-green-label {
+  border-color: #C8DC5F;
+  border-style: dashed;
+  color: #C8DC5F;
+  font-weight: normal;
+  border-width: thin;
+}
+
+.btn-harvest-orange {
+  .button-size(@padding-small-vertical; @padding-small-horizontal;
+          @font-size-base; @line-height-small; @btn-border-radius-large);
+  background-color: #D3714B;
+  color: white;
+  font-weight: normal;
+  border-width: thin;
+  padding-right: 16px;
 }

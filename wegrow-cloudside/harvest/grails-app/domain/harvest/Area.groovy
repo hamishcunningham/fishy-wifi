@@ -11,6 +11,8 @@ class Area {
   private canopyRadius
   Double canopyRadiusMeters
 
+  String variety
+  String name
   Boolean inGreenhouse
   private harvest.LengthUnit radiusUnit;
 
@@ -35,7 +37,9 @@ class Area {
   static hasMany = [harvests: Harvest]
 
   static constraints = {
+    name()
     crop()
+    variety nullable: true
     space display: false
     areaMeters display: false, nullable: true, validator: { Double val, Area obj ->
       if (obj.crop.isTree) {
@@ -232,11 +236,11 @@ class Area {
   @Override
   public String toString() {
     try {
-      if (crop?.isTree) {
-        return "${crop?.type} with canopy ${getCanopyRadius()}";
+      if (name) {
+        return "${name}";
       }
       else {
-        return "${crop?.type} growing in ${getArea()}${getUnit().name}";
+        return "${crop?.type} (${variety})";
       }
     } catch (LazyInitializationException e) {
       return "${getArea()}${getUnit().name}"
