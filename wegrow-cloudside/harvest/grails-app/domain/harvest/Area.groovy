@@ -37,7 +37,7 @@ class Area {
   static hasMany = [harvests: Harvest]
 
   static constraints = {
-    name()
+    name(nullable: true)
     crop()
     variety nullable: true
     space display: false
@@ -243,7 +243,7 @@ class Area {
         return "${crop?.type} (${variety})";
       }
     } catch (LazyInitializationException e) {
-      return "${getArea()}${getUnit().name}"
+      return "${getArea()} ${getUnit().name}"
     }
   }
 
