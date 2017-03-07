@@ -15,7 +15,7 @@ NC='\033[0m'       # no color
 # specific locals
 INST_DIR=`dirname ${P}`
 CLI=${INST_DIR}/rs485-api.sh
-LOG_STRING=tui
+LOG_STRING=rs485
 VERSION=0.000001
 NUM_CONTROLLERS=14
 NUM_SOLENOIDS=196

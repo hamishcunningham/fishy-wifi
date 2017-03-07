@@ -47,6 +47,7 @@ COMM=":"
 PORT='/dev/ttyUSB0'
 CN=00
 BASE=00
+LOG_STRING=rs485
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
@@ -66,6 +67,7 @@ done
 shift `expr $OPTIND - 1`
 
 ### procedural interface ####################################################
+log() { logger "${LOG_STRING}: $*"; }
 init() {
   stty -F ${PORT} sane
   stty -F ${PORT} 9600 cs8 -cstopb -parenb raw -echo
@@ -195,6 +197,7 @@ hpr() { # print hex number in decimal and binary
 }
 
 ### CLI access to procedures ################################################
+log           "running $COMM $*"
 echo -e "${RED}running $COMM $*${NC}" >&2
 $COMM $*
 
