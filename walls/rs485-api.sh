@@ -71,7 +71,7 @@ shift `expr $OPTIND - 1`
 ### procedural interface ####################################################
 log() { logger "${LOG_STRING}: $*"; }
 init() {
-  ( echo; echo; date; echo; ) >>${DBG_LOG}
+  ( echo; echo; date; echo; ) >${DBG_LOG}
   stty -F ${PORT} sane
   stty -F ${PORT} 9600 cs8 -cstopb -parenb raw -echo
 }
