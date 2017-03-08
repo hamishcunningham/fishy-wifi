@@ -386,8 +386,7 @@ while true; do
       "2 All off"               "Turn all relays off" \
       "3 Status"                "Show current status from the wall" \
       "4 Show Log Entries"      "Show the most recent log entries" \
-      "5 TODO list"             "What's on the development stack?" \
-      "6 About"                 "Information about this tool" \
+      "5 About"                 "Information about this tool" \
     3>&1 1>&2 2>&3)
   RET=$?
   if [ $RET -eq 1 ]; then
@@ -401,13 +400,7 @@ while true; do
               $(( $WT_HEIGHT + 10 )) 78 1 ;;
       4\ *) whiptail --title "Recent Log Entries" --msgbox \
               "`log_grep`" $WT_HEIGHT $WT_WIDTH 1 ;;
-      5\ *) whiptail --title "TODOs" --msgbox \
-"Add ability to specify an on time per solenoid.
-More abstractions: rows, columns, areas.
-Sequencing.
-Get it to make tea.
-"             $WT_HEIGHT $WT_WIDTH 1 ;;
-      6\ *) do_about ;;
+      5\ *) do_about ;;
       *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $SEL" 20 60 1
   else
