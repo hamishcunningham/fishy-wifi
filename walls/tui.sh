@@ -395,7 +395,7 @@ while true; do
   elif [ $RET -eq 0 ]; then
     case "$SEL" in
       1\ *) do_water_control ;;
-      2\ *) cli_command -c clear ;;
+      2\ *) cli_command -c clear; clear_solenoid_state ;;
       3\ *) read_board; whiptail --title "Status" --msgbox \
               "`print_solenoid_state |pr -e -t7 -w78 |expand`" \
               $(( $WT_HEIGHT + 10 )) 78 1 ;;
