@@ -182,7 +182,7 @@ run_command() {
   echo "run_command $*" >>${DBG_LOG}
   C="`form_command $*`"
   $DBG -ne "$RED" >&2; $DBG -n "echo -ne ${C} > ${PORT}" >&2; $DBG -e "$NC"
-  echo "echo -ne "${C}" > ${PORT}" >>${DBG_LOG}
+  echo "echo -ne \"${C}\" > ${PORT}" >>${DBG_LOG}
   echo -ne "${C}" > ${PORT}
 }
 on() {
