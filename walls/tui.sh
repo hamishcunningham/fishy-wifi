@@ -19,6 +19,7 @@ LOG_STRING=rs485
 VERSION=0.000001
 NUM_CONTROLLERS=14
 NUM_SOLENOIDS=196
+ALL_SOLENOIDS=`seq 1 $NUM_SOLENOIDS`
 DBG_LOG=/tmp/rs485-dbg.txt
 
 # message & exit if exit num present
@@ -384,9 +385,10 @@ while true; do
     --cancel-button Finish --ok-button Select \
       "1 Watering"              "Control water supply to the wall" \
       "2 All off"               "Turn all relays off" \
-      "3 Status"                "Show current status from the wall" \
-      "4 Show Log Entries"      "Show the most recent log entries" \
-      "5 About"                 "Information about this tool" \
+      "3 All on"                "Turn all relays on" \
+      "4 Status"                "Show current status from the wall" \
+      "5 Show Log Entries"      "Show the most recent log entries" \
+      "6 About"                 "Information about this tool" \
     3>&1 1>&2 2>&3)
   RET=$?
   if [ $RET -eq 1 ]; then
@@ -395,12 +397,14 @@ while true; do
     case "$SEL" in
       1\ *) do_water_control ;;
       2\ *) cli_command -c clear; clear_solenoid_state ;;
-      3\ *) read_board; whiptail --title "Status" --msgbox \
+      3\ *) cli_command -c on ${ALL_SOLENOIDS}; \
+            for r in ${ALL_SOLENOIDS}; do set_solenoid $r on; done ;;
+      4\ *) read_board; whiptail --title "Status" --msgbox \
               "`print_solenoid_state |pr -e -t7 -w78 |expand`" \
               $(( $WT_HEIGHT + 10 )) 78 1 ;;
-      4\ *) whiptail --title "Recent Log Entries" --msgbox \
+      5\ *) whiptail --title "Recent Log Entries" --msgbox \
               "`log_grep`" $WT_HEIGHT $WT_WIDTH 1 ;;
-      5\ *) do_about ;;
+      6\ *) do_about ;;
       *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $SEL" 20 60 1
   else

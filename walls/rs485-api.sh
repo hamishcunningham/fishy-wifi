@@ -77,8 +77,7 @@ init() {
 }
 read_status() {
   run_command -b ${BC06} 11 ${CN} 00 &
-# TODO timeout on the hd:
-  hd -n 15 <${PORT} |cut -c 11- |cut -d '|' -f 1
+  timeout 0.5 bash -c "hd -n 15 <${PORT} |cut -c 11- |cut -d '|' -f 1"
 }
 bfi2bin() { # bit field index to binary
   if [ $1 -eq 1 ]
