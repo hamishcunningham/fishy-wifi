@@ -3,15 +3,19 @@
 
 PS1='(to restart type "sudo reboot")  '"${PS1}"
 
-/home/pi/fishy-wifi/walls/tui.sh
-echo -n "Shutdown? (s) Reboot? (r) Shell? (any) "
-read ANS
-if [ x$ANS = xs ]
+if [ `tty` = "/dev/tty1" ]
 then
-  echo halting...
-  sudo halt
-elif  [ x$ANS = xr ]
-then
-  echo rebooting...
-  sudo reboot
+  /home/pi/fishy-wifi/walls/tui.sh
+  echo -n "Shutdown? (s) Reboot? (r) Shell? (any) "
+  read ANS
+  if [ x$ANS = xs ]
+  then
+    echo halting...
+    sudo halt
+  elif  [ x$ANS = xr ]
+  then
+    echo rebooting...
+    sudo reboot
+  fi
 fi
+
