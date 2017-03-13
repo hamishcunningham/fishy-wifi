@@ -284,7 +284,14 @@ read_board() { # grungey late-night code: enter at your peril!
   clear_solenoid_state
   for CN in `seq 1 $NUM_CONTROLLERS`
   do
-    set `cli_command -C $CN -c read_status`
+    STAT=`cli_command -C $CN -c read_status`
+    if [ $? != 0 -o "x${STAT}" = x ]
+    then
+      echo -e "${RED}failure on read_status; RS485 not attached? $*${NC}" >&2
+      exit 1
+    fi
+
+    set $STAT
     shift 5
     echo -e "${GR}solenoid data from read_status: $*${NC}" >&2
     HEX_BITS=""

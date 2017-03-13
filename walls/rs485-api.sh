@@ -142,8 +142,8 @@ ris2hex() { # convert relay index set to hex; counts from R1
       echo -e "oops! relay bigger than 64: ${RED}$*${NC}" >&2
     fi
   done
-  $DBG -e "${RED}$*${NC}" >&2
-  $DBG -e "${RED}$BITS1 - $BITS2 - $BITS3 - $BITS4 - \
+  $DBG -e "${BLUE}$*${NC}" >&2
+  $DBG -e "${BLUE}$BITS1 - $BITS2 - $BITS3 - $BITS4 - \
     $BITS5 - $BITS6 - $BITS7 - $BITS8${NC}" >&2
   BIN1=$(( $BITS1 )); BIN2=$(( $BITS2 ))
   BIN3=$(( $BITS3 )); BIN4=$(( $BITS4 ))
@@ -159,9 +159,9 @@ calculate_check_sum() {
     SUM="${SUM} + 0x${h}"
   done
   SUM="\$((${SUM}))"
-  $DBG -e "${RED}SUM = $SUM${NC}" >&2
+  $DBG -e "${BLUE}SUM = $SUM${NC}" >&2
   S=`bash -c "printf '%X\n' ${SUM}"`
-  $DBG -e "${RED}S = $S${NC}" >&2
+  $DBG -e "${BLUE}S = $S${NC}" >&2
   echo ${S: -2}
 }
 form_command() {
@@ -174,13 +174,13 @@ form_command() {
   done
   CHECKSUM=`calculate_check_sum ${BC} $*`
   C="${C}\x${CHECKSUM}\x${MAE}"
-  echo -e "${RED}`echo ${C} |sed 's,\\\x, ,g'`${NC}" >&2
+  echo -e "${BLUE}`echo ${C} |sed 's,\\\x, ,g'`${NC}" >&2
   echo $C
 }
 run_command() {
   echo "run_command $*" >>${DBG_LOG}
   C="`form_command $*`"
-  $DBG -ne "$RED" >&2; $DBG -n "echo -ne ${C} > ${PORT}" >&2; $DBG -e "$NC"
+  $DBG -ne "$BLUE" >&2; $DBG -n "echo -ne ${C} > ${PORT}" >&2; $DBG -e "$NC"
   echo "echo -ne \"${C}\" > ${PORT}" >>${DBG_LOG}
   echo -ne "${C}" > ${PORT}
 }
@@ -243,8 +243,8 @@ hpr() { # print hex number in decimal and binary
 }
 
 ### CLI access to procedures ################################################
-log           "running $COMM $*"
-echo -e "${RED}running $COMM $*${NC}" >&2
+log            "running $COMM $*"
+echo -e "${BLUE}running $COMM $*${NC}" >&2
 $COMM $*
 
 ### test code and docs ######################################################
