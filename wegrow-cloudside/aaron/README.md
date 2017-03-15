@@ -1,0 +1,1 @@
+To setup this application you will need to create an application in the Google Developer dashboard and download a *"client_secret.json"* file containing your OAuth details. Instructions on how to generate these can be found on the https://developers.google.com/google-apps/calendar/quickstart/java page at the top. Save this file in the *src/resources* folder
