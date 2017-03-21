@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class AuthenticatedCalendar {
+  private final String calendarID = "primary";
+
   /** Directory to store user credentials for this application. */
   private final java.io.File credentialsDataStoreDir;
 
@@ -32,7 +34,7 @@ public class AuthenticatedCalendar {
    * If modifying these scopes, delete your previously saved credentials
    * at ~/.credentials/calendar-java-quickstart
    */
-  private final List<String> scopes = Arrays.asList(CalendarScopes.CALENDAR_READONLY);
+  private final List<String> scopes = Arrays.asList(CalendarScopes.CALENDAR);
 
   public AuthenticatedCalendar(String credentialsName) {
     this.credentialsDataStoreDir = new java.io.File(
@@ -82,34 +84,54 @@ public class AuthenticatedCalendar {
             .build();
   }
 
-  public void printAllUpcomingTest() throws IOException {
-    // Build a new authorized API client service.
-    // Note: Do not confuse this class with the
-    //   com.google.api.services.calendar.model.Calendar class.
-    com.google.api.services.calendar.Calendar service =
-        getCalendarService();
+  public List<Event> getAllUpcomingEvents() throws IOException {
+    com.google.api.services.calendar.Calendar service = getCalendarService();
 
-    // List the next 10 events from the primary calendar.
     DateTime now = new DateTime(System.currentTimeMillis());
-    Events events = service.events().list("primary")
-        .setMaxResults(10)
+    Events events = service.events().list(calendarID)
         .setTimeMin(now)
         .setOrderBy("startTime")
         .setSingleEvents(true)
         .execute();
     List<Event> items = events.getItems();
-    if (items.size() == 0) {
-        System.out.println("No upcoming events found.");
-    } else {
-        System.out.println("Upcoming events");
-        for (Event event : items) {
-            DateTime start = event.getStart().getDateTime();
-            if (start == null) {
-                start = event.getStart().getDate();
-            }
-            System.out.printf("%s (%s)\n", event.getSummary(), start);
-        }
-    }
+
+    return items;
+  }
+
+  public Event duplicateEvent(Event sourceEvent) {
+    Event dupeEvent = new Event()
+        .setSummary(sourceEvent.getSummary())
+        .setLocation(sourceEvent.getLocation())
+        .setDescription(sourceEvent.getDescription());
+
+    dupeEvent.setStart(sourceEvent.getStart());
+    dupeEvent.setEnd(sourceEvent.getEnd());
+
+    // String[] recurrence = new String[] {"RRULE:FREQ=DAILY;COUNT=2"};
+    // event.setRecurrence(Arrays.asList(recurrence));
+    //
+    // EventAttendee[] attendees = new EventAttendee[] {
+    //     new EventAttendee().setEmail("lpage@example.com"),
+    //     new EventAttendee().setEmail("sbrin@example.com"),
+    // };
+    // event.setAttendees(Arrays.asList(attendees));
+    //
+    // EventReminder[] reminderOverrides = new EventReminder[] {
+    //     new EventReminder().setMethod("email").setMinutes(24 * 60),
+    //     new EventReminder().setMethod("popup").setMinutes(10),
+    // };
+    // Event.Reminders reminders = new Event.Reminders()
+    //     .setUseDefault(false)
+    //     .setOverrides(Arrays.asList(reminderOverrides));
+    // event.setReminders(reminders);
+
+    return dupeEvent;
+  }
+
+  public void addEvent(Event event) {
+    com.google.api.services.calendar.Calendar service = getCalendarService();
+
+    event = service.events().insert(calendarID, event).execute();
   }
 
 }
