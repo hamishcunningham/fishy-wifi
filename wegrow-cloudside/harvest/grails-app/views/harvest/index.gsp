@@ -234,7 +234,7 @@
 
         </table>
         <div class="paginate">
-            <g:paginate total="${harvestCount ?: 0}"/>
+            <g:paginate total="${areaCount ?: 0}"/>
         </div>
 
 
