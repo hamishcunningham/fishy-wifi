@@ -288,7 +288,9 @@ read_board() { # grungey late-night code: enter at your peril!
     if [ $? != 0 -o "x${STAT}" = x ]
     then
       echo -e "${RED}failure on read_status; RS485 not attached? $*${NC}" >&2
-      exit 1
+      echo -e "${RED}hit return to continue or Cntrl&C for exit${NC}" >&2
+      read
+      continue
     fi
 
     set $STAT
