@@ -21,4 +21,8 @@ https://github.com/esp8266/Arduino)
 - For the Adafruit HUZZAH ESP board, we use a CPU frequency of 80MHz, 3M
   SPIFFS, upload speed of 115200.
 
+- Perms errors on Adafruit boards:
+  https://learn.adafruit.com/adafruit-arduino-ide-setup/linux-setup#udev-rules
+  https://github.com/adafruit/Trinket_Arduino_Linux/blob/master/99-adafruit-boards.rules
+
 
