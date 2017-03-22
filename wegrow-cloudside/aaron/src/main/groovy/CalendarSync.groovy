@@ -19,9 +19,21 @@ public class CalendarSync {
             start = event.getStart().getDate();
         }
 
-        System.out.printf("%s (%s)\n", event.getSummary(), start);
-        Event eventDupe = destinationCalendar.duplicateEvent(event);
-        destinationCalendar.addEvent(eventDupe);
+        //we are checking if this event has been marked as already synced
+        //this is stored in the hidden properties of the google calendar event
+        Event.ExtendedProperties eventProps = event.getExtendedProperties();
+
+        if(eventProps == null) {
+          sourceCalendar.markAsSynced(event);
+          destinationCalendar.duplicateAndSaveEvent(event);
+        } else {
+          Map<String, String> eventPropsPrivate = eventProps.getPrivate();
+
+          if(eventPropsPrivate.get('_has_synced_to_dest') == null) {
+            sourceCalendar.markAsSynced(event);
+            destinationCalendar.duplicateAndSaveEvent(event);
+          }
+        }
     }
   }
 }

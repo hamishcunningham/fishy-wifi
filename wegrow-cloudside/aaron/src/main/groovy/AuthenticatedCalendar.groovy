@@ -23,6 +23,7 @@ public class AuthenticatedCalendar {
   private final String calendarID = "primary";
 
   /** Directory to store user credentials for this application. */
+  private String credentialsName;
   private final java.io.File credentialsDataStoreDir;
 
   private FileDataStoreFactory dateStoreFactory;
@@ -37,6 +38,10 @@ public class AuthenticatedCalendar {
   private final List<String> scopes = Arrays.asList(CalendarScopes.CALENDAR);
 
   public AuthenticatedCalendar(String credentialsName) {
+    this.credentialsName = credentialsName;
+
+    System.out.printf("Authenticating %s calendar \n", this.credentialsName);
+
     this.credentialsDataStoreDir = new java.io.File(
       System.getProperty("user.home"), ".credentials/calendar-sync-" + credentialsName
     );
@@ -67,7 +72,7 @@ public class AuthenticatedCalendar {
             .setAccessType("offline")
             .build();
     Credential credential = new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
-    System.out.println("Credentials saved to " + credentialsDataStoreDir.getAbsolutePath());
+
     return credential;
   }
 
@@ -98,7 +103,7 @@ public class AuthenticatedCalendar {
     return items;
   }
 
-  public Event duplicateEvent(Event sourceEvent) {
+  private Event duplicateEventObj(Event sourceEvent) {
     Event dupeEvent = new Event()
         .setSummary(sourceEvent.getSummary())
         .setLocation(sourceEvent.getLocation())
@@ -126,6 +131,43 @@ public class AuthenticatedCalendar {
     // event.setReminders(reminders);
 
     return dupeEvent;
+  }
+
+  public void duplicateAndSaveEvent(Event event) {
+    System.out.printf("Syncing event: %s \n", event.getSummary());
+
+    //duplicate the details of the event
+    Event eventDupe = this.duplicateEventObj(event);
+
+    //change the colour of the duped event - so different from others
+    eventDupe.setColorId("5");
+
+    this.addEvent(eventDupe);
+  }
+
+  public void markAsSynced(Event event) {
+    com.google.api.services.calendar.Calendar service = getCalendarService();
+
+    Event.ExtendedProperties eventProps = event.getExtendedProperties();
+    Map<String, String> eventPropsPrivate;
+
+    if(eventProps == null) {
+      //this event doesn't have any properites so they need to be created
+      eventProps = new Event.ExtendedProperties();
+      eventPropsPrivate = new HashMap<String, String>();
+    } else {
+      eventPropsPrivate = eventProps.getPrivate();
+    }
+
+    //set the has been synced value to true
+    eventPropsPrivate.put('_has_synced_to_dest', 'true');
+
+    //update the event properties
+    eventProps.setPrivate(eventPropsPrivate);
+    event.setExtendedProperties(eventProps);
+
+    //send the update request to google calendar
+    service.events().update(calendarID, event.getId(), event).execute();
   }
 
   public void addEvent(Event event) {
