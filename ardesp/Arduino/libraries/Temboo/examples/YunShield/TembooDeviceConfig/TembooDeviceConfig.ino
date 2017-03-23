@@ -1,4 +1,4 @@
-// Copyright 2016, Temboo Inc.
+// Copyright 2017, Temboo Inc.
 
 #include <Process.h>
 
@@ -28,12 +28,13 @@ void setup() {
   Serial.println();
   // upgrade the Temboo package
   Serial.print("Updating Temboo...");
-  p.runShellCommand("opkg install http://downloads.arduino.cc/openwrtyun/1/packages/temboo_1.3.1-1_ar71xx.ipk");
+  p.runShellCommand("opkg install http://downloads.arduino.cc/openwrtyun/1/packages/temboo_1.3.1-1_ar71xx.ipk --force-depends");
   returnCode = p.exitValue();
   if (returnCode == 0) {
     Serial.println("Success!");
   } else {
     Serial.println("Failed.");
+    Serial.println("Error number: " +String(returnCode));
     while(p.available()) {
       char c = p.read();
       Serial.print(c);
@@ -60,7 +61,7 @@ void setup() {
 
   // Installing twisted web to work with CoAP gateway
   Serial.print("Installing twisted-web...");
-  p.runShellCommand("opkg install twisted-web");
+  p.runShellCommand("opkg install http://downloads.arduino.cc/openwrtyun/1/packages/twisted-web_2.5.0-1_ar71xx.ipk --force-depends");
   returnCode = p.exitValue();
   if (returnCode == 0) {
     Serial.println("Success!");
@@ -76,9 +77,10 @@ void setup() {
 
   // Configuring zope
   Serial.print("Configuring zope...");
-  p.runShellCommand("touch /usr/lib/python2.7/site-packages/zope/__init__.py");
+  p.runShellCommand("opkg install http://downloads.arduino.cc/openwrtyun/1/packages/zope-interface_2.5.0-1_ar71xx.ipk --force-depends");
   returnCode = p.exitValue();
   if (returnCode == 0) {
+    p.runShellCommand("touch /usr/lib/python2.7/site-packages/zope/__init__.py");
     Serial.println("Success!");
   } else {
     Serial.println("Failed.");

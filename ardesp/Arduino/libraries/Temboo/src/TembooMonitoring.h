@@ -3,7 +3,7 @@
 #
 # Temboo Arduino library
 #
-# Copyright 2016, Temboo Inc.
+# Copyright 2017, Temboo Inc.
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,15 +23,29 @@
 #ifndef TEMBOOMESSAGING_H_
 #define TEMBOOMESSAGING_H_
 
+#ifndef TEMBOO_LIBRARY_VERSION
+#define TEMBOO_LIBRARY_VERSION 2
+#endif
+
 #include <Arduino.h>
 #include <Process.h>
 
 #include "utility/TembooWebSocketRequestHandles.h"
 
+#define TEMBOO_MONITORING_ERROR_OK                   (0)
+#define TEMBOO_MONITORING_ERROR_ACCOUNT_MISSING      (201)
+#define TEMBOO_MONITORING_ERROR_CHOREO_MISSING       (203)
+#define TEMBOO_MONITORING_ERROR_APPKEY_NAME_MISSING  (205)
+#define TEMBOO_MONITORING_ERROR_APPKEY_MISSING       (207)
+#define TEMBOO_MONITORING_ERROR_DEVICEID_MISSING     (209)
+
+#define TEMBOO_MONITORING_ERROR_REQUEST_TOO_LARGE    (251)
+#define TEMBOO_MONITORING_ERROR_NOT_CONNECTION_TIME  (253)
+
 class TembooMessaging : public Process {
 
 public:
-    TembooMessaging(TembooPinTable* pinTable, int pinTableSize);
+    TembooMessaging(TembooSensor** sensors, int pinTableSize);
     void begin();
 
     void setAccountName(const String& accountName);
@@ -46,9 +60,7 @@ public:
     void setDeviceID(const String& appKey);
     void setDeviceID(const char* appKey);
 
-    void addPinConfig(int pin, const char* type, int mode, int defaultValue);
-
-    void initiateConnection();
+    int initiateConnection();
     
     WSMessageRequest poll();
     
@@ -56,7 +68,8 @@ public:
     void sendData(int pin, float pinVal);
     void updatePinValue(int pinNum, int pinVal);
     int retrievePinValue(int pinNum);
-    void setPinsToDefaultState();
+    int addTembooSensor(TembooSensor* sensor);
+    void setSensorsToDefaultState();
 
     bool isConnected();
 
@@ -66,10 +79,10 @@ private:
     const char* m_appKeyName;
     const char* m_deviceID;
     bool m_connectionStatus;
-    int m_pinTableSize;
-    int m_pinTableDepth;
+    int m_sensorTableSize;
+    int m_sensorTableDepth;
     long int m_connectionAttemptTime;
-    TembooPinTable* m_pinTable;
+    TembooSensor** m_sensorTable;
     unsigned long m_lastPingTime;
 
     void startMessaging();
