@@ -11,8 +11,8 @@ public class CalendarSync {
     AuthenticatedCalendar destinationCalendar = new AuthenticatedCalendar("destination");
 
     List<Event> upcomingSourceEvents = sourceCalendar.getAllUpcomingEvents();
-    List<Event> upcomingDestinationEvents = sourceCalendar.getAllUpcomingEvents();
 
+    System.out.println("\nChecking if any events need syncing");
     for (Event event : upcomingSourceEvents) {
         DateTime start = event.getStart().getDateTime();
         if (start == null) {
@@ -35,5 +35,7 @@ public class CalendarSync {
           }
         }
     }
+
+    System.out.println("\nSync complete");
   }
 }

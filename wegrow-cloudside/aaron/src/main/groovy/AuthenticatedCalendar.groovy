@@ -89,6 +89,11 @@ public class AuthenticatedCalendar {
             .build();
   }
 
+  /**
+   * Get all upcoming events for this Google Calendar
+   * @return a list of all Event's
+   * @throws IOException
+  */
   public List<Event> getAllUpcomingEvents() throws IOException {
     com.google.api.services.calendar.Calendar service = getCalendarService();
 
@@ -103,7 +108,12 @@ public class AuthenticatedCalendar {
     return items;
   }
 
-  private Event duplicateEventObj(Event sourceEvent) {
+  /*
+   * Create a new event and duplicate details from another event object
+   * @return a duplicated event
+  */
+  private static Event duplicateEventObj(Event sourceEvent) {
+    //Copy the summary, location, description, and start/end date to the new Event
     Event dupeEvent = new Event()
         .setSummary(sourceEvent.getSummary())
         .setLocation(sourceEvent.getLocation())
@@ -112,27 +122,12 @@ public class AuthenticatedCalendar {
     dupeEvent.setStart(sourceEvent.getStart());
     dupeEvent.setEnd(sourceEvent.getEnd());
 
-    // String[] recurrence = new String[] {"RRULE:FREQ=DAILY;COUNT=2"};
-    // event.setRecurrence(Arrays.asList(recurrence));
-    //
-    // EventAttendee[] attendees = new EventAttendee[] {
-    //     new EventAttendee().setEmail("lpage@example.com"),
-    //     new EventAttendee().setEmail("sbrin@example.com"),
-    // };
-    // event.setAttendees(Arrays.asList(attendees));
-    //
-    // EventReminder[] reminderOverrides = new EventReminder[] {
-    //     new EventReminder().setMethod("email").setMinutes(24 * 60),
-    //     new EventReminder().setMethod("popup").setMinutes(10),
-    // };
-    // Event.Reminders reminders = new Event.Reminders()
-    //     .setUseDefault(false)
-    //     .setOverrides(Arrays.asList(reminderOverrides));
-    // event.setReminders(reminders);
-
     return dupeEvent;
   }
 
+  /*
+   * Duplicate and save an event to the Google Calendar
+  */
   public void duplicateAndSaveEvent(Event event) {
     System.out.printf("Syncing event: %s \n", event.getSummary());
 
@@ -145,6 +140,9 @@ public class AuthenticatedCalendar {
     this.addEvent(eventDupe);
   }
 
+  /*
+   * Set the given Event as synced in it's properties
+  */
   public void markAsSynced(Event event) {
     com.google.api.services.calendar.Calendar service = getCalendarService();
 
@@ -170,6 +168,9 @@ public class AuthenticatedCalendar {
     service.events().update(calendarID, event.getId(), event).execute();
   }
 
+  /*
+   * Add a given Event to the Google Calendar
+  */
   public void addEvent(Event event) {
     com.google.api.services.calendar.Calendar service = getCalendarService();
 
