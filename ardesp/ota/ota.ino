@@ -8,7 +8,7 @@
 #include <ArduinoOTA.h>
 
 const char* ssid = "guest";
-const char* password = "shefconfkey";
+const char* password = "...";
 
 void setup() {
   Serial.begin(115200);
