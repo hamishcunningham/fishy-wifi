@@ -1,7 +1,7 @@
 int dustPin = A0; // dust sensor - ADC pin
-int ledPin = 13; // LED output signal   
+int ledPin = 16; // LED output signal   
  
-float voltsMeasured = 0;
+int voltsMeasured = 0;
 float calcVoltage = 0;
 float dustDensity = 0;
  
@@ -22,17 +22,19 @@ void loop()
   delayMicroseconds(40);
   digitalWrite(ledPin,HIGH); // turn the LED off
   delayMicroseconds(9680);
- 
+
   //measure your 5v and change below
   calcVoltage = voltsMeasured * (2.2 / 1024.0);
-  dustDensity = 0.17 * calcVoltage - 0.1;
+  dustDensity = 170 * calcVoltage - 0.1;
   Serial.println("GP2Y1010AU0F readings"); 
   Serial.print("Raw Signal Value = ");
   Serial.println(voltsMeasured); 
   Serial.print("Voltage = ");
-  Serial.println(calcVoltage);
+  Serial.print(calcVoltage);
+  Serial.println(" V");
   Serial.print("Dust Density = ");
-  Serial.println(dustDensity); // mg/m3
+  Serial.print(dustDensity);
+  Serial.println(" ug/m3");
   Serial.println("");
   delay(1000);
 }
