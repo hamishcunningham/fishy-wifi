@@ -17,6 +17,7 @@
 /////////////////////////////////////////////////////////////////////////////
 class ThingOntNet {
 private:
+  // TODO load defaults for SSID, key, and cloud server from a data file
 public:
   void begin();
 }
