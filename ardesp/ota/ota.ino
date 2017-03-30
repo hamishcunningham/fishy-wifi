@@ -7,7 +7,7 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-const char* ssid = "...";
+const char* ssid = "guest";
 const char* password = "...";
 
 void setup() {
