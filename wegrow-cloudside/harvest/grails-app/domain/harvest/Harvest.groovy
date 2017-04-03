@@ -7,6 +7,7 @@ class Harvest {
   WeightUnit unit
   transient springSecurityService
   Date dateCreated
+  Date dateHarvested
   Double weightGrammes
 
   static belongsTo = [area:Area]
@@ -21,7 +22,7 @@ class Harvest {
     weight(greaterThan: new Double(0.0), bindable: true, display: true)
     weightGrammes greaterThan: new Double(0.0), display: false
     unit display: false, bindable: true
-
+    dateHarvested display:true, bindable: true
 
   }
 

@@ -154,7 +154,7 @@
 
                 </tr>
 
-                <g:each var="harvest" in="${area.harvests.sort {it.dateCreated}}">
+                <g:each var="harvest" in="${area.harvests.sort {it.dateHarvested}}">
                     <tr class="harvest-row rows-${area.id}">
                         <td colspan="${colCount}">
                             <div class="row">
@@ -168,8 +168,8 @@
                                         <h4>Date</h4>
 
                                         <span>
-                                            <g:formatDate date="${harvest.dateCreated}"
-                                                          format="d MMM yyyy" locale="gb"/>
+                                            <g:formatDate date="${harvest.dateHarvested}"
+                                                          format="MMM yyyy" locale="gb"/>
                                         </span>
                                     </div>
                                 </div>

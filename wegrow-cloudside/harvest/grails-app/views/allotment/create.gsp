@@ -26,6 +26,9 @@
                     <g:submitButton name="create" class="btn btn-primary save" value="${message(code: 'default.button.create.label', default: 'Create')}" />
                 </fieldset>
             </g:form>
+            <div id="organic_footnote" >
+                <g:message code="growingSpace.organicFootnote"></g:message>
+            </div>
         </div>
     </body>
 </html>

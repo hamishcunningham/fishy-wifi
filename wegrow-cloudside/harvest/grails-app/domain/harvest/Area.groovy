@@ -237,10 +237,12 @@ class Area {
   public String toString() {
     try {
       if (name) {
-        return "${name}";
+        return name;
       }
-      else {
+      else if (variety) {
         return "${crop?.type} (${variety})";
+      } else {
+        return crop?.type;
       }
     } catch (LazyInitializationException e) {
       return "${getArea()} ${getUnit().name}"

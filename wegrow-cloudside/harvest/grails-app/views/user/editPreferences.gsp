@@ -27,21 +27,20 @@
             <g:form action="updatePreferences" method="POST">
                 <fieldset class="form">
                 <g:each var="pref" in="${preferences}">
-                    <f:field bean="${user}" property="${pref}" />
+                        <f:field bean="${user}" property="${pref}" />
                 </g:each>
                 </fieldset>
-                <fieldset class="buttons">
-                    <input class="save btn btn-primary btn-lg" type="submit" value="${message(code: 'default.button.update.label', default: 'Update')}" />
-                </fieldset>
+
             </g:form>
-
-
-            <g:link action="changePassword">
+<g:form action="updatePreferences" method="POST" class="form-inline controls-form">
+                <input class="save btn btn-primary btn-lg form-inline" type="submit" value="${message(code: 'default.button.update.label', default: 'Update')}" />
+            <g:link action="changePassword" class="btn btn-default btn-lg">
                 <g:message code="spring.security.ui.resetPassword.title"></g:message>
             </g:link>
+</g:form>
 
             <g:form controller="user" class="form-inline controls-form" action="delete" id="${user.id}" method="DELETE">
-                <input class="delete btn btn-danger"
+                <input class="delete btn btn-danger btn-lg"
                        type="submit" value="${message(code: 'default.button.delete.label', default: 'Delete')}"
                        onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure? This will also delete all data')}');"/>
             </g:form>

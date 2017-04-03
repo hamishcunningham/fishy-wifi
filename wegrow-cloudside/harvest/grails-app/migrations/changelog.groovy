@@ -316,7 +316,14 @@ databaseChangeLog = {
         dropTable(tableName: "test_table")
     }
 
-
+    changeSet(author: "dominic (generated)", id: "1491225429206-1") {
+        addColumn(tableName: "harvest") {
+            column(name: "date_harvested", type: "timestamp") {
+                nullable:false
+            }
+        }
+        sql "UPDATE harvest SET date_harvested = date_created"
+    }
 }
 
 

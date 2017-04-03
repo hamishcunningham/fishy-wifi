@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta name="layout" content="main" />
+        <link rel="stylesheet" type="text/css"
+              href="grails-app/assets/stylesheets/application_conventional.less"/><meta name="layout" content="main" />
         <g:set var="entityName" value="${message(code: 'otherGrowingSpace.label', default: 'OtherGrowingSpace')}" />
         <title><g:message code="default.create.label" args="[entityName]" /></title>
     </head>
@@ -26,6 +27,12 @@
                     <g:submitButton name="create" class="btn btn-primary save" value="${message(code: 'default.button.create.label', default: 'Create')}" />
                 </fieldset>
             </g:form>
+            <div id="organic_footnote" >
+                <g:message code="growingSpace.organicFootnote"></g:message>
+            </div>
         </div>
+
+
+
     </body>
 </html>
