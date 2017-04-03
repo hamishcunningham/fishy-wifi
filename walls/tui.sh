@@ -15,10 +15,12 @@ NC='\033[0m'       # no color
 # specific locals
 INST_DIR=`dirname ${P}`
 CLI=${INST_DIR}/rs485-api.sh
-LOG_STRING=tui
+LOG_STRING=rs485
 VERSION=0.000001
-NUM_CONTROLLERS=2
-NUM_SOLENOIDS=28
+NUM_CONTROLLERS=14
+NUM_SOLENOIDS=196
+ALL_SOLENOIDS=`seq 1 $NUM_SOLENOIDS`
+DBG_LOG=/tmp/rs485-dbg.txt
 
 # message & exit if exit num present
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
@@ -279,9 +281,19 @@ print_solenoid_state() {
   done
 }
 read_board() { # grungey late-night code: enter at your peril!
+  clear_solenoid_state
   for CN in `seq 1 $NUM_CONTROLLERS`
   do
-    set `cli_command -C $CN -c read_status`
+    STAT=`cli_command -C $CN -c read_status`
+    if [ $? != 0 -o "x${STAT}" = x ]
+    then
+      echo -e "${RED}failure on read_status; RS485 not attached? $*${NC}" >&2
+      echo -e "${RED}hit return to continue or Cntrl&C for exit${NC}" >&2
+      read
+      continue
+    fi
+
+    set $STAT
     shift 5
     echo -e "${GR}solenoid data from read_status: $*${NC}" >&2
     HEX_BITS=""
@@ -329,7 +341,8 @@ do_water_control() {
   TITLE='Control Water Supply'
   C="whiptail --title \"${TITLE}\" \
        --checklist \"Specify carts to water\" \
-       $WT_HEIGHT $(( $WT_WIDTH / 2 + 9 )) $WT_MENU_HEIGHT \
+       $(( $WT_HEIGHT + 10 )) $(( $WT_WIDTH / 2 + 9 )) \
+       $(( $WT_MENU_HEIGHT + 10 )) \
        --cancel-button \"Cancel\" --ok-button \"Next\" \
        "${SOLENOIDS_A[@]}" "
   SOLENOIDS=`bash -c "${C} 3>&1 1>&2 2>&3"`
@@ -352,11 +365,11 @@ do_water_control() {
       MESS="Cancelled"
     elif [ $RET -eq 0 ]
     then 
+      echo "cli_command -c on ${SOLENOIDS}" >>${DBG_LOG}
       cli_command -c on ${SOLENOIDS}
-      clear_solenoid_state
-# TODO read_board here instead?
-      for s in ${SOLENOIDS}; do set_solenoid $s on; done
       log "wrote <<${SOLENOIDS}>> to board"
+      clear_solenoid_state
+      for s in ${SOLENOIDS}; do set_solenoid $s on; done
       MESS="Command sent to wall. Good luck!"
     else
       MESS="Oops! Internal error, RET was ${RET}"
@@ -380,10 +393,11 @@ while true; do
       $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT \
     --cancel-button Finish --ok-button Select \
       "1 Watering"              "Control water supply to the wall" \
-      "2 Status"                "Show current status from the wall" \
-      "3 Show Log Entries"      "Show the most recent log entries" \
-      "4 TODO list"             "What's on the development stack?" \
-      "9 About"                 "Information about this tool" \
+      "2 All off"               "Turn all relays off" \
+      "3 All on"                "Turn all relays on" \
+      "4 Status"                "Show current status from the wall" \
+      "5 Show Log Entries"      "Show the most recent log entries" \
+      "6 About"                 "Information about this tool" \
     3>&1 1>&2 2>&3)
   RET=$?
   if [ $RET -eq 1 ]; then
@@ -391,19 +405,15 @@ while true; do
   elif [ $RET -eq 0 ]; then
     case "$SEL" in
       1\ *) do_water_control ;;
-      2\ *) whiptail --title "Status" --msgbox \
-              "`print_solenoid_state |pr -e -t2 -w76 |expand`" \
-              $WT_HEIGHT 78 1 ;;
-      3\ *) whiptail --title "Recent Log Entries" --msgbox \
+      2\ *) cli_command -c clear; clear_solenoid_state ;;
+      3\ *) cli_command -c on ${ALL_SOLENOIDS}; \
+            for r in ${ALL_SOLENOIDS}; do set_solenoid $r on; done ;;
+      4\ *) read_board; whiptail --title "Status" --msgbox \
+              "`print_solenoid_state |pr -e -t7 -w78 |expand`" \
+              $(( $WT_HEIGHT + 10 )) 78 1 ;;
+      5\ *) whiptail --title "Recent Log Entries" --msgbox \
               "`log_grep`" $WT_HEIGHT $WT_WIDTH 1 ;;
-      # TODO s
-      4\ *) whiptail --title "TODOs" --msgbox \
-"Add ability to specify an on time per solenoid.
-More abstractions: rows, columns, areas.
-Sequencing.
-Get it to make tea.
-"             $WT_HEIGHT $WT_WIDTH 1 ;;
-      9\ *) do_about ;;
+      6\ *) do_about ;;
       *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $SEL" 20 60 1
   else

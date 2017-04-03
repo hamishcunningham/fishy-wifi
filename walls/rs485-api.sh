@@ -12,6 +12,7 @@ Commands: init, on, off, ...\n
 Controller (00,01,...) is for use with command 11, as exposed in e.g. 'read_status'\n
 \n
 Base (00,01,02 or 03) is for use with command 10, as exposed in e.g. 'on'\n
+If base is not specified, relay numbers may be >64, else they must be <64\n
 \n
 Factory defaults:\n
 MA0=0x55, MA1=0xAA, MAE=0x77, SL0=0x56, SL1=0xAB, SLE=0x78, FC=9600, CN=0xFE\n
@@ -47,6 +48,8 @@ COMM=":"
 PORT='/dev/ttyUSB0'
 CN=00
 BASE=00
+LOG_STRING=rs485
+DBG_LOG=/tmp/rs485-dbg.txt
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
@@ -66,13 +69,15 @@ done
 shift `expr $OPTIND - 1`
 
 ### procedural interface ####################################################
+log() { logger "${LOG_STRING}: $*"; }
 init() {
+  ( echo; echo; date; echo; ) >${DBG_LOG}
   stty -F ${PORT} sane
   stty -F ${PORT} 9600 cs8 -cstopb -parenb raw -echo
 }
-read_status() { # TODO interpret results
+read_status() {
   run_command -b ${BC06} 11 ${CN} 00 &
-  hd -n 15 <${PORT} |cut -c 11- |cut -d '|' -f 1
+  timeout 0.5 bash -c "hd -n 15 <${PORT} |cut -c 11- |cut -d '|' -f 1"
 }
 bfi2bin() { # bit field index to binary
   if [ $1 -eq 1 ]
@@ -133,10 +138,12 @@ ris2hex() { # convert relay index set to hex; counts from R1
       r=$((r - 56))
       [ ! -z "$BITS8" ] && BITS8+=" | "
       BITS8+=2#`bfi2bin $r`
+    else
+      echo -e "oops! relay bigger than 64: ${RED}$*${NC}" >&2
     fi
   done
-  $DBG -e "${RED}$*${NC}" >&2
-  $DBG -e "${RED}$BITS1 - $BITS2 - $BITS3 - $BITS4 - \
+  $DBG -e "${BLUE}$*${NC}" >&2
+  $DBG -e "${BLUE}$BITS1 - $BITS2 - $BITS3 - $BITS4 - \
     $BITS5 - $BITS6 - $BITS7 - $BITS8${NC}" >&2
   BIN1=$(( $BITS1 )); BIN2=$(( $BITS2 ))
   BIN3=$(( $BITS3 )); BIN4=$(( $BITS4 ))
@@ -152,9 +159,9 @@ calculate_check_sum() {
     SUM="${SUM} + 0x${h}"
   done
   SUM="\$((${SUM}))"
-  $DBG -e "${RED}SUM = $SUM${NC}" >&2
+  $DBG -e "${BLUE}SUM = $SUM${NC}" >&2
   S=`bash -c "printf '%X\n' ${SUM}"`
-  $DBG -e "${RED}S = $S${NC}" >&2
+  $DBG -e "${BLUE}S = $S${NC}" >&2
   echo ${S: -2}
 }
 form_command() {
@@ -167,24 +174,65 @@ form_command() {
   done
   CHECKSUM=`calculate_check_sum ${BC} $*`
   C="${C}\x${CHECKSUM}\x${MAE}"
-  echo -e "${RED}`echo ${C} |sed 's,\\\x, ,g'`${NC}" >&2
+  echo -e "${BLUE}`echo ${C} |sed 's,\\\x, ,g'`${NC}" >&2
   echo $C
 }
 run_command() {
+  echo "run_command $*" >>${DBG_LOG}
   C="`form_command $*`"
-  $DBG -ne "$RED" >&2; $DBG -n "echo -ne ${C} > ${PORT}" >&2; $DBG -e "$NC"
+  $DBG -ne "$BLUE" >&2; $DBG -n "echo -ne ${C} > ${PORT}" >&2; $DBG -e "$NC"
+  echo "echo -ne \"${C}\" > ${PORT}" >>${DBG_LOG}
   echo -ne "${C}" > ${PORT}
 }
 on() {
-  if [ x$1 = xall ]
+  # if BASE unset assume that we've running on 1-196 numbering
+  if [ "x${BASE}" = "x00" ]
   then
-    run_command 10 ${BASE} `ris2hex \`seq 1 $2\``
+    B0SOLS=
+    B1SOLS=
+    B2SOLS=
+    B3SOLS=
+
+    for r in `sort <<< $*`
+    do
+      if [ $r -le 64 ]
+      then
+        B0SOLS="$B0SOLS $r"
+      elif [ $r -le 128 ]
+      then
+        r=$((r - 64))
+        B1SOLS="$B1SOLS $r"
+      elif [ $r -le 192 ]
+      then
+        r=$((r - 128))
+        B2SOLS="$B2SOLS $r"
+      else
+        r=$((r - 192))
+        B3SOLS="$B3SOLS $r"
+      fi
+    done
+    
+    BASE=0
+    for LIST in "$B0SOLS" "$B1SOLS" "$B2SOLS" "$B3SOLS"
+    do
+      run_command 10 ${BASE} `ris2hex $LIST`
+      BASE=$(( $BASE + 1 ))
+    done
+  # BASE is set, so assume that numbering is 1-64 (and allow "all")
   else
-    run_command 10 ${BASE} `ris2hex $*`
+    if [ x$1 = xall ]
+    then
+      run_command 10 ${BASE} `ris2hex \`seq 1 $2\``
+    else
+      run_command 10 ${BASE} `ris2hex $*`
+    fi
   fi
 }
-off() {
-  run_command 10 ${BASE} 00 00 00 00 00 00 00 00
+clear() {
+  run_command 10 0 00 00 00 00 00 00 00 00
+  run_command 10 1 00 00 00 00 00 00 00 00
+  run_command 10 2 00 00 00 00 00 00 00 00
+  run_command 10 3 00 00 00 00 00 00 00 00
 }
 hpr() { # print hex number in decimal and binary
   echo -ne "${BLUE} \
@@ -195,7 +243,8 @@ hpr() { # print hex number in decimal and binary
 }
 
 ### CLI access to procedures ################################################
-echo -e "${RED}running $COMM $*${NC}" >&2
+log            "running $COMM $*"
+echo -e "${BLUE}running $COMM $*${NC}" >&2
 $COMM $*
 
 ### test code and docs ######################################################

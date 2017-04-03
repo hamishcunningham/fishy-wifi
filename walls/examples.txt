@@ -333,3 +333,4 @@ sleep 2
 ./rs485-api.sh -B 1 -c on all 1 2 3 14 15 
 sleep 2
 ./rs485-api.sh -B 1 -c on all 196
+while :; do ./rs485-api.sh -c on `seq 1 196`; sleep 1; ./rs485-api.sh -c clear; sleep 1; done

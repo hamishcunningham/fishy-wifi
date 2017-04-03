@@ -7,15 +7,23 @@ https://github.com/esp8266/Arduino)
 - Make sure you have permissions on the port that the ESP is connected via,
   e.g. sudo adduser yourname dialout
 - Start Arduino and open Preferences window.
-- Enter http://arduino.esp8266.com/staging/package_esp8266com_index.json into
+- Enter http://arduino.esp8266.com/stable/package_esp8266com_index.json or
+  http://arduino.esp8266.com/staging/package_esp8266com_index.json into
   Additional Board Manager URLs field.
   - Or, for the latest version, use a locally built version or the staging
     release -- see http://www.esp8266.com/viewtopic.php?f=26&t=3919
+  - To get the Adafruit boards use
+    https://adafruit.github.io/arduino-board-index/package_adafruit_index.json
 - Set the Arduino dir to fishy-wifi/ardesp/Arduino if required
 - Open Boards Manager from Tools > Board menu and install esp8266 platform
   (and don't forget to select your ESP8266 board from Tools > Board menu after
   installation).
-- For the Adafruit HUZZAH ESP board, we use a CPU frequency of 80MHz, 3M SPIFFS,
-  upload speed of 115200.
-
-
+- For the Adafruit HUZZAH ESP board, we use a CPU frequency of 80MHz, 3M
+  SPIFFS, upload speed of 115200.
+- Perms errors on Adafruit boards:
+  https://learn.adafruit.com/adafruit-arduino-ide-setup/linux-setup#udev-rules
+  https://github.com/adafruit/Trinket_Arduino_Linux/blob/master/99-adafruit-boards.rules
+- Monitoring on serial from the command line (e.g. so can use the IDE for
+  OTA):
+  - sudo screen /dev/ttyUSB0 115200
+  - (Cntrl-A then \ to quit)

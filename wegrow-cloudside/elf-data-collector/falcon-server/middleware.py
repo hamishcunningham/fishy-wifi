@@ -44,7 +44,7 @@ class JSONTranslator(object):
                                    'UTF-8.')
 
     def process_response(self, req, resp, resource):
-        if 'result' not in req.context:
+        if 'json_output' not in req.context:
             return
 
         resp.body = json.dumps(req.context['json_output'])
