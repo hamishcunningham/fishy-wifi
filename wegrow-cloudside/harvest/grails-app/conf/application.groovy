@@ -66,6 +66,8 @@ environments {
         grails {
             serverURL = "http://submit.myharvest.org.uk"
         }
+        grails.plugin.databasemigration.updateOnStart = true
+        grails.plugin.databasemigration.updateOnStartFileName = 'changelog.groovy'
     }
 
     development {
@@ -75,3 +77,4 @@ environments {
         grails.serverURL = "http://localhost:8080/"
     }
 }
+

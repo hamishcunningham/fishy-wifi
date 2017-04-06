@@ -22,6 +22,7 @@
                 <fieldset class="form">
                     <f:field bean="harvest" property="area" value="${selectedArea}" />
                     <f:field bean="harvest" property="weight"/>
+                    <f:field bean="harvest" property="dateHarvested"/>
 
                     <div class="checkbox">
                         <label>

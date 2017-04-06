@@ -29,7 +29,7 @@ class HarvestController {
                                 harvest.area.areaMeters : (harvest.area.canopyRadiusMeters ** 2) * Math.PI,
                         crop: harvest.area.crop,
                         variety: harvest.area.variety,
-                        logged_at: harvest.dateCreated,
+                        logged_at: harvest.dateHarvested,
                         yield_m2: harvest.yield,
                         weight_g: harvest.weightGrammes,
                         type: harvest.area.space.typeLabel,
