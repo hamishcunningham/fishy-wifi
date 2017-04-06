@@ -287,8 +287,8 @@ read_board() { # grungey late-night code: enter at your peril!
     STAT=`cli_command -C $CN -c read_status`
     if [ $? != 0 -o "x${STAT}" = x ]
     then
-      echo -e "${RED}failure on read_status; RS485 not attached? $*${NC}" >&2
-      echo -e "${RED}hit return to continue or Cntrl&C for exit${NC}" >&2
+      echo -e "${BLUE}failure on read_status for ${CN} $*${NC}" >&2
+      echo -e "${BLUE}hit return to continue or Cntrl&C for exit${NC}" >&2
       read
       continue
     fi
