@@ -362,7 +362,11 @@ do_halt() {
   sudo halt
 }
 do_area_pulsing() {
-  :
+  for a in `cat ./areas.txt`
+  do
+    echo pulsing $a
+  done
+  read -p "hit return to continue"
 }
 do_water_control() {
   TITLE='Control Water Supply'
