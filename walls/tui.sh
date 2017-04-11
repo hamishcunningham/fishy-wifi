@@ -394,11 +394,11 @@ while true; do
     --cancel-button Finish --ok-button Select \
       "1 Watering"              "Control water supply to the wall" \
       "2 All off"               "Turn all relays off" \
-      "3 All on"                "Turn all relays on" \
       "4 Status"                "Show current status from the wall" \
       "5 Show Log Entries"      "Show the most recent log entries" \
       "6 About"                 "Information about this tool" \
     3>&1 1>&2 2>&3)
+    # "3 All on"                "Turn all relays on" \
   RET=$?
   if [ $RET -eq 1 ]; then
     exit 0
@@ -406,8 +406,6 @@ while true; do
     case "$SEL" in
       1\ *) do_water_control ;;
       2\ *) cli_command -c clear; clear_solenoid_state ;;
-      3\ *) cli_command -c on ${ALL_SOLENOIDS}; \
-            for r in ${ALL_SOLENOIDS}; do set_solenoid $r on; done ;;
       4\ *) read_board; whiptail --title "Status" --msgbox \
               "`print_solenoid_state |pr -e -t7 -w78 |expand`" \
               $(( $WT_HEIGHT + 10 )) 78 1 ;;
@@ -416,6 +414,8 @@ while true; do
       6\ *) do_about ;;
       *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $SEL" 20 60 1
+    # 3\ *) cli_command -c on ${ALL_SOLENOIDS}; \
+    #       for r in ${ALL_SOLENOIDS}; do set_solenoid $r on; done ;;
   else
     exit 5
   fi
