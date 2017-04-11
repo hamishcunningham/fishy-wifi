@@ -185,7 +185,7 @@ run_command() {
   echo -ne "${C}" > ${PORT}
 }
 on() {
-  # if BASE unset assume that we've running on 1-196 numbering
+  # if BASE unset assume that we're running on 1-196 numbering
   if [ "x${BASE}" = "x00" ]
   then
     B0SOLS=

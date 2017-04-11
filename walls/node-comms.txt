@@ -6,3 +6,13 @@ ssh -f pi@grippletui.local \"for i in {1..5}; do ./fishy-wifi/walls/rs485-api.sh
 ssh -f pi@grippletui.local \"for i in {1..5}; do ./fishy-wifi/walls/rs485-api.sh -c on 59 60 61 62 && sleep 1 && ./fishy-wifi/walls/rs485-api.sh -c clear all; sleep 10; done\"
 ssh -f pi@grippletui.local \"for i in {1..5}; do ./fishy-wifi/walls/rs485-api.sh -c on 102 103 104 105 106 && sleep 1 && ./fishy-wifi/walls/rs485-api.sh -c clear all; sleep 10; done\"
 ssh -f pi@grippletui.local \"for i in {1..5}; do ./fishy-wifi/walls/rs485-api.sh -c on 109 113 115 114 116 && sleep 1 && ./fishy-wifi/walls/rs485-api.sh -c clear all; sleep 10; done\"
+
+
+for i in {1..5}
+do
+  ./fishy-wifi/walls/rs485-api.sh -c on 109 113 115 114 116 && \
+  sleep 1 && ./fishy-wifi/walls/rs485-api.sh -c clear all
+  sleep 1
+  ./fishy-wifi/walls/rs485-api.sh -c clear all
+  sleep 10
+done

@@ -15,6 +15,7 @@ NC='\033[0m'       # no color
 # specific locals
 INST_DIR=`dirname ${P}`
 CLI=${INST_DIR}/rs485-api.sh
+AREAS=${INST_DIR}/areas.txt
 LOG_STRING=rs485
 VERSION=0.6
 NUM_CONTROLLERS=14
@@ -362,10 +363,27 @@ do_halt() {
   sudo halt
 }
 do_area_pulsing() {
-  for a in `cat ./areas.txt`
+# TODO make AREAS a dir and do 
+#for f in ${AREAS}/*.txt
+#do
+#  ... as selected by an extra whiptail
+#done
+  while read a
   do
-    echo pulsing $a
-  done
+    echo pulsing ${a}...
+    for i in `seq 1 5`
+    do
+      echo "  "on ${a}...
+      cli_command -c on $a && sleep 1
+      echo "  "off...
+      cli_command -c clear
+      clear_solenoid_state
+      sleep 1
+      cli_command -c clear
+      sleep 9
+      echo
+    done
+  done < ${AREAS}
   read -p "hit return to continue"
 }
 do_water_control() {
