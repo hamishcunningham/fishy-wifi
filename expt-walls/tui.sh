@@ -388,6 +388,7 @@ do_area_pulsing() {
   do
     echo "area: ${AREA}"
     # TODO move this loop to rs485-api.sh
+    cli_command -c pulse <${AREA}
     while read SOL_SET
     do
       echo pulsing ${SOL_SET}...
@@ -410,9 +411,6 @@ do_area_pulsing() {
   read -p "hit return to continue"
 }
 do_water_control() {
-echo "${SOLENOIDS_A[@]}"
-read -p "rtn"
-
   TITLE='Control Water Supply'
   C="whiptail --title \"${TITLE}\" \
        --checklist \"Specify carts to water\" \

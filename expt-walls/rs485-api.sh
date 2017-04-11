@@ -241,6 +241,9 @@ hpr() { # print hex number in decimal and binary
     `bc <<< \"ibase=16; obase=2; \`echo $1 |tr '[a-z]' '[A-Z]'\`\"`"
   echo -e "${NC}"
 }
+pulse() { 
+  :
+}
 
 ### CLI access to procedures ################################################
 log            "running $COMM $*"
