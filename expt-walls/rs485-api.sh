@@ -242,7 +242,25 @@ hpr() { # print hex number in decimal and binary
   echo -e "${NC}"
 }
 pulse() { 
-  :
+  AREA=$1
+  [ -f "$AREA" ] || \
+    { echo -e "${RED}oops: ${AREA} doesn't exist :(${NC}"; return; }
+  log "running pulse watering from file at ${AREA}..."
+  echo -e "${BLUE}running pulse watering from file at ${AREA}...${NC}"
+
+  while read SOL_SET
+  do
+    echo -e "${GREEN}pulsing ${SOL_SET}...${NC}"
+    for i in `seq 1 5`
+    do
+      echo "  "on ${SOL_SET}...
+      on $SOL_SET && sleep 1
+      echo "  "off...
+      clear; sleep 1; clear
+      sleep 9
+      echo
+    done
+  done < ${AREA}
 }
 
 ### CLI access to procedures ################################################

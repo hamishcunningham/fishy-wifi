@@ -387,28 +387,9 @@ do_area_pulsing() {
   for AREA in $AREA_FILES
   do
     echo "area: ${AREA}"
-    # TODO move this loop to rs485-api.sh
-    cli_command -c pulse <${AREA}
-    while read SOL_SET
-    do
-      echo pulsing ${SOL_SET}...
-      for i in `seq 1 5`
-      do
-        echo "  "on ${SOL_SET}...
-        cli_command -c on $SOL_SET && sleep 1
-        echo "  "off...
-        cli_command -c clear
-        clear_solenoid_state
-        sleep 1
-        cli_command -c clear
-        sleep 9
-        echo
-      done
-    done < ${AREA}
+    cli_command -c pulse ${AREA}
   done
-  return
-
-  read -p "hit return to continue"
+  read -p "pulse watering complete... hit return to continue"
 }
 do_water_control() {
   TITLE='Control Water Supply'
