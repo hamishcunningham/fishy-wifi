@@ -348,7 +348,7 @@ do_about() {
     - 8.8.8.8:           `do_ping 8.8.8.8`
     - gripplewall.local: `do_ping gripplewall.local`
     - google.co.uk:      `do_ping google.co.uk`
-    " $WT_HEIGHT $(( ( $WT_WIDTH / 2 ) + 25 )) $WT_MENU_HEIGHT
+    " $WT_HEIGHT $(( ( $WT_WIDTH / 2 ) + 35 )) $WT_MENU_HEIGHT
 }
 do_reboot() {
   echo rebooting greenwall, sleeping 2 then rebooting grippletui...
