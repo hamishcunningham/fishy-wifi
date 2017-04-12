@@ -15,7 +15,7 @@ NC='\033[0m'       # no color
 # specific locals
 INST_DIR=`dirname ${P}`
 CLI=${INST_DIR}/rs485-api.sh
-AREAS=${INST_DIR}/areas.txt
+AREA_DIR=${INST_DIR}/areas
 LOG_STRING=rs485
 VERSION=0.6
 NUM_CONTROLLERS=14
@@ -348,7 +348,7 @@ do_about() {
     - 8.8.8.8:           `do_ping 8.8.8.8`
     - gripplewall.local: `do_ping gripplewall.local`
     - google.co.uk:      `do_ping google.co.uk`
-    " $WT_HEIGHT $(( ( $WT_WIDTH / 2 ) + 25 )) $WT_MENU_HEIGHT
+    " $WT_HEIGHT $(( ( $WT_WIDTH / 2 ) + 35 )) $WT_MENU_HEIGHT
 }
 do_reboot() {
   echo rebooting greenwall, sleeping 2 then rebooting grippletui...
@@ -363,28 +363,33 @@ do_halt() {
   sudo halt
 }
 do_area_pulsing() {
-# TODO make AREAS a dir and do 
-#for f in ${AREAS}/*.txt
-#do
-#  ... as selected by an extra whiptail
-#done
-  while read a
+  # get a whiptail friendly list of wall areas
+  CLIST=""
+  for f in ${AREA_DIR}/*
   do
-    echo pulsing ${a}...
-    for i in `seq 1 5`
-    do
-      echo "  "on ${a}...
-      cli_command -c on $a && sleep 1
-      echo "  "off...
-      cli_command -c clear
-      clear_solenoid_state
-      sleep 1
-      cli_command -c clear
-      sleep 9
-      echo
-    done
-  done < ${AREAS}
-  read -p "hit return to continue"
+    CLIST="${CLIST} \"`basename $f`\" \" \" off"
+  done
+
+  # get a list of areas to water
+  TITLE='Pulsed Watering by Area'
+  C="whiptail --title \"${TITLE}\" \
+       --checklist \"Specify areas to water (with 5 one second pulses per m2)\" \
+       $(( $WT_HEIGHT + 10 )) $(( $WT_WIDTH / 2 + 9 )) \
+       $(( $WT_MENU_HEIGHT + 10 )) \
+       --cancel-button \"Cancel\" --ok-button \"Next\" \
+       "${CLIST}" "
+  AREA_LIST="`bash -c \"${C} 3>&1 1>&2 2>&3\"`"
+  [ "x${AREA_LIST}" = x ] || set ${AREA_LIST}
+  AREA_FILES="`for a in "$@"; do \
+    echo ${AREA_DIR}/$(echo $a |sed 's,",,g'); done`"
+
+  # for each area do pulsed watering
+  for AREA in $AREA_FILES
+  do
+    echo "area: ${AREA}"
+    cli_command -c pulse ${AREA}
+  done
+  read -p "pulse watering complete... hit return to continue"
 }
 do_water_control() {
   TITLE='Control Water Supply'
