@@ -346,7 +346,7 @@ do_about() {
 
     Pings:
     - 8.8.8.8:           `do_ping 8.8.8.8`
-    - gripplewall.local: `do_ping gripplewall.local`
+    - greenwall.local:   `do_ping greenwall.local`
     - google.co.uk:      `do_ping google.co.uk`
     " $WT_HEIGHT $(( ( $WT_WIDTH / 2 ) + 35 )) $WT_MENU_HEIGHT
 }
