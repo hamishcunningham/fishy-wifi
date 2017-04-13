@@ -18,6 +18,14 @@
 class ThingOntNet {
 private:
   // TODO load defaults for SSID, key, and cloud server from a data file
+
+
+ThingOntNet library:
+Static class methods: there's only one 
+Default passwords and cloud server address in lib data file
+
+
+
 public:
   void begin();
 }

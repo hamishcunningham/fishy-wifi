@@ -37,7 +37,7 @@ class Area {
   static hasMany = [harvests: Harvest]
 
   static constraints = {
-    name()
+    name(nullable: true)
     crop()
     variety nullable: true
     space display: false
@@ -237,13 +237,15 @@ class Area {
   public String toString() {
     try {
       if (name) {
-        return "${name}";
+        return name;
       }
-      else {
+      else if (variety) {
         return "${crop?.type} (${variety})";
+      } else {
+        return crop?.type;
       }
     } catch (LazyInitializationException e) {
-      return "${getArea()}${getUnit().name}"
+      return "${getArea()} ${getUnit().name}"
     }
   }
 

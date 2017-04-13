@@ -15,8 +15,9 @@ NC='\033[0m'       # no color
 # specific locals
 INST_DIR=`dirname ${P}`
 CLI=${INST_DIR}/rs485-api.sh
+AREA_DIR=${INST_DIR}/areas
 LOG_STRING=rs485
-VERSION=0.000001
+VERSION=0.6
 NUM_CONTROLLERS=14
 NUM_SOLENOIDS=196
 ALL_SOLENOIDS=`seq 1 $NUM_SOLENOIDS`
@@ -27,7 +28,7 @@ usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
 
 # write a log; get recent log entries
 log() { logger "${LOG_STRING}: $*"; }
-log_grep() { grep -i $LOG_STRING /var/log/syslog |tail -15; }
+log_grep() { grep -i $LOG_STRING /var/log/syslog |tac; }
 
 # process options
 while getopts $OPTIONSTRING OPTION
@@ -287,8 +288,8 @@ read_board() { # grungey late-night code: enter at your peril!
     STAT=`cli_command -C $CN -c read_status`
     if [ $? != 0 -o "x${STAT}" = x ]
     then
-      echo -e "${RED}failure on read_status; RS485 not attached? $*${NC}" >&2
-      echo -e "${RED}hit return to continue or Cntrl&C for exit${NC}" >&2
+      echo -e "${RED}failure on read_status for ${CN} $*${NC}" >&2
+      echo -e "${BLUE}hit return to continue or Cntrl&C for exit${NC}" >&2
       read
       continue
     fi
@@ -330,12 +331,65 @@ read_board() { # grungey late-night code: enter at your peril!
 }
 
 # menu actions etc.
+do_ping() {
+  sudo ping -qw 2 -c 1 $1 |tail -2 |head -1 |sed 's,^[^,]*\, ,,'
+}
 do_about() {
+  echo; echo calculating....; echo
   whiptail --title "About" --msgbox "\
     This is a control tool for Aquaponic Green Walls.
 
-    Version ${VERSION}.
-    " $WT_HEIGHT $(( $WT_WIDTH / 2 )) $WT_MENU_HEIGHT
+    Version ${VERSION} running at local time `date +%b-%d-%Y-%T`.
+
+    IP address (wlan0): `ifconfig wlan0 | sed -n '2s/[^:]*:\([^ ]*\).*/\1/p'`
+    IP address (eth0) : `ifconfig eth0 | sed -n '2s/[^:]*:\([^ ]*\).*/\1/p'`
+
+    Pings:
+    - 8.8.8.8:           `do_ping 8.8.8.8`
+    - greenwall.local:   `do_ping greenwall.local`
+    - google.co.uk:      `do_ping google.co.uk`
+    " $WT_HEIGHT $(( ( $WT_WIDTH / 2 ) + 35 )) $WT_MENU_HEIGHT
+}
+do_reboot() {
+  echo rebooting greenwall, sleeping 2 then rebooting grippletui...
+  ( ssh pi@greenwall.local sudo reboot; )&
+  sleep 2
+  sudo reboot
+}
+do_halt() {
+  echo shutting down greenwall, sleeping 2 then shutting down grippletui...
+  ( ssh pi@greenwall.local sudo halt; )&
+  sleep 2
+  sudo halt
+}
+do_area_pulsing() {
+  # get a whiptail friendly list of wall areas
+  CLIST=""
+  for f in ${AREA_DIR}/*
+  do
+    CLIST="${CLIST} \"`basename $f`\" \" \" off"
+  done
+
+  # get a list of areas to water
+  TITLE='Pulsed Watering by Area'
+  C="whiptail --title \"${TITLE}\" \
+       --checklist \"Specify areas to water (with 5 one second pulses per m2)\" \
+       $(( $WT_HEIGHT + 10 )) $(( $WT_WIDTH / 2 + 9 )) \
+       $(( $WT_MENU_HEIGHT + 10 )) \
+       --cancel-button \"Cancel\" --ok-button \"Next\" \
+       "${CLIST}" "
+  AREA_LIST="`bash -c \"${C} 3>&1 1>&2 2>&3\"`"
+  [ "x${AREA_LIST}" = x ] || set ${AREA_LIST}
+  AREA_FILES="`for a in "$@"; do \
+    echo ${AREA_DIR}/$(echo $a |sed 's,",,g'); done`"
+
+  # for each area do pulsed watering
+  for AREA in $AREA_FILES
+  do
+    echo "area: ${AREA}"
+    cli_command -c pulse ${AREA}
+  done
+  read -p "pulse watering complete... hit return to continue"
 }
 do_water_control() {
   TITLE='Control Water Supply'
@@ -392,28 +446,31 @@ while true; do
     --menu "\n" \
       $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT \
     --cancel-button Finish --ok-button Select \
-      "1 Watering"              "Control water supply to the wall" \
-      "2 All off"               "Turn all relays off" \
-      "3 All on"                "Turn all relays on" \
+      "1 Water by area"         "Pulse watering to specific areas" \
+      "2 Water by cartridge"    "Control water supply to each cart" \
+      "3 All off"               "Turn all relays off" \
       "4 Status"                "Show current status from the wall" \
       "5 Show Log Entries"      "Show the most recent log entries" \
-      "6 About"                 "Information about this tool" \
+      "6 Reboot"                "Reboot both controller machines" \
+      "7 Shutdown"              "Shutdown both controller machines" \
+      "8 About"                 "Data about this tool, IP addresses etc." \
     3>&1 1>&2 2>&3)
   RET=$?
   if [ $RET -eq 1 ]; then
     exit 0
   elif [ $RET -eq 0 ]; then
     case "$SEL" in
-      1\ *) do_water_control ;;
-      2\ *) cli_command -c clear; clear_solenoid_state ;;
-      3\ *) cli_command -c on ${ALL_SOLENOIDS}; \
-            for r in ${ALL_SOLENOIDS}; do set_solenoid $r on; done ;;
+      1\ *) do_area_pulsing ;;
+      2\ *) do_water_control ;;
+      3\ *) cli_command -c clear; clear_solenoid_state ;;
       4\ *) read_board; whiptail --title "Status" --msgbox \
               "`print_solenoid_state |pr -e -t7 -w78 |expand`" \
               $(( $WT_HEIGHT + 10 )) 78 1 ;;
-      5\ *) whiptail --title "Recent Log Entries" --msgbox \
-              "`log_grep`" $WT_HEIGHT $WT_WIDTH 1 ;;
-      6\ *) do_about ;;
+      5\ *) ( echo "space for more; q to quit"; echo; log_grep; ) \
+            |more; read -p "hit return to continue"; ;;
+      6\ *) do_reboot ;;
+      7\ *) do_halt ;;
+      8\ *) do_about ;;
       *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $SEL" 20 60 1
   else

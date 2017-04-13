@@ -185,7 +185,7 @@ run_command() {
   echo -ne "${C}" > ${PORT}
 }
 on() {
-  # if BASE unset assume that we've running on 1-196 numbering
+  # if BASE unset assume that we're running on 1-196 numbering
   if [ "x${BASE}" = "x00" ]
   then
     B0SOLS=
@@ -241,46 +241,29 @@ hpr() { # print hex number in decimal and binary
     `bc <<< \"ibase=16; obase=2; \`echo $1 |tr '[a-z]' '[A-Z]'\`\"`"
   echo -e "${NC}"
 }
+pulse() { 
+  AREA=$1
+  [ -f "$AREA" ] || \
+    { echo -e "${RED}oops: ${AREA} doesn't exist :(${NC}"; return; }
+  log "running pulse watering from file at ${AREA}..."
+  echo -e "${BLUE}running pulse watering from file at ${AREA}...${NC}"
+
+  while read SOL_SET
+  do
+    echo -e "${GREEN}pulsing ${SOL_SET}...${NC}"
+    for i in `seq 1 5`
+    do
+      echo "  "on ${SOL_SET}...
+      BASE="00" on $SOL_SET && sleep 1
+      echo "  "off...
+      clear; sleep 1; clear
+      sleep 9
+      echo
+    done
+  done < ${AREA}
+}
 
 ### CLI access to procedures ################################################
 log            "running $COMM $*"
 echo -e "${BLUE}running $COMM $*${NC}" >&2
 $COMM $*
-
-### test code and docs ######################################################
-#
-# relay on command examples:
-# R6 / 7th;  \x55\xAA\x0D\x10\x00\x40\x00\x00\x00\x00\x00\x00\x00\x5F\x77
-# R7 / 8th;  \x55\xAA\x0D\x10\x00\x80\x00\x00\x00\x00\x00\x00\x00\x9F\x77
-# R8 / 9th;  \x55\xAA\x0D\x10\x00\x00\x01\x00\x00\x00\x00\x00\x00\x20\x77
-# R9 / 10th; \x55\xAA\x0D\x10\x00\x00\x02\x00\x00\x00\x00\x00\x00\x21\x77
-#
-test_relay_on1() {
-  run_command 10 00 07 00 00 00 00 00 00 00
-  sleep 2
-  run_command 10 00 00 00 00 00 00 00 00 00
-}
-test_relay_on2() {
-  echo turn it on... >&2
-  echo -ne "\x55\xAA\x0D\x10\x00\x01\x00\x00\x00\x00\x00\x00\x00\x20\x77" \
-    > ${PORT} 
-  sleep 2
-  echo turn it off >&2
-  echo -ne "\x55\xAA\x0D\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x77" \
-    > ${PORT}
-  sleep 2
-}
-test_relay_on3() {
-  SUM=$((2 + 0x0D + 0x10 + 0x00 + 0x01 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00))
-  printf "SUM: %d; checksum: 0x%X\n" $SUM $SUM
-  SUM=$((2 + 0x0D + 0x10 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00))
-  printf "SUM: %d; checksum: 0x%X\n" $SUM $SUM
-
-  SUM=0
-  for h in 0D 10 00 01 00 00 00 00 00 00 00
-  do
-    SUM="$((0x${SUM} + 0x${h}))"
-  done
-  #SUM="$((0x${SUM} + 2))"
-  printf "SUM: %d; checksum: 0x%X\n" $SUM $SUM
-}

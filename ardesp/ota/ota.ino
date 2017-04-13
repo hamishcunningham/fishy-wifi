@@ -1,5 +1,5 @@
 // basic OTA example, from
-// https://github.com/esp8266/Arduino/tree/master/libraries/ArduinoOTA/examples/BasicOTA
+// github.com/esp8266/Arduino/tree/master/libraries/ArduinoOTA/examples/BasicOTA
 // 23/3/17
 
 #include <ESP8266WiFi.h>
@@ -48,7 +48,7 @@ void setup() {
   ArduinoOTA.begin();
   delay(5000);
   Serial.println("Ready (OTA's version!)");
-  Serial.print("IP address: ");
+  Serial.print("my IP address: ");
   Serial.println(WiFi.localIP());
 }
 
@@ -57,5 +57,5 @@ void loop() {
   digitalWrite(2, LOW); digitalWrite(0, HIGH); delay(500);
 
   ArduinoOTA.handle();
-  Serial.print("ESP's IP address is: "); Serial.println(WiFi.localIP());
+  Serial.print("the ESP's IP address is: "); Serial.println(WiFi.localIP());
 }
