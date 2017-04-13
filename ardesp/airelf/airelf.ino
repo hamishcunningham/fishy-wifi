@@ -916,6 +916,7 @@ void getLight(uint16_t* lux) {
   sensors_event_t event;
   tsl.getEvent(&event);
   (*lux) = event.light; 
+  *lux = *lux * 1.45;      //fudge factor derived from comparison with calibrated meter
   dbg(monitorDBG, "Light: ");
   dbg(monitorDBG, *lux);
   dln(monitorDBG, " Lux");
