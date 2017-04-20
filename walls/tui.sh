@@ -374,8 +374,8 @@ do_area_pulsing() {
   TITLE='Pulsed Watering by Area'
   C="whiptail --title \"${TITLE}\" \
        --checklist \"Specify areas to water (with 5 one second pulses per m2)\" \
-       $(( $WT_HEIGHT + 10 )) $(( $WT_WIDTH / 2 + 9 )) \
-       $(( $WT_MENU_HEIGHT + 10 )) \
+       $(( $WT_HEIGHT + 3 )) $(( $WT_WIDTH / 2 + 9 )) \
+       $(( $WT_MENU_HEIGHT + 3 )) \
        --cancel-button \"Cancel\" --ok-button \"Next\" \
        "${CLIST}" "
   AREA_LIST="`bash -c \"${C} 3>&1 1>&2 2>&3\"`"
