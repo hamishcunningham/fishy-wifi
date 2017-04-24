@@ -54,6 +54,10 @@ DBG_LOG=/tmp/rs485-dbg.txt
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
 
+### logging #################################################################
+log() { logger "${LOG_STRING}: $*"; }
+log $0 $*
+
 ### process options #########################################################
 while getopts $OPTIONSTRING OPTION
 do
@@ -69,7 +73,6 @@ done
 shift `expr $OPTIND - 1`
 
 ### procedural interface ####################################################
-log() { logger "${LOG_STRING}: $*"; }
 init() {
   ( echo; echo; date; echo; ) >${DBG_LOG}
   stty -F ${PORT} sane
