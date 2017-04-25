@@ -60,10 +60,11 @@
 #define NEC_RPT_SPACE	2250
 #define NEC_MIN_COMMAND_LENGTH 108000UL
 
+// Timings based on http://www.sbprojects.com/knowledge/ir/sirc.php
 #define SONY_HDR_MARK	2400
 #define SONY_HDR_SPACE	600
-#define SONY_ONE_MARK	1200
-#define SONY_ZERO_MARK	600
+#define SONY_ONE_MARK	1250  // Experiments suggest +50 to spec is better.
+#define SONY_ZERO_MARK	650  // Experiments suggest +50 to spec is better.
 #define SONY_RPT_LENGTH 45000
 #define SONY_DOUBLE_SPACE_USECS  500  // usually see 713 - not using ticks as get number wrapround
 
@@ -105,6 +106,16 @@
 #define RC6_T1		444
 #define RC6_RPT_LENGTH	46000
 
+// http://www.sbprojects.com/knowledge/ir/rcmm.php
+#define RCMM_HDR_MARK 416
+#define RCMM_HDR_SPACE 277
+#define RCMM_BIT_MARK 166
+#define RCMM_BIT_SPACE_0 177
+#define RCMM_BIT_SPACE_1 444
+#define RCMM_BIT_SPACE_2 611
+#define RCMM_BIT_SPACE_3 777
+#define RCMM_RPT_LENGTH 27778
+
 #define SHARP_BIT_MARK 245
 #define SHARP_ONE_SPACE 1805
 #define SHARP_ZERO_SPACE 795
@@ -118,7 +129,6 @@
 #define DISH_ONE_SPACE 1700
 #define DISH_ZERO_SPACE 2800
 #define DISH_RPT_SPACE 6200
-#define DISH_TOP_BIT 0x8000
 
 #define PANASONIC_HDR_MARK 3502
 #define PANASONIC_HDR_SPACE 1750

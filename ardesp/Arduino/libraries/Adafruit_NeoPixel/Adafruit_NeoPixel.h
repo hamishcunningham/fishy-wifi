@@ -175,7 +175,6 @@ class Adafruit_NeoPixel {
   uint8_t
     pinMask;       // Output PORT bitmask
 #endif
-
 };
 
 #endif // ADAFRUIT_NEOPIXEL_H
