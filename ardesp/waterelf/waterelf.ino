@@ -120,7 +120,7 @@ String ip2str(IPAddress address);
 #define dbg(b, s) if(b) Serial.print(s)
 #define dln(b, s) if(b) Serial.println(s)
 #define startupDBG true
-#define valveDBG true
+#define valveDBG false
 #define monitorDBG false
 #define netDBG false
 #define miscDBG false
@@ -406,7 +406,7 @@ void loop() {
 void startAP() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(apSSID);
+  WiFi.softAP(apSSID,"wegrowdotsocial");
   dln(startupDBG, "Soft AP started");
 }
 
@@ -797,12 +797,13 @@ void postSensorData(monitor_t *monitorData) {
 
   dln(citsciDBG, "\npostSensorData");
   String jsonBuf = "";
-  String citsciAddr = "citsci.wegrow.social";
+//String citsciAddr = "citsci.wegrow.social"; //Hardcoded? Also changed port from 8000 to 5984
+  String citsciAddr = svrAddr;
   formatMonitorEntry(monitorData, &jsonBuf, true);
   String envelope =
     "GET /collect/"; envelope += apSSIDStr; envelope += " HTTP/1.1\r\n";
   envelope += "User-Agent: WaterElf/0.000001\r\n";
-  envelope += "Host: "; envelope += citsciAddr; envelope += ":8000\r\n";
+  envelope += "Host: "; envelope += citsciAddr; envelope += ":5984\r\n";
   envelope += "Accept: application/json\r\n";
   envelope += "Content-Type: application/json\r\n";
   envelope += "Content-Length: " ;
@@ -811,7 +812,7 @@ void postSensorData(monitor_t *monitorData) {
   envelope += jsonBuf;
   
   WiFiClient citsciClient;
-  if(citsciClient.connect(citsciAddr.c_str(), 8000)) {
+  if(citsciClient.connect(citsciAddr.c_str(), 5984)) {
     dln(citsciDBG, "connected to citsci server; doing GET");
     citsciClient.print(envelope);
   } else {

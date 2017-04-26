@@ -420,7 +420,7 @@ void loop() {
 void startAP() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(apSSID);
+  WiFi.softAP(apSSID,"wegrowdotsocial");
   dln(startupDBG, "Soft AP started");
 }
 
@@ -819,7 +819,7 @@ void postSensorData(monitor_t *monitorData) {
   formatMonitorEntry(monitorData, &jsonBuf, true);
   String envelope =
     "GET /collect/"; envelope += apSSIDStr; envelope += " HTTP/1.1\r\n";
-  envelope += "User-Agent: WaterElf/0.000001\r\n";
+  envelope += "User-Agent: AirElf/0.000001\r\n";
   envelope += "Host: "; envelope += citsciAddr; envelope += ":5984\r\n";
   envelope += "Accept: application/json\r\n";
   envelope += "Content-Type: application/json\r\n";
