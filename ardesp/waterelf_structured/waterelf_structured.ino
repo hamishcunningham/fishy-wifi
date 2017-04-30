@@ -1,0 +1,8 @@
+/////////////////////////////////////////////////////////////////////////////
+// waterelf.ino /////////////////////////////////////////////////////////////
+
+/*
+ * This sketch is for the waterelf, an ESP8266 based aquaponics monitoring
+ * and control system. See https://github.com/hamishcunningham/fishy-wifi
+ * for details
+ */
