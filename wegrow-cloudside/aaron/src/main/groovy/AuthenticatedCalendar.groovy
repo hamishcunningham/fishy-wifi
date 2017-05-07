@@ -94,12 +94,14 @@ public class AuthenticatedCalendar {
    * @return a list of all Event's
    * @throws IOException
   */
-  public List<Event> getAllUpcomingEvents() throws IOException {
+  public List<Event> getAllUpcomingEvents(int monthRange) throws IOException {
     com.google.api.services.calendar.Calendar service = getCalendarService();
 
     DateTime now = new DateTime(System.currentTimeMillis());
+    DateTime max = new DateTime(System.currentTimeMillis() + (monthRange * 2629746000)); //2629746000 is aprox one month in milliseconds
     Events events = service.events().list(calendarID)
         .setTimeMin(now)
+        .setTimeMax(max)
         .setOrderBy("startTime")
         .setSingleEvents(true)
         .execute();
@@ -114,11 +116,9 @@ public class AuthenticatedCalendar {
   */
   private static Event duplicateEventObj(Event sourceEvent) {
     //Copy the summary, location, description, and start/end date to the new Event
-    Event dupeEvent = new Event()
-        .setSummary(sourceEvent.getSummary())
-        .setLocation(sourceEvent.getLocation())
-        .setDescription(sourceEvent.getDescription());
+    Event dupeEvent = new Event();
 
+    //copy just the time data from the source event
     dupeEvent.setStart(sourceEvent.getStart());
     dupeEvent.setEnd(sourceEvent.getEnd());
 
@@ -136,6 +136,13 @@ public class AuthenticatedCalendar {
 
     //change the colour of the duped event - so different from others
     eventDupe.setColorId("5");
+
+    //mark it as a sync'd event
+    Event.ExtendedProperties eventProps = new Event.ExtendedProperties();
+    Map<String, String> eventPropsPrivate = new HashMap<String, String>();
+    eventPropsPrivate.put('_has_synced_to_dest', 'true');
+    eventProps.setPrivate(eventPropsPrivate);
+    eventDupe.setExtendedProperties(eventProps);
 
     this.addEvent(eventDupe);
   }
@@ -175,6 +182,42 @@ public class AuthenticatedCalendar {
     com.google.api.services.calendar.Calendar service = getCalendarService();
 
     event = service.events().insert(calendarID, event).execute();
+  }
+
+  /*
+   * Delete a given Event from the Google Calendar
+  */
+  public void deleteEvent(Event event) {
+    com.google.api.services.calendar.Calendar service = getCalendarService();
+
+    event = service.events().delete(calendarID, event.getId()).execute();
+  }
+
+  /*
+   * Delete all events that were sync'd from this calendar
+  */
+  public void deleteAllSync() {
+    com.google.api.services.calendar.Calendar service = getCalendarService();
+
+    DateTime now = new DateTime(System.currentTimeMillis());
+    Events events = service.events().list(calendarID)
+        .setTimeMin(now)
+        .setOrderBy("startTime")
+        .setSingleEvents(true)
+        .execute();
+    List<Event> items = events.getItems();
+
+    for (Event event : items) {
+      Event.ExtendedProperties eventProps = event.getExtendedProperties();
+
+      if(eventProps != null) {
+        Map<String, String> eventPropsPrivate = eventProps.getPrivate();
+
+        if(eventPropsPrivate.get('_has_synced_to_dest') != null) {
+          this.deleteEvent(event);
+        }
+      }
+    }
   }
 
 }

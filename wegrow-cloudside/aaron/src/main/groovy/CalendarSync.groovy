@@ -1,23 +1,32 @@
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.*;
 
-// TODO
-// - copy only the time data (not the name or location or etc. to the sync'd
-//   events
-// - add a "delete all sync'd events" option to the script
-// - add a range limit, defaulting to 3 months (i.e. only the next 6 months
-//   events will be sync'd)
-
 public class CalendarSync {
   private static final String APPLICATION_NAME = "Google Calendar Sync";
 
   public static void main(String[] params) {
+    int monthRange = 3;
+
     //Authenticate the source calendar
     AuthenticatedCalendar sourceCalendar = new AuthenticatedCalendar("source");
     //Authenticate the destination calendar
     AuthenticatedCalendar destinationCalendar = new AuthenticatedCalendar("destination");
 
-    List<Event> upcomingSourceEvents = sourceCalendar.getAllUpcomingEvents();
+    //command line parameter parsing
+    for (int i = 0; i < params.length; i++) {
+      if(params[i].equals("--maxSyncMonth")) {
+        monthRange = Integer.valueOf(params[i + 1]);
+      }
+
+      if(params[i].equals("--deleteAllSync")) {
+        System.out.println("\nDeleting all sync'd events from the destination calendar");
+        destinationCalendar.deleteAllSync();
+        System.out.println("Events deleted");
+        return;
+      }
+    }
+
+    List<Event> upcomingSourceEvents = sourceCalendar.getAllUpcomingEvents(monthRange);
 
     System.out.println("\nChecking if any events need syncing");
     for (Event event : upcomingSourceEvents) {
