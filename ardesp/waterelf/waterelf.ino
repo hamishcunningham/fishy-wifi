@@ -80,7 +80,7 @@ const char* pageDefault = // TODO build the growbeds according to their num
   "</ul></p>\n"
   "<h2>Monitor</h2>\n"
   "<p><ul>\n"
-  "<li><a href='/wifistatus'>Wifi status</a></li>\n"
+  "<li><a href='/elfstatus'>Elf status</a></li>\n"
   "<li><a href='/data'>Sensor data</a></li>\n"
   "</ul></p>\n";
 const char* pageFooter =
@@ -182,6 +182,14 @@ const int LEVEL_ECHO_PIN1=13;
 const int LEVEL_ECHO_PIN2=14;
 const int LEVEL_ECHO_PIN3=16;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
+
+/////////////////////////////////////////////////////////////////////////////
+// analog sensor stuff //////////////////////////////////////////////////////
+String ANALOG_SENSOR_NONE = "analog_none";
+String ANALOG_SENSOR_MAINS = "analog_mains";
+String ANALOG_SENSOR_PRESSURE = "analog_pressure";
+String analogSensor = ANALOG_SENSOR_NONE;
+boolean GOT_ANALOG_SENSOR = false; // change later if we config a sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // valves and flow control //////////////////////////////////////////////////
@@ -320,6 +328,8 @@ boolean getCloudShare();
 void setCloudShare(boolean b);
 String getSvrAddr();
 void setSvrAddr(String s);
+String getAnalogSensor();
+void setAnalogSensor(String s);
 
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
@@ -332,6 +342,7 @@ void setup() {
   // read persistent config
   SPIFFS.begin();
   svrAddr = getSvrAddr();
+  analogSensor = getAnalogSensor();
 
   // start the sensors, the DNS and webserver, etc.
   startPeripherals();
@@ -430,7 +441,7 @@ void startWebServer() {
   webServer.on("/ALL", handle_root);
   webServer.onNotFound(handleNotFound);
   webServer.on("/wifi", handle_wifi);
-  webServer.on("/wifistatus", handle_wifistatus);
+  webServer.on("/elfstatus", handle_elfstatus);
   webServer.on("/serverconf", handle_serverconf);
   webServer.on("/analogconf", handle_analogconf);
   webServer.on("/wfchz", handle_wfchz);
@@ -535,13 +546,13 @@ void handle_wifi() {
   webServer.send(200, "text/html", toSend);
 }
 
-void handle_wifistatus() {
-  dln(netDBG, "serving page at /wifistatus");
+void handle_elfstatus() {
+  dln(netDBG, "serving page at /elfstatus");
 
   String toSend = pageTop;
-  toSend += ": Wifi Status";
+  toSend += ": Elf Status";
   toSend += pageTop2;
-  toSend += "\n<h2>Wifi Status</h2><p><ul>\n";
+  toSend += "\n<h2>Elf Status</h2><p><ul>\n";
 
   toSend += "\n<li>SSID: ";
   toSend += WiFi.SSID();
@@ -574,6 +585,8 @@ void handle_wifistatus() {
   toSend += "</li>\n";
   toSend += "\n<li>Data sharing server address: "; toSend += svrAddr;
   toSend += "</li>\n";
+  toSend += "\n<li>Analog sensor type: "; toSend += analogSensor;
+  toSend += "</li>\n";
 
   toSend += "</ul></p>";
 
@@ -601,7 +614,7 @@ void handle_wfchz() {
     toSend += "<p>Looks like a bug :-(</p>";
   } else {
     toSend += "<h2>Done! Now trying to join network...</h2>";
-    toSend += "<p>Check <a href='/wifistatus'>wifi status here</a>.</p>";
+    toSend += "<p>Check <a href='/elfstatus'>wifi status here</a>.</p>";
     char ssidchars[ssid.length()+1];
     char keychars[key.length()+1];
     ssid.toCharArray(ssidchars, ssid.length()+1);
@@ -638,13 +651,12 @@ String genAnalogConfForm() {
 
   f += "<form method='POST' action='algchz'> ";
   f += "<br/>Analog sensor:\n<ul>\n";
-  f += "<li>none <input type='radio' name='analogsensor' value='none' checked>\n";
-  f += "<li>mains current <input type='radio' name='analogsensor' value='mains'>\n";
-  f += "<li>water pressure <input type='radio' name='analogsensor' value='pressure'>\n";
+  f += "<li>none <input type='radio' name='analog_sensor' value='analog_none' checked>\n";
+  f += "<li>mains current <input type='radio' name='analog_sensor' value='analog_mains'>\n";
+  f += "<li>water pressure <input type='radio' name='analog_sensor' value='analog_pressure'>\n";
   f += "<input type='submit' value='Submit'></form></ul></p>";
 
   f += pageFooter;
-  dbg(analogDBG, f);
   return f;
 }
 void handle_serverconf() {
@@ -682,7 +694,7 @@ void handle_svrchz() {
   setCloudShare(cloudShare);
 
   // TODO some way of verifying if server config worked
-  // add srvstatus, or roll that into wifistatus, or...?
+  // add srvstatus, or roll that into elfstatus, or...?
 
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
@@ -694,42 +706,29 @@ void handle_algchz() {
   toSend += pageTop2;
 
   for(uint8_t i = 0; i < webServer.args(); i++) {
-    if(webServer.argName(i) == "analogsensor") {
-      // TODO store the sensor type
-    }
-
-    svrAddr = webServer.arg(i);
-    toSend += "<p>webServer.arg(";
-    toSend += i;
-    toSend += ") = ";
-    toSend += webServer.arg(i);
-    toSend += "<br/>argName = ";
-    toSend += webServer.argName(i);
-    toSend += "</p>\n";
-  }
-
-/*
-  boolean cloudShare = false;
-  for(uint8_t i = 0; i < webServer.args(); i++) {
-    if(webServer.argName(i) == "svraddr") {
-      svrAddr = webServer.arg(i);
-      toSend += "<h2>Added local server config...</h2>";
-      toSend += "<p>...at ";
-      toSend += svrAddr;
+    if(webServer.argName(i) == "analog_sensor") { // remember/persist the type
+      String argVal = webServer.arg(i);
+      analogSensor = ANALOG_SENSOR_NONE; // the default is...
+      GOT_ANALOG_SENSOR = false;         // ...no sensor
+      if(argVal == "analog_mains") {
+        analogSensor = ANALOG_SENSOR_MAINS;
+        GOT_ANALOG_SENSOR = true;
+      } else if(argVal == "analog_pressure") {
+        analogSensor = ANALOG_SENSOR_PRESSURE;
+        GOT_ANALOG_SENSOR = true;
+      } else if(argVal != "analog_none") {
+        Serial.println("unknown analog sensor type");
+      }
+      toSend += "<h2>Added analog sensor config...</h2>";
+      toSend += "<p>...for ";
+      toSend += analogSensor;
       toSend += "</p>";
-    } else if(webServer.argName(i) == "key") {
-      if(webServer.arg(i) == "on")
-        cloudShare = true;
+      setAnalogSensor(analogSensor);
     }
   }
-
-  // persist the config
-  setSvrAddr(svrAddr);
-  setCloudShare(cloudShare);
-*/
 
   toSend += pageFooter;
-  dbg(analogDBG, toSend);
+  dbg(analogDBG, analogSensor); dbg(analogDBG, "\n");
   webServer.send(200, "text/html", toSend);
 }
 void handle_actuate() {
@@ -1051,6 +1050,23 @@ String getSvrAddr() {
 }
 void setSvrAddr(String s) {
   File f = SPIFFS.open("/svrAddr.txt", "w");
+  f.println(s);
+  f.close();
+}
+String getAnalogSensor() {
+  analogSensor = ANALOG_SENSOR_NONE; // the default is...
+  GOT_ANALOG_SENSOR = false;         // ...no sensor
+  String s = "";
+  File f = SPIFFS.open("/analogSensor.txt", "r");
+  if(f) {
+    s = f.readString();
+    s.trim();
+    f.close();
+  }
+  return s;
+}
+void setAnalogSensor(String s) {
+  File f = SPIFFS.open("/analogSensor.txt", "w");
   f.println(s);
   f.close();
 }
