@@ -271,6 +271,20 @@ pulse() {
 read_analog_sensor() {
   wget -O - "http://$1/data" 2>/dev/null |grep analog |head -1 |cut -f 2 |xargs
 }
+run_test_routine() {
+  # TODO check pressure and current usage here
+  for s in `cat $(( dirname $P ))/areas/all-planted`
+  do
+    echo cli_command -c on $s
+    cli_command -c on $s
+    # TODO check pressure and current usage here; calculate if there's flow
+    sleep 2
+    echo cli_command -c clear
+    cli_command -c clear
+    # TODO check pressure and current usage here; calculate if there's flow
+    sleep 2
+  done
+}
 
 ### CLI access to procedures ################################################
 log            "running $COMM $*"

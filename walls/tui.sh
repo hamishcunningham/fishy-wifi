@@ -445,8 +445,10 @@ do_test() {
     for s in `cat ${AREA_DIR}/all-planted`
     do
       echo cli_command -c on $s
+      cli_command -c on $s
       sleep 2
       echo cli_command -c clear
+      cli_command -c clear
     done
     read -p "hit return to continue"
   fi
