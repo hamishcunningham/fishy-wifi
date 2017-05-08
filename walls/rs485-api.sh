@@ -4,7 +4,7 @@
 ### standard locals #########################################################
 alias cd='builtin cd'
 P="$0"
-USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-B base] [-C(controller num)] [-c command] [-g(et analog reading) ip]\n
+USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-B base] [-C(controller num)] [-c command]\n
 \n
 A CLI API for the STR2DO14DIN RS-485 controller.\n
 Commands: init, on, off, ...\n

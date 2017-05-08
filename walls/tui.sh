@@ -22,6 +22,7 @@ NUM_CONTROLLERS=14
 NUM_SOLENOIDS=196
 ALL_SOLENOIDS=`seq 1 $NUM_SOLENOIDS`
 DBG_LOG=/tmp/rs485-dbg.txt
+PRESSURE_RELEASE_VALVE=63
 
 # message & exit if exit num present
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
@@ -449,11 +450,12 @@ while true; do
       "1 Water by area"         "Pulse watering to specific areas" \
       "2 Water by cartridge"    "Control water supply to each cart" \
       "3 All off"               "Turn all relays off" \
-      "4 Status"                "Show current status from the wall" \
-      "5 Show Log Entries"      "Show the most recent log entries" \
-      "6 Reboot"                "Reboot both controller machines" \
-      "7 Shutdown"              "Shutdown both controller machines" \
-      "8 About"                 "Data about this tool, IP addresses etc." \
+      "4 Pressure release"      "Turn on the pressure release valve" \
+      "5 Status"                "Show current status from the wall" \
+      "6 Show Log Entries"      "Show the most recent log entries" \
+      "7 Reboot"                "Reboot both controller machines" \
+      "8 Shutdown"              "Shutdown both controller machines" \
+      "9 About"                 "Data about this tool, IP addresses etc." \
     3>&1 1>&2 2>&3)
   RET=$?
   if [ $RET -eq 1 ]; then
@@ -463,14 +465,16 @@ while true; do
       1\ *) do_area_pulsing ;;
       2\ *) do_water_control ;;
       3\ *) cli_command -c clear; clear_solenoid_state ;;
-      4\ *) read_board; whiptail --title "Status" --msgbox \
+      4\ *) cli_command -c on ${PRESSURE_RELEASE_VALVE}; \
+            set_solenoid ${PRESSURE_RELEASE_VALVE} on ;;
+      5\ *) read_board; whiptail --title "Status" --msgbox \
               "`print_solenoid_state |pr -e -t7 -w78 |expand`" \
               $(( $WT_HEIGHT + 10 )) 78 1 ;;
-      5\ *) ( echo "space for more; q to quit"; echo; log_grep; ) \
+      6\ *) ( echo "space for more; q to quit"; echo; log_grep; ) \
             |more; read -p "hit return to continue"; ;;
-      6\ *) do_reboot ;;
-      7\ *) do_halt ;;
-      8\ *) do_about ;;
+      7\ *) do_reboot ;;
+      8\ *) do_halt ;;
+      9\ *) do_about ;;
       *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $SEL" 20 60 1
   else
