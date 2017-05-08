@@ -12,6 +12,7 @@
 #include <Adafruit_TSL2591.h>
 #include <RCSwitch.h>
 #include "Adafruit_MCP23008.h"
+#include "EmonLib.h" // Emon Library, see openenergymonitor.org
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
@@ -189,6 +190,7 @@ String ANALOG_SENSOR_MAINS = "analog_mains";
 String ANALOG_SENSOR_PRESSURE = "analog_pressure";
 String analogSensor = ANALOG_SENSOR_NONE;
 boolean GOT_ANALOG_SENSOR = false; // change later if we config a sensor
+EnergyMonitor emon1; // instance of energy monitor, for mains current sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // valves and flow control //////////////////////////////////////////////////
@@ -846,12 +848,15 @@ void startPeripherals() {
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS); // longest (dim)
   }
   
-  //Wire.begin();
   Wire.beginTransmission(pH_Add);
   error = Wire.endTransmission();
   if(error==0){
     GOT_PH_SENSOR = true;
     dln(monitorDBG, "Found pH sensor");
+  }
+
+  if(GOT_ANALOG_SENSOR && analogSensor == "analog_mains") {
+    emon1.current(A0, 111.1); // current: input pin, calibration
   }
 }
 
@@ -1030,7 +1035,7 @@ void getAnalog(float* a) {
   if(! GOT_ANALOG_SENSOR) {
     (*a) = 0.0;
   } else if(analogSensor == "analog_mains") {
-    (*a) = 1.0;
+    (*a) = (float) emon1.calcIrms(1480);
   } else if(analogSensor == "analog_pressure") {
     int analogValue = analogRead(A0);
 
