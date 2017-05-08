@@ -122,7 +122,7 @@ String ip2str(IPAddress address);
 #define startupDBG true
 #define valveDBG false
 #define monitorDBG false
-#define netDBG false
+#define netDBG true
 #define miscDBG false
 #define citsciDBG true
 
@@ -566,6 +566,8 @@ void handle_wifistatus() {
   toSend += "</li>\n";
   toSend += "\n<li>AP SSID name: "; toSend += apSSID;
   toSend += "</li>\n";
+  toSend += "\n<li>Data sharing server address: "; toSend += svrAddr;
+  toSend += "</li>\n";
 
   toSend += "</ul></p>";
 
@@ -648,7 +650,7 @@ void handle_svrchz() { // TODO delete?
   }
 
   // persist the config
-  if(svrAddr.length() > 0) setSvrAddr(svrAddr);
+  setSvrAddr(svrAddr);
   setCloudShare(cloudShare);
 
   // TODO some way of verifying if server config worked
@@ -797,13 +799,14 @@ void postSensorData(monitor_t *monitorData) {
 
   dln(citsciDBG, "\npostSensorData");
   String jsonBuf = "";
-//String citsciAddr = "citsci.wegrow.social"; //Hardcoded? Also changed port from 8000 to 5984
   String citsciAddr = svrAddr;
+  if(citsciAddr.length() == 0) // default cloud server address
+    citsciAddr = "citsci.wegrow.social";
   formatMonitorEntry(monitorData, &jsonBuf, true);
   String envelope =
     "GET /collect/"; envelope += apSSIDStr; envelope += " HTTP/1.1\r\n";
   envelope += "User-Agent: WaterElf/0.000001\r\n";
-  envelope += "Host: "; envelope += citsciAddr; envelope += ":5984\r\n";
+  envelope += "Host: "; envelope += citsciAddr; envelope += ":8000\r\n";
   envelope += "Accept: application/json\r\n";
   envelope += "Content-Type: application/json\r\n";
   envelope += "Content-Length: " ;
@@ -812,7 +815,7 @@ void postSensorData(monitor_t *monitorData) {
   envelope += jsonBuf;
   
   WiFiClient citsciClient;
-  if(citsciClient.connect(citsciAddr.c_str(), 5984)) {
+  if(citsciClient.connect(citsciAddr.c_str(), 8000)) {
     dln(citsciDBG, "connected to citsci server; doing GET");
     citsciClient.print(envelope);
   } else {
