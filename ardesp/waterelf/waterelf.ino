@@ -1037,7 +1037,7 @@ void getAnalog(float* a) {
   } else if(analogSensor == "analog_mains") {
     (*a) = (float) ( emon1.calcIrms(1480) / 10 /*fudge!*/ );
     dbg(analogDBG, "mains reading is ");
-    dbg(analogDBG, (*a)); dbg(analogDBG, "\n");
+    dbg(analogDBG, (*a)); dbg(analogDBG, "A\n");
   } else if(analogSensor == "analog_pressure") {
     int analogValue = analogRead(A0);
 
