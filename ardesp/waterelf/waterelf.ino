@@ -1030,21 +1030,23 @@ void getLevel(int echoPin, long* waterLevel) {
   return;
 }
 void getAnalog(float* a) {
-  dbg(analogDBG, "getAnalog: ");
+  dbg(analogDBG, "getAnalog\n");
 
   if(! GOT_ANALOG_SENSOR) {
     (*a) = 0.0;
   } else if(analogSensor == "analog_mains") {
-    (*a) = (float) emon1.calcIrms(1480);
+    (*a) = (float) ( emon1.calcIrms(1480) / 10 /*fudge!*/ );
+    dbg(analogDBG, "mains reading is ");
+    dbg(analogDBG, (*a)); dbg(analogDBG, "\n");
   } else if(analogSensor == "analog_pressure") {
     int analogValue = analogRead(A0);
 
     // conversion/"calibration" because sensor 4.5v=1.2MPa
     (*a) = (analogValue - 25) * .19;
 
-    dbg(analogDBG, "Value: ");
+    dbg(analogDBG, "value: ");
     dbg(analogDBG, analogValue);
-    dbg(analogDBG, "    Pressure: ");
+    dbg(analogDBG, "    pressure: ");
     dbg(analogDBG, (*a));
     dbg(analogDBG, " PSI\n");
   }
