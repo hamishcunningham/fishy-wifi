@@ -48,6 +48,7 @@ const char* pageDefault = // TODO build the growbeds according to their num
   "<p><ul>\n"
   "<li><a href='/wifi'>Join a wifi network</a></li>\n"
   "<li><a href='/serverconf'>Configure data sharing</a></li>\n"
+  "<li><a href='/analogconf'>Configure analog sensor</a></li>\n"
   "<li>"
     "<form method='POST' action='valve1'>\n"
     "Growbed 1: "
@@ -124,7 +125,8 @@ String ip2str(IPAddress address);
 #define monitorDBG false
 #define netDBG true
 #define miscDBG false
-#define citsciDBG true
+#define citsciDBG false
+#define analogDBG true
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
@@ -390,9 +392,11 @@ void loop() {
   }
 
   if(loopCounter == TICK_WIFI_DEBUG) {
+    /* TODO a way to only trigger on less loops
     dbg(netDBG, "SSID: "); dbg(netDBG, apSSID);
     dbg(netDBG, "; IP address(es): local="); dbg(netDBG, WiFi.localIP());
     dbg(netDBG, "; AP="); dln(netDBG, WiFi.softAPIP());
+    */
   }
   if(loopCounter == TICK_HEAP_DEBUG) {
     dbg(miscDBG, "free heap="); dln(miscDBG, ESP.getFreeHeap());
@@ -428,8 +432,10 @@ void startWebServer() {
   webServer.on("/wifi", handle_wifi);
   webServer.on("/wifistatus", handle_wifistatus);
   webServer.on("/serverconf", handle_serverconf);
+  webServer.on("/analogconf", handle_analogconf);
   webServer.on("/wfchz", handle_wfchz);
   webServer.on("/svrchz", handle_svrchz);
+  webServer.on("/algchz", handle_algchz);
   webServer.on("/data", handle_data);
   webServer.on("/actuate", handle_actuate);
   webServer.on("/valve1", handle_valve1);
@@ -624,12 +630,34 @@ String genServerConfForm() {
   f += pageFooter;
   return f;
 }
+String genAnalogConfForm() {
+  String f = pageTop;
+  f += ": Analog Sensor Config";
+  f += pageTop2;
+  f += "<h2>Configure Analog Sensor</h2><p>\n";
+
+  f += "<form method='POST' action='algchz'> ";
+  f += "<br/>Analog sensor:\n<ul>\n";
+  f += "<li>none <input type='radio' name='analogsensor' value='none' checked>\n";
+  f += "<li>mains current <input type='radio' name='analogsensor' value='mains'>\n";
+  f += "<li>water pressure <input type='radio' name='analogsensor' value='pressure'>\n";
+  f += "<input type='submit' value='Submit'></form></ul></p>";
+
+  f += pageFooter;
+  dbg(analogDBG, f);
+  return f;
+}
 void handle_serverconf() {
   dln(netDBG, "serving page at /serverconf");
   String toSend = genServerConfForm();
   webServer.send(200, "text/html", toSend);
 }
-void handle_svrchz() { // TODO delete?
+void handle_analogconf() {
+  dln(netDBG, "serving page at /analogconf");
+  String toSend = genAnalogConfForm();
+  webServer.send(200, "text/html", toSend);
+}
+void handle_svrchz() {
   dln(netDBG, "serving page at /svrchz");
   String toSend = pageTop;
   toSend += ": data sharing configured";
@@ -657,6 +685,51 @@ void handle_svrchz() { // TODO delete?
   // add srvstatus, or roll that into wifistatus, or...?
 
   toSend += pageFooter;
+  webServer.send(200, "text/html", toSend);
+}
+void handle_algchz() {
+  dln(netDBG, "serving page at /algchz");
+  String toSend = pageTop;
+  toSend += ": analog sensor configured";
+  toSend += pageTop2;
+
+  for(uint8_t i = 0; i < webServer.args(); i++) {
+    if(webServer.argName(i) == "analogsensor") {
+      // TODO store the sensor type
+    }
+
+    svrAddr = webServer.arg(i);
+    toSend += "<p>webServer.arg(";
+    toSend += i;
+    toSend += ") = ";
+    toSend += webServer.arg(i);
+    toSend += "<br/>argName = ";
+    toSend += webServer.argName(i);
+    toSend += "</p>\n";
+  }
+
+/*
+  boolean cloudShare = false;
+  for(uint8_t i = 0; i < webServer.args(); i++) {
+    if(webServer.argName(i) == "svraddr") {
+      svrAddr = webServer.arg(i);
+      toSend += "<h2>Added local server config...</h2>";
+      toSend += "<p>...at ";
+      toSend += svrAddr;
+      toSend += "</p>";
+    } else if(webServer.argName(i) == "key") {
+      if(webServer.arg(i) == "on")
+        cloudShare = true;
+    }
+  }
+
+  // persist the config
+  setSvrAddr(svrAddr);
+  setCloudShare(cloudShare);
+*/
+
+  toSend += pageFooter;
+  dbg(analogDBG, toSend);
   webServer.send(200, "text/html", toSend);
 }
 void handle_actuate() {
@@ -819,7 +892,7 @@ void postSensorData(monitor_t *monitorData) {
     dln(citsciDBG, "connected to citsci server; doing GET");
     citsciClient.print(envelope);
   } else {
-    dbg(netDBG, citsciAddr);
+    dbg(citsciDBG, citsciAddr);
     dln(citsciDBG, " - no citsci server");
   }
   citsciClient.stop();
