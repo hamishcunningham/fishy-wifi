@@ -273,6 +273,10 @@ read_analog_sensor() {
 }
 run_test_routine() {
   # TODO check pressure and current usage here
+  # e.g.:
+  # PRESSURE=`read_analog_sensor <ip address of pressure sensor elf>`
+  # CURRENT=`read_analog_sensor <ip address of mains current sensor elf>`
+  # ...
   for s in `cat $( dirname $P )/areas/all-planted`
   do
     echo cycling ${s}...
