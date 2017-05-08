@@ -434,6 +434,24 @@ do_water_control() {
     return 0
   fi
 }
+do_test() {
+  TITLE='Test Routine'
+  whiptail --title "${TITLE}" --yesno "Are you sure?!" \
+    --no-button "Cancel" --yes-button "Go for it!" \
+    $(( $WT_HEIGHT )) $(( $WT_WIDTH / 2 + 9 )) $(( $WT_MENU_HEIGHT )) \
+  RET=$?
+  if [ $RET -eq 0 ]
+  then
+    for s in `cat ${AREA_DIR}/all-planted`
+    do
+      echo cli_command -c on $s
+      sleep 2
+      echo cli_command -c clear
+    done
+    read -p "hit return to continue"
+  fi
+  return 0
+}
 
 # initialisation
 cli_command -c init  # configure USB port
@@ -447,15 +465,16 @@ while true; do
     --menu "\n" \
       $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT \
     --cancel-button Finish --ok-button Select \
-      "1 Water by area"         "Pulse watering to specific areas" \
-      "2 Water by cartridge"    "Control water supply to each cart" \
-      "3 All off"               "Turn all relays off" \
-      "4 Pressure release"      "Turn on the pressure release valve" \
-      "5 Status"                "Show current status from the wall" \
-      "6 Show Log Entries"      "Show the most recent log entries" \
-      "7 Reboot"                "Reboot both controller machines" \
-      "8 Shutdown"              "Shutdown both controller machines" \
-      "9 About"                 "Data about this tool, IP addresses etc." \
+      " 1 Water by area"         "Pulse watering to specific areas" \
+      " 2 Water by cartridge"    "Control water supply to each cart" \
+      " 3 All off"               "Turn all relays off" \
+      " 4 Pressure release"      "Turn on the pressure release valve" \
+      " 5 Status"                "Show current status from the wall" \
+      " 6 Show Log Entries"      "Show the most recent log entries" \
+      " 7 Reboot"                "Reboot both controller machines" \
+      " 8 Shutdown"              "Shutdown both controller machines" \
+      " 9 About"                 "Data about this tool, IP addresses etc." \
+      "10 Test"                  "Run test routine on all planted carts" \
     3>&1 1>&2 2>&3)
   RET=$?
   if [ $RET -eq 1 ]; then
@@ -475,6 +494,7 @@ while true; do
       7\ *) do_reboot ;;
       8\ *) do_halt ;;
       9\ *) do_about ;;
+      10\ *) do_test ;;
       *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $SEL" 20 60 1
   else
