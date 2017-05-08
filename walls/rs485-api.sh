@@ -4,7 +4,7 @@
 ### standard locals #########################################################
 alias cd='builtin cd'
 P="$0"
-USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-B base] [-C(controller num)] [-c command]\n
+USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-B base] [-C(controller num)] [-c command] [-g(et analog reading) ip]\n
 \n
 A CLI API for the STR2DO14DIN RS-485 controller.\n
 Commands: init, on, off, ...\n
@@ -29,7 +29,10 @@ on by:\n
 rs485-api.sh -B 1 -c on 7\n
 \n
 Manual:\n
-http://smarthardware.eu/manual/str2do14din_doc.pdf
+http://smarthardware.eu/manual/str2do14din_doc.pdf\n
+\n
+The read_analog_sensor command reads sensor data from WaterElves, e.g.:\n
+rs485-api.sh -c read_analog_sensor 192.168.22.73\n
 "
 DBG=:
 RED='\033[0;31m'   # red
@@ -264,6 +267,9 @@ pulse() {
       echo
     done
   done < ${AREA}
+}
+read_analog_sensor() {
+  wget -O - "http://$1/data" 2>/dev/null |grep analog |head -1 |cut -f 2 |xargs
 }
 
 ### CLI access to procedures ################################################
