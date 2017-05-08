@@ -273,17 +273,17 @@ read_analog_sensor() {
 }
 run_test_routine() {
   # TODO check pressure and current usage here
-  for s in `cat $(( dirname $P ))/areas/all-planted`
+  for s in `cat $( dirname $P )/areas/all-planted`
   do
-    echo cli_command -c on $s
-    cli_command -c on $s
+    echo cycling ${s}...
+    BASE="00" on $s
     # TODO check pressure and current usage here; calculate if there's flow
     sleep 2
-    echo cli_command -c clear
-    cli_command -c clear
+    clear
     # TODO check pressure and current usage here; calculate if there's flow
     sleep 2
   done
+  clear
 }
 
 ### CLI access to procedures ################################################
