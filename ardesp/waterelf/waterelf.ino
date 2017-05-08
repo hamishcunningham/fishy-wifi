@@ -101,8 +101,7 @@ typedef struct {
   long waterLevel1; // TODO should be an array
   long waterLevel2;
   long waterLevel3;
-  // TODO add last reboot
-  // TODO add free memory?
+  float analog;
 } monitor_t;
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
@@ -392,6 +391,7 @@ void loop() {
       dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel2);
       dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel3);
     }
+    if(GOT_ANALOG_SENSOR) { getAnalog(&now->analog);    yield(); }
 
     flowController.step(now); yield();  // set valves on and off etc.
     if(SEND_DATA) {                     // push data to the cloud
@@ -935,6 +935,11 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
     buf->concat("^ ~waterLevel3~+ "); buf->concat(m->waterLevel3);
     if(! JSON) buf->concat("\tcm");
   }
+  if(GOT_ANALOG_SENSOR){
+    buf->concat("^ ~analog~+ ");
+    buf->concat(m->analog);
+    if(! JSON) buf->concat("\tanalog");
+  }
   if(JSON) {
     buf->concat(" }");
     buf->replace('~', '"');
@@ -1015,6 +1020,17 @@ void getLevel(int echoPin, long* waterLevel) {
   dbg(monitorDBG, "Water Level: ");
   dbg(monitorDBG, *waterLevel);
   dln(monitorDBG, " cm, ");
+  return;
+}
+void getAnalog(float* a) {
+  if(! GOT_ANALOG_SENSOR) {
+    (*a) = 0.0;
+  } else if(analogSensor == "analog_mains") {
+    (*a) = 1.0;
+  } else if(analogSensor == "analog_pressure") {
+    (*a) = -1.0;
+  }
+
   return;
 }
 
