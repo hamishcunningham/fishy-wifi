@@ -325,10 +325,10 @@ FlowController flowController;
 // config utils /////////////////////////////////////////////////////////////
 boolean getCloudShare();
 void setCloudShare(boolean b);
-String getSvrAddr();
-void setSvrAddr(String s);
-String getAnalogSensor();
-void setAnalogSensor(String s);
+String getSvrAddrP();
+void setSvrAddrP(String s);
+String getAnalogSensorP();
+void setAnalogSensorP(String s);
 
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
@@ -340,8 +340,8 @@ void setup() {
 
   // read persistent config
   SPIFFS.begin();
-  svrAddr = getSvrAddr();
-  analogSensor = getAnalogSensor();
+  svrAddr = getSvrAddrP();
+  analogSensor = getAnalogSensorP();
 
   // start the sensors, the DNS and webserver, etc.
   startPeripherals();
@@ -585,6 +585,8 @@ void handle_elfstatus() {
   toSend += "</li>\n";
   toSend += "\n<li>Data sharing server address: "; toSend += svrAddr;
   toSend += "</li>\n";
+  toSend += "\n<li>Got analog sensor: "; toSend += GOT_ANALOG_SENSOR;
+  toSend += "</li>\n";
   toSend += "\n<li>Analog sensor type: "; toSend += analogSensor;
   toSend += "</li>\n";
 
@@ -690,7 +692,7 @@ void handle_svrchz() {
   }
 
   // persist the config
-  setSvrAddr(svrAddr);
+  setSvrAddrP(svrAddr);
   setCloudShare(cloudShare);
 
   // TODO some way of verifying if server config worked
@@ -723,7 +725,7 @@ void handle_algchz() {
       toSend += "<p>...for ";
       toSend += analogSensor;
       toSend += "</p>";
-      setAnalogSensor(analogSensor);
+      setAnalogSensorP(analogSensor);
     }
   }
 
@@ -1023,12 +1025,23 @@ void getLevel(int echoPin, long* waterLevel) {
   return;
 }
 void getAnalog(float* a) {
+  dbg(analogDBG, "getAnalog: ");
+
   if(! GOT_ANALOG_SENSOR) {
     (*a) = 0.0;
   } else if(analogSensor == "analog_mains") {
     (*a) = 1.0;
   } else if(analogSensor == "analog_pressure") {
-    (*a) = -1.0;
+    int analogValue = analogRead(A0);
+
+    // conversion/"calibration" because sensor 4.5v=1.2MPa
+    (*a) = (analogValue - 25) * .19;
+
+    dbg(analogDBG, "Value: ");
+    dbg(analogDBG, analogValue);
+    dbg(analogDBG, "    Pressure: ");
+    dbg(analogDBG, (*a));
+    dbg(analogDBG, " PSI\n");
   }
 
   return;
@@ -1054,7 +1067,7 @@ void setCloudShare(boolean b) {
     SPIFFS.remove("/cloudShare.txt");
   }
 }
-String getSvrAddr() {
+String getSvrAddrP() {
   String s = "";
   File f = SPIFFS.open("/svrAddr.txt", "r");
   if(f) {
@@ -1064,24 +1077,25 @@ String getSvrAddr() {
   }
   return s;
 }
-void setSvrAddr(String s) {
+void setSvrAddrP(String s) {
   File f = SPIFFS.open("/svrAddr.txt", "w");
   f.println(s);
   f.close();
 }
-String getAnalogSensor() {
+String getAnalogSensorP() {
   analogSensor = ANALOG_SENSOR_NONE; // the default is...
   GOT_ANALOG_SENSOR = false;         // ...no sensor
   String s = "";
   File f = SPIFFS.open("/analogSensor.txt", "r");
   if(f) {
+    GOT_ANALOG_SENSOR = true;
     s = f.readString();
     s.trim();
     f.close();
   }
   return s;
 }
-void setAnalogSensor(String s) {
+void setAnalogSensorP(String s) {
   File f = SPIFFS.open("/analogSensor.txt", "w");
   f.println(s);
   f.close();
