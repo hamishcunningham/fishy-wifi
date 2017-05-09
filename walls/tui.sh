@@ -477,28 +477,30 @@ while true; do
       " 8 Shutdown"              "Shutdown both controller machines" \
       " 9 About"                 "Data about this tool, IP addresses etc." \
       "10 Test"                  "Run test routine on all planted carts" \
+      "11 Reboot fishcam"        "Reboot the fish camera machine" \
     3>&1 1>&2 2>&3)
   RET=$?
   if [ $RET -eq 1 ]; then
     exit 0
   elif [ $RET -eq 0 ]; then
     case "$SEL" in
-      1\ *) do_area_pulsing ;;
-      2\ *) do_water_control ;;
-      3\ *) cli_command -c clear; clear_solenoid_state ;;
-      4\ *) cli_command -c on ${PRESSURE_RELEASE_VALVE}; \
-            set_solenoid ${PRESSURE_RELEASE_VALVE} on ;;
-      5\ *) read_board; whiptail --title "Status" --msgbox \
-              "`print_solenoid_state |pr -e -t7 -w78 |expand`" \
+      \ 1\ *) do_area_pulsing ;;
+      \ 2\ *) do_water_control ;;
+      \ 3\ *) cli_command -c clear; clear_solenoid_state ;;
+      \ 4\ *) cli_command -c on ${PRESSURE_RELEASE_VALVE}; \
+                set_solenoid ${PRESSURE_RELEASE_VALVE} on ;;
+      \ 5\ *) read_board; whiptail --title "Status" --msgbox \
+                "`print_solenoid_state |pr -e -t7 -w78 |expand`" \
               $(( $WT_HEIGHT + 10 )) 78 1 ;;
-      6\ *) ( echo "space for more; q to quit"; echo; log_grep; ) \
-            |more; read -p "hit return to continue"; ;;
-      7\ *) do_reboot ;;
-      8\ *) do_halt ;;
-      9\ *) do_about ;;
+      \ 6\ *) ( echo "space for more; q to quit"; echo; log_grep; ) \
+                |more; read -p "hit return to continue"; ;;
+      \ 7\ *) do_reboot ;;
+      \ 8\ *) do_halt ;;
+      \ 9\ *) do_about ;;
       10\ *) do_test ;;
-      *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
-    esac || whiptail --msgbox "There was an error running option $SEL" 20 60 1
+      11\ *) ssh pi@fishcam.local "sudo reboot && exit"; sleep 2; ;;
+      *)     whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
+    esac ||  whiptail --msgbox "There was an error running option $SEL" 20 60 1
   else
     exit 5
   fi
