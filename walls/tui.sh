@@ -347,8 +347,9 @@ do_about() {
 
     Pings:
     - 8.8.8.8:           `do_ping 8.8.8.8`
-    - greenwall.local:   `do_ping greenwall.local`
     - google.co.uk:      `do_ping google.co.uk`
+    - greenwall.local:   `do_ping greenwall.local`
+    - fishcam.local:     `do_ping fishcam.local`
     " $WT_HEIGHT $(( ( $WT_WIDTH / 2 ) + 35 )) $WT_MENU_HEIGHT
 }
 do_reboot() {
@@ -434,6 +435,54 @@ do_water_control() {
     return 0
   fi
 }
+do_mapping() {
+  TITLE='Solenoid Mapping Helper'
+  C="whiptail --title \"${TITLE}\" \
+       --checklist \"Specify carts/solenoids to map\" \
+       $(( $WT_HEIGHT + 10 )) $(( $WT_WIDTH / 2 + 9 )) \
+       $(( $WT_MENU_HEIGHT + 10 )) \
+       --cancel-button \"Cancel\" --ok-button \"Next\" \
+       "${SOLENOIDS_A[@]}" "
+  SOLENOIDS=`bash -c "${C} 3>&1 1>&2 2>&3"`
+  RET=$?
+  SOLENOIDS=`echo $SOLENOIDS |sed 's,",,g'`
+  if [ $RET -eq 1 ] 
+  then
+    return 0
+  elif [ $RET -eq 0 ]
+  then
+    whiptail --yesno \
+    "Preparing to do mini pulse to\n  ${SOLENOIDS}\n(get yer wellies on!)" \
+      --title "Map testing" \
+      --no-button "Cancel" --yes-button "Go for it!" \
+      $WT_HEIGHT $(( $WT_WIDTH / 2 + 10 )) $WT_MENU_HEIGHT
+    RET=$?
+
+    if [ $RET -eq 1 ]
+    then 
+      MESS="Cancelled"
+    elif [ $RET -eq 0 ]
+    then 
+      # all off; pressure release plus chosen set on for a sec; all off
+      cli_command -c clear
+      clear_solenoid_state
+      echo turning on pressure release valve and ${SOLENOIDS}
+      log turning on pressure release valve and ${SOLENOIDS}
+      echo "cli_command -c on ${SOLENOIDS}" >>${DBG_LOG}
+      cli_command -c on ${PRESSURE_RELEASE_VALVE}
+      cli_command -c on ${SOLENOIDS} ${PRESSURE_RELEASE_VALVE}
+      sleep 1
+      cli_command -c clear
+      cli_command -c clear
+      MESS="Map helping done -- all should be off again"
+    else
+      MESS="Oops! Internal error, RET was ${RET}"
+    fi
+    whiptail --msgbox "${MESS}" 20 60 1
+    
+    return 0
+  fi
+}
 do_test() {
   TITLE='Test Routine'
   whiptail --title "${TITLE}" --yesno "Are you sure?!" \
@@ -475,9 +524,10 @@ while true; do
       " 6 Show Log Entries"      "Show the most recent log entries" \
       " 7 Reboot"                "Reboot both controller machines" \
       " 8 Shutdown"              "Shutdown both controller machines" \
-      " 9 About"                 "Data about this tool, IP addresses etc." \
+      " 9 Reboot fishcam"        "Reboot the fish camera machine" \
       "10 Test"                  "Run test routine on all planted carts" \
-      "11 Reboot fishcam"        "Reboot the fish camera machine" \
+      "11 Map solenoids"         "Solenoid mapping helper" \
+      "12 About"                 "Data about this tool, IP addresses etc." \
     3>&1 1>&2 2>&3)
   RET=$?
   if [ $RET -eq 1 ]; then
@@ -496,9 +546,10 @@ while true; do
                 |more; read -p "hit return to continue"; ;;
       \ 7\ *) do_reboot ;;
       \ 8\ *) do_halt ;;
-      \ 9\ *) do_about ;;
+      \ 9\ *) ssh pi@fishcam.local "sudo reboot && exit"; sleep 2; ;;
       10\ *) do_test ;;
-      11\ *) ssh pi@fishcam.local "sudo reboot && exit"; sleep 2; ;;
+      11\ *) do_mapping ;;
+      12\ *) do_about ;;
       *)     whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
     esac ||  whiptail --msgbox "There was an error running option $SEL" 20 60 1
   else
