@@ -471,7 +471,7 @@ do_mapping() {
       echo "cli_command -c on ${SOLENOIDS}" >>${DBG_LOG}
       cli_command -c on ${PRESSURE_RELEASE_VALVE}
       cli_command -c on ${SOLENOIDS} ${PRESSURE_RELEASE_VALVE}
-      sleep 1
+      sleep 0.5
       cli_command -c clear
       cli_command -c clear
       MESS="Map helping done -- all should be off again"
