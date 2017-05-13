@@ -1,0 +1,157 @@
+Sat 13 May 18:36:17 BST 2017
+
+cycling 63 at 18:36:17...
+before:  62.51 PSI, 21.75 W
+during:  55.86 PSI, 21.28 W
+after:   37.81 PSI, 21.73 W
+at rest: 37.43 PSI, 21.53 W
+
+cycling 63 at 18:37:00...
+before:  0.00 PSI, 21.39 W
+during:  34.39 PSI, 21.69 W
+after:   31.54 PSI, 21.63 W
+at rest: 31.35 PSI, 21.34 W
+
+cycling 63 at 18:37:40...
+before:  31.35 PSI, 21.77 W
+during:  32.68 PSI, 592.99 W
+after:   48.83 PSI, 662.37 W
+at rest: 62.13 PSI, 662.30 W
+
+cycling 63 at 18:38:21...
+before:  62.70 PSI, 21.56 W
+during:  46.36 PSI, 21.84 W
+after:   39.71 PSI, 21.91 W
+at rest: 39.52 PSI, 21.68 W
+
+cycling 63 at 18:39:01...
+before:  39.52 PSI, 21.86 W
+during:  34.39 PSI, 21.63 W
+after:   31.54 PSI, 21.60 W
+at rest: 31.54 PSI, 21.70 W
+
+cycling 63 at 18:39:41...
+before:  31.16 PSI, 21.97 W
+during:  29.64 PSI, 21.83 W
+after:   46.17 PSI, 665.66 W
+at rest: 61.75 PSI, 647.93 W
+
+cycling 63 at 18:40:20...
+before:  62.32 PSI, 21.66 W
+during:  50.35 PSI, 21.64 W
+after:   41.99 PSI, 21.34 W
+at rest: 41.80 PSI, 21.87 W
+
+cycling 63 at 18:41:01...
+before:  41.80 PSI, -0.0 W
+during:  35.91 PSI, 21.52 W
+after:   32.49 PSI, 21.58 W
+at rest: 32.68 PSI, 21.38 W
+
+cycling 63 at 18:41:44...
+before:  32.49 PSI, 21.66 W
+during:  29.64 PSI, 21.65 W
+after:   49.40 PSI, 648.07 W
+at rest: 62.70 PSI, 667.13 W
+
+cycling 63 at 18:42:26...
+before:  62.51 PSI, 21.70 W
+during:  49.97 PSI, 21.97 W
+after:   41.61 PSI, 22.03 W
+at rest: 41.61 PSI, 22.21 W
+
+cycling 63 at 18:43:05...
+before:  41.42 PSI, 21.77 W
+during:  37.43 PSI, 21.78 W
+after:   33.63 PSI, 21.30 W
+at rest: 33.63 PSI, 21.75 W
+
+cycling 63 at 18:43:46...
+before:  33.44 PSI, 21.57 W
+during:  31.16 PSI, 21.74 W
+after:   41.04 PSI, 658.29 W
+at rest: 61.75 PSI, 647.19 W
+
+cycling 63 at 18:44:25...
+before:  62.32 PSI, 21.28 W
+during:  0.00 PSI, -0.0 W
+after:   35.91 PSI, 21.59 W
+at rest: 35.53 PSI, 21.56 W
+
+cycling 63 at 18:45:07...
+before:  35.34 PSI, 21.32 W
+during:  34.39 PSI, 21.54 W
+after:   45.98 PSI, 666.43 W
+at rest: 62.51 PSI, 667.79 W
+
+cycling 63 at 18:45:50...
+before:  62.51 PSI, 21.43 W
+during:  46.36 PSI, 21.64 W
+after:   39.52 PSI, 21.70 W
+at rest: 39.52 PSI, 21.57 W
+
+cycling 63 at 18:46:31...
+before:  0.00 PSI, 21.85 W
+during:  34.39 PSI, 21.93 W
+after:   -0.0 PSI, 21.71 W
+at rest: 31.35 PSI, 21.94 W
+
+cycling 63 at 18:47:16...
+before:  -0.0 PSI, 21.47 W
+during:  29.45 PSI, 22.03 W
+after:   49.97 PSI, 650.22 W
+at rest: 62.51 PSI, 667.89 W
+
+cycling 63 at 18:47:58...
+before:  62.51 PSI, 21.75 W
+during:  50.16 PSI, 21.81 W
+after:   39.71 PSI, 21.42 W
+at rest: 39.71 PSI, 21.25 W
+
+cycling 63 at 18:48:40...
+before:  39.52 PSI, 21.54 W
+during:  34.39 PSI, 21.45 W
+after:   31.54 PSI, 21.46 W
+at rest: 31.35 PSI, -0.0 W
+
+cycling 63 at 18:49:24...
+before:  31.35 PSI, 21.62 W
+during:  -0.0 PSI, 21.56 W
+after:   54.15 PSI, 653.61 W
+at rest: 62.89 PSI, 667.38 W
+
+cycling 63 at 18:50:07...
+before:  62.13 PSI, 21.67 W
+during:  46.17 PSI, 21.66 W
+after:   39.52 PSI, 21.80 W
+at rest: 39.52 PSI, 21.69 W
+
+cycling 63 at 18:50:48...
+before:  39.33 PSI, 21.67 W
+during:  35.72 PSI, 21.54 W
+after:   32.68 PSI, 21.51 W
+at rest: 32.68 PSI, 21.69 W
+
+cycling 63 at 18:51:28...
+before:  32.30 PSI, 21.78 W
+during:  30.21 PSI, 21.62 W
+after:   29.64 PSI, 709.72 W
+at rest: 63.46 PSI, 669.54 W
+
+cycling 63 at 18:52:09...
+before:  63.46 PSI, 21.69 W
+during:  0.00 PSI, 21.43 W
+after:   39.71 PSI, 21.23 W
+at rest: 39.71 PSI, 21.31 W
+
+cycling 63 at 18:52:51...
+before:  39.33 PSI, 21.50 W
+during:  34.39 PSI, 21.45 W
+after:   31.35 PSI, 21.71 W
+at rest: 31.35 PSI, 21.47 W
+
+cycling 63 at 18:53:32...
+before:  31.16 PSI, 21.50 W
+during:  29.45 PSI, 0.00 W
+after:   38.57 PSI, 642.13 W
+at rest: 63.46 PSI, 665.61 W

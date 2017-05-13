@@ -53,6 +53,8 @@ CN=00
 BASE=00
 LOG_STRING=rs485
 DBG_LOG=/tmp/rs485-dbg.txt
+POWER_SENSOR_ELF_IP=192.168.1.119
+PRESSURE_SENSOR_ELF_IP=192.168.1.106
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
@@ -234,7 +236,7 @@ on() {
     fi
   fi
 }
-clear() {
+clear_all() {
   run_command 10 0 00 00 00 00 00 00 00 00
   run_command 10 1 00 00 00 00 00 00 00 00
   run_command 10 2 00 00 00 00 00 00 00 00
@@ -264,32 +266,53 @@ pulse() {
       BASE="00" on $SOL_SET && sleep 1
       echo "  "off...
       log "  "off...
-      clear; sleep 1; clear
+      clear_all; sleep 1; clear_all
       sleep 9
       echo
     done
   done < ${AREA}
 }
 read_analog_sensor() {
-  wget -O - "http://$1/data" 2>/dev/null |grep analog |head -1 |cut -f 2 |xargs
+  timeout 3 \
+    wget -O - "http://$1/data" 2>/dev/null |grep analog |head -1 |cut -f 2 |xargs
 }
-run_test_routine() {
-  # TODO check pressure and current usage here
-  # e.g.:
-  # PRESSURE=`read_analog_sensor <ip address of pressure sensor elf>`
-  # CURRENT=`read_analog_sensor <ip address of mains current sensor elf>`
-  # ...
-  for s in `cat $( dirname $P )/areas/all-planted`
+read_pressure_and_power() {
+  POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
+  [ x$POWER == x ] && POWER=-0.0
+  PRESSURE=`read_analog_sensor $PRESSURE_SENSOR_ELF_IP`
+  [ x$PRESSURE == x ] && PRESSURE=-0.0
+  echo "pressure = $PRESSURE PSI, power = $POWER W"
+}
+run_leak_test() {
+# for s in `cat $( dirname $P )/areas/all-planted`
+s=63
+  while :
   do
-    echo cycling ${s}...
-    BASE="00" on $s
-    # TODO check pressure and current usage here; calculate if there's flow
+# TODO check for zeroes at each analog read; if get any then don't do flow
+# calc
+    echo cycling ${s} at `date +%T`...
+    echo -n "before:  "
+    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+
+    BASE="00" on $s >/dev/null 2>&1
+    echo -n "during:  "
+    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+
     sleep 2
-    clear
-    # TODO check pressure and current usage here; calculate if there's flow
-    sleep 2
+    clear_all >/dev/null 2>&1
+    sleep 1
+    echo -n "after:   "
+    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+
+    sleep 15
+    echo -n "at rest: "
+    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+    sleep 15
+    echo -n "finish:  "
+    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+    echo
   done
-  clear
+# clear_all
 }
 
 ### CLI access to procedures ################################################

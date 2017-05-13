@@ -464,7 +464,7 @@ do_mapping() {
     elif [ $RET -eq 0 ]
     then 
       # all off; pressure release plus chosen set on for a sec; all off
-      cli_command -c clear
+      cli_command -c clear_all
       clear_solenoid_state
       echo turning on pressure release valve and ${SOLENOIDS}
       log turning on pressure release valve and ${SOLENOIDS}
@@ -472,8 +472,8 @@ do_mapping() {
       cli_command -c on ${PRESSURE_RELEASE_VALVE}
       cli_command -c on ${SOLENOIDS} ${PRESSURE_RELEASE_VALVE}
       sleep 0.5
-      cli_command -c clear
-      cli_command -c clear
+      cli_command -c clear_all
+      cli_command -c clear_all
       MESS="Map helping done -- all should be off again"
     else
       MESS="Oops! Internal error, RET was ${RET}"
@@ -496,8 +496,8 @@ do_test() {
       echo cli_command -c on $s
       cli_command -c on $s
       sleep 2
-      echo cli_command -c clear
-      cli_command -c clear
+      echo cli_command -c clear_all
+      cli_command -c clear_all
     done
     read -p "hit return to continue"
   fi
@@ -536,7 +536,7 @@ while true; do
     case "$SEL" in
       \ 1\ *) do_area_pulsing ;;
       \ 2\ *) do_water_control ;;
-      \ 3\ *) cli_command -c clear; clear_solenoid_state ;;
+      \ 3\ *) cli_command -c clear_all; clear_solenoid_state ;;
       \ 4\ *) cli_command -c on ${PRESSURE_RELEASE_VALVE}; \
                 set_solenoid ${PRESSURE_RELEASE_VALVE} on ;;
       \ 5\ *) read_board; whiptail --title "Status" --msgbox \
