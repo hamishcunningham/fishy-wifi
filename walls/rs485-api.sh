@@ -55,12 +55,13 @@ LOG_STRING=rs485
 DBG_LOG=/tmp/rs485-dbg.txt
 POWER_SENSOR_ELF_IP=192.168.1.119
 PRESSURE_SENSOR_ELF_IP=192.168.1.106
+PUMP_RUNNING_THRESHOLD=400
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
 
 ### logging #################################################################
-log() { logger "${LOG_STRING}: $*"; }
+log() { [ x$1 == x-e ] && shift && echo $*; logger "${LOG_STRING}: $*"; }
 log $0 $*
 
 ### process options #########################################################
@@ -283,7 +284,56 @@ read_pressure_and_power() {
   [ x$PRESSURE == x ] && PRESSURE=-0.0
   echo "pressure = $PRESSURE PSI, power = $POWER W"
 }
+
+# spot leaks during normal operation, and kill the pump
+#
+# keep a running talley of how long the pump has been running, and kill it
+# when it goes over threshold
+#
+# TODO implies that we need to pause long enough during water cycles to
+# ensure that the pump stops working
+#
+# we could also do an explitic clear_all and then check that pressure drops
+# and that the pump stops... but that would be a test not a trap -- see
+# run_leak_test
+trap_leaks_and_kill_pump() {
+  log -e "starting leak trap at `date +%Y-%m-%d-%T`..."
+
+  PUMP_DURATION=0
+  while :
+  do
+    PUMP_ON_TIME=0
+    PUMP_OFF_TIME=0
+    POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
+    if [ `printf "%.0f" $POWER` -gt $PUMP_RUNNING_THRESHOLD ]
+    then
+      PUMP_ON_TIME=`date +%s`
+      while [ $PUMP_OFF_TIME == 0 ]
+      do
+        POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
+        if [ `printf "%.0f" $POWER` -lt $PUMP_RUNNING_THRESHOLD ]
+        then
+          PUMP_OFF_TIME=`date +%s`
+          PUMP_DURATION=$(( $PUMP_OFF_TIME - $PUMP_ON_TIME ))
+          log -e "pump seen running for $PUMP_DURATION"
+        fi
+
+        if [ $PUMP_DURATION -gt PUMP_DURATION_MAX ]
+        then
+          log -e "oops! killing pump!"
+          # TODO trigger 433 transmitter
+        fi
+      done
+    fi
+  done
+
+  log -e "leak trap ending at `date +%Y-%m-%d-%T`"
+}
+
+# try to identify non-functional solenoids (intended to be run when other
+# functions are NOT operating)
 run_leak_test() {
+
 # for s in `cat $( dirname $P )/areas/all-planted`
 s=63
   while :
