@@ -302,7 +302,7 @@ read_pressure_and_power() {
 #
 # we could also do an explitic clear_all and then check that pressure drops
 # and that the pump stops... but that would be a test not a trap -- see
-# run_leak_test
+# run_solenoid_test
 trap_leaks_and_kill_pump() {
   log -e "starting leak trap at `date +%Y-%m-%d-%T`..."
 
@@ -371,43 +371,68 @@ trap_leaks_and_kill_pump() {
 
 # try to identify non-functional solenoids (intended to be run when other
 # functions are NOT operating)
-run_leak_test() {
+run_solenoid_test() {
 
-# for s in `cat $( dirname $P )/areas/all-planted`
-s=63
+  :
+  # for s in `cat $( dirname $P )/areas/all-planted`
+  # do
+  #   clear_all
+  #   open pressure release valve
+  #   wait for pump to run;  if pump zero then continue
+  #   close pressure release valve
+  #   wait for pump to stop; if pump zero then continue
+  #   PSI_BEFORE= check pressure;  if pressure zero or pump on then continue
+  #   open s
+  #   PSI_DURING= check pressure;  if pressure zero or pump on then continue
+  #   sleep 2
+  #   PSI_AFTER= check pressure;   if pressure zero or pump on then continue
+  #   sleep 15
+  #   PSI_AT_REST= check pressure; if pressure zero or pump on then continue
+  #   sleep 15
+  #   PSI_FINISH= check pressure;  if pressure zero or pump on then continue
+  #
+  #   ( PSI_BEFORE > PSI_DURING > PSI_AFTER && 
+  #     PSI_AFTER ~= PSI_AT_REST ~= PSI_FINISH ) || FAIL
+  # done
+
+}
+
+# cycle pressure release valve and monitor pump power use and system PSI
+run_pump_monitor() {
   while :
   do
-# TODO check for zeroes at each analog read; if get any then don't do flow
-# calc
-    echo cycling ${s} at `date +%T`...
-    echo -n "before:  "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
-    echo $PRESSURE PSI, $POWER W
+    s=${PRESSURE_RELEASE_VALVE}
+    while :
+    do
+      echo cycling ${s} at `date +%T`...
+      echo -n "before:  "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
 
-    BASE="00" on $s >/dev/null 2>&1
-    echo -n "during:  "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
-    echo $PRESSURE PSI, $POWER W
+      BASE="00" on $s >/dev/null 2>&1
+      echo -n "during:  "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
 
-    sleep 2
-    clear_all >/dev/null 2>&1
-    sleep 1
-    echo -n "after:   "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
-    echo $PRESSURE PSI, $POWER W
+      sleep 2
+      clear_all >/dev/null 2>&1
+      sleep 1
+      echo -n "after:   "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
 
-    sleep 15
-    echo -n "at rest: "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
-    echo $PRESSURE PSI, $POWER W
-    sleep 15
-    echo -n "finish:  "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
-    echo $PRESSURE PSI, $POWER W
+      sleep 15
+      echo -n "at rest: "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
+      sleep 15
+      echo -n "finish:  "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
 
-    echo
+      echo
+    done
   done
-# clear_all
 }
 
 ### CLI access to procedures ################################################
