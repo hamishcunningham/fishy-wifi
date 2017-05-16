@@ -53,10 +53,12 @@ CN=00
 BASE=00
 LOG_STRING=rs485
 DBG_LOG=/tmp/rs485-dbg.txt
-POWER_SENSOR_ELF_IP=192.168.1.119
-PRESSURE_SENSOR_ELF_IP=192.168.1.106
+FISH_ELF_IP=192.168.1.201
+POWER_SENSOR_ELF_IP=192.168.1.202
+PRESSURE_SENSOR_ELF_IP=192.168.1.203
 PUMP_RUNNING_THRESHOLD=400
 PUMP_DURATION_MAX=120
+PRESSURE_RELEASE_VALVE=63
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
@@ -336,8 +338,24 @@ trap_leaks_and_kill_pump() {
 
         if [ $PUMP_DURATION -gt $PUMP_DURATION_MAX ]
         then
-          log -e "oops! killing pump!"
-          # TODO trigger 433 transmitter
+          log -e "oops! pump ran for ${PUMP_DURATION}: killing the power!"
+
+          # trigger 433 transmitter
+          curl "http://${FISH_ELF_IP}/actuate" \
+            -H "Origin: http://${FISH_ELF_IP}" \
+            -H 'Accept-Encoding: gzip, deflate' \
+            -H 'Accept-Language: en-GB,en-US;q=0.8,en;q=0.6' \
+            -H 'Upgrade-Insecure-Requests: 1' \
+            -H 'User-Agent: curl' \
+            -H 'Content-Type: application/x-www-form-urlencoded' \
+            -H 'Accept: text/html,application/xhtml+xml,application/xml' \
+            -H 'Cache-Control: max-age=0' \
+            -H "Referer: http://${FISH_ELF_IP}/" \
+            -H 'Connection: keep-alive' \
+            --data 'state=off' --compressed
+
+          # turn pressure release valve on
+          BASE="00" on $PRESSURE_RELEASE_VALVE
         fi
       done
     fi
