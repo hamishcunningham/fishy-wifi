@@ -307,18 +307,31 @@ trap_leaks_and_kill_pump() {
     PUMP_OFF_TIME=0
     POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
     echo "power is $POWER (1)"
+    if [ -z "$POWER" -o "x$POWER" == x0.00 -o "x$POWER" == x-0.0 ]
+    then
+      echo "power is zero (${POWER}), ignoring (1)"
+      continue
+    fi
+
     if [ `printf "%.0f" $POWER` -gt $PUMP_RUNNING_THRESHOLD ]
     then
       PUMP_ON_TIME=`date +%s`
-      while [ $PUMP_OFF_TIME == 0 ]
+      while :
       do
         POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
-        echo "power is $POWER (2)"
+        NOW=`date +%s`
+        PUMP_DURATION=$(( $NOW - $PUMP_ON_TIME ))
+        echo "power is $POWER (2), duration is $PUMP_DURATION"
+        if [ -z "$POWER" -o "x$POWER" == x0.00 -o "x$POWER" == x-0.0 ]
+        then
+          echo "power is zero (${POWER}), ignoring (2)"
+          continue
+        fi
+
         if [ `printf "%.0f" $POWER` -lt $PUMP_RUNNING_THRESHOLD ]
         then
-          PUMP_OFF_TIME=`date +%s`
-          PUMP_DURATION=$(( $PUMP_OFF_TIME - $PUMP_ON_TIME ))
           log -e "pump seen running for $PUMP_DURATION"
+          break
         fi
 
         if [ $PUMP_DURATION -gt $PUMP_DURATION_MAX ]
@@ -345,24 +358,30 @@ s=63
 # calc
     echo cycling ${s} at `date +%T`...
     echo -n "before:  "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+    echo $PRESSURE PSI, $POWER W
 
     BASE="00" on $s >/dev/null 2>&1
     echo -n "during:  "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+    echo $PRESSURE PSI, $POWER W
 
     sleep 2
     clear_all >/dev/null 2>&1
     sleep 1
     echo -n "after:   "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+    echo $PRESSURE PSI, $POWER W
 
     sleep 15
     echo -n "at rest: "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+    echo $PRESSURE PSI, $POWER W
     sleep 15
     echo -n "finish:  "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+    echo $PRESSURE PSI, $POWER W
+
     echo
   done
 # clear_all
