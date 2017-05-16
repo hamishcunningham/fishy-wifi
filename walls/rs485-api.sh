@@ -56,12 +56,13 @@ DBG_LOG=/tmp/rs485-dbg.txt
 POWER_SENSOR_ELF_IP=192.168.1.119
 PRESSURE_SENSOR_ELF_IP=192.168.1.106
 PUMP_RUNNING_THRESHOLD=400
+PUMP_DURATION_MAX=120
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
 
 ### logging #################################################################
-log() { [ x$1 == x-e ] && shift && echo $*; logger "${LOG_STRING}: $*"; }
+log() { [ "x$1" == x-e ] && shift && echo $*; logger "${LOG_STRING}: $*"; }
 log $0 $*
 
 ### process options #########################################################
@@ -305,12 +306,14 @@ trap_leaks_and_kill_pump() {
     PUMP_ON_TIME=0
     PUMP_OFF_TIME=0
     POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
+    echo "power is $POWER (1)"
     if [ `printf "%.0f" $POWER` -gt $PUMP_RUNNING_THRESHOLD ]
     then
       PUMP_ON_TIME=`date +%s`
       while [ $PUMP_OFF_TIME == 0 ]
       do
         POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
+        echo "power is $POWER (2)"
         if [ `printf "%.0f" $POWER` -lt $PUMP_RUNNING_THRESHOLD ]
         then
           PUMP_OFF_TIME=`date +%s`
@@ -318,7 +321,7 @@ trap_leaks_and_kill_pump() {
           log -e "pump seen running for $PUMP_DURATION"
         fi
 
-        if [ $PUMP_DURATION -gt PUMP_DURATION_MAX ]
+        if [ $PUMP_DURATION -gt $PUMP_DURATION_MAX ]
         then
           log -e "oops! killing pump!"
           # TODO trigger 433 transmitter
