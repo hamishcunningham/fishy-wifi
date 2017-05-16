@@ -1,0 +1,24 @@
+With 5v sensors we need a potential divider with a ratio of 5 to match the 1V ADC on the ESP.
+
+Resistors used are 30K and 120K like this:
+
+Sensor --- 120K ----ADC----30K----GND
+
+The pressure sensor has a 4.5V-0.5V range for 1.2MPa max
+http://www.ebay.co.uk/itm/152070960195
+
+The current sensor is more complex, with a potential divider of ratio of 4.3
+
+Resistors used are 68K and 30K
+
+with a burden resistor of
+3.3*2000/1*30*sqr(2)= 155.56 ohms needed across the coil,
+we used 100+56 ohms.
+
+Our sensor was a 2000:1 30A max version:
+https://www.proto-pic.co.uk/non-invasive-current-sensor-30a.html
+
+Circuit and calculations here:
+https://learn.openenergymonitor.org/electricity-monitoring/ct-sensors/interface-with-arduino
+
+
