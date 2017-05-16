@@ -59,6 +59,7 @@ PRESSURE_SENSOR_ELF_IP=192.168.1.203
 PUMP_RUNNING_THRESHOLD=400
 PUMP_DURATION_MAX=120
 PRESSURE_RELEASE_VALVE=63
+FAKE_LEAK_VALVE=47
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
@@ -274,6 +275,9 @@ pulse() {
       sleep 9
       echo
     done
+
+    # pause a while to let the pump get up to pressure and turn off
+    sleep 20
   done < ${AREA}
 }
 read_analog_sensor() {
@@ -338,7 +342,8 @@ trap_leaks_and_kill_pump() {
 
         if [ $PUMP_DURATION -gt $PUMP_DURATION_MAX ]
         then
-          log -e "oops! pump ran for ${PUMP_DURATION}: killing the power!"
+          PDATE=`date +%Y-%m-%d-%T`
+          log -e "pump ran for ${PUMP_DURATION} at ${PDATE}: killing power!"
 
           # trigger 433 transmitter
           curl "http://${FISH_ELF_IP}/actuate" \
@@ -352,7 +357,7 @@ trap_leaks_and_kill_pump() {
             -H 'Cache-Control: max-age=0' \
             -H "Referer: http://${FISH_ELF_IP}/" \
             -H 'Connection: keep-alive' \
-            --data 'state=off' --compressed
+            --data 'state=off' --compressed >>${DBG_LOG}
 
           # turn pressure release valve on
           BASE="00" on $PRESSURE_RELEASE_VALVE
