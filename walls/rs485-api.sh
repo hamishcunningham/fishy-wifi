@@ -416,13 +416,13 @@ run_solenoid_test() {
     log -e "testing solenoid number $s at `date +%Y-%m-%d-%T`..."
     clear_all >/dev/null 2>&1
     PSI_START=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_START -eq -1 ]  && continue; echo PSI_START $PSI_START
+    [ $PSI_START -eq -1 ]  && continue; log -e PSI_START $PSI_START
 
     if [ $PSI_START -lt $ENOUGH_PRESSURE_TO_TEST ]
     then
-      echo releasing pressure to trigger pump
+      log -e releasing pressure to trigger pump
       BASE="00" on $PRESSURE_RELEASE_VALVE >/dev/null 2>&1
-      echo waiting for pump to start
+      log -e waiting for pump to start
       for iter in 0 1 2 3 4 5 6 7 8 9 # wait for pump to start
       do
         POWER=`read_analog_sensor_safely $POWER_SENSOR_ELF_IP`
@@ -430,7 +430,7 @@ run_solenoid_test() {
         sleep 1
       done
       clear_all >/dev/null 2>&1
-      echo waiting for pump to stop
+      log -e waiting for pump to stop
       for iter in 0 1 2 3 4 5 6 7 8 9 # wait for pump to stop
       do
         POWER=`read_analog_sensor_safely $POWER_SENSOR_ELF_IP`
@@ -440,28 +440,24 @@ run_solenoid_test() {
     fi
 
     PSI_BEFORE=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_BEFORE -eq -1 ]  && continue; echo PSI_BEFORE $PSI_BEFORE
+    [ $PSI_BEFORE -eq -1 ]  && continue; log -e PSI_BEFORE $PSI_BEFORE
     BASE="00" on $s >/dev/null 2>&1
 
     PSI_DURING=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_DURING -eq -1 ]  && continue; echo PSI_DURING $PSI_DURING
+    [ $PSI_DURING -eq -1 ]  && continue; log -e PSI_DURING $PSI_DURING
     sleep 1
     clear_all >/dev/null 2>&1
 
     PSI_AFTER=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_AFTER -eq -1 ]   && continue; echo PSI_AFTER $PSI_AFTER
-    sleep 10
+    [ $PSI_AFTER -eq -1 ]   && continue; log -e PSI_AFTER $PSI_AFTER
+    sleep 5
 
     PSI_AT_REST=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_AT_REST -eq -1 ] && continue; echo PSI_AT_REST $PSI_AT_REST
-    sleep 10
-
-    # PSI_FINISH=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    # [ $PSI_FINISH -eq -1 ]  && continue; echo PSI_FINISH $PSI_FINISH
+    [ $PSI_AT_REST -eq -1 ] && continue; log -e PSI_AT_REST $PSI_AT_REST
 
 # TODO failure code
-    echo PSI_BEFORE PSI_DURING PSI_AFTER PSI_AFTER PSI_AT_REST
-    echo $PSI_BEFORE $PSI_DURING $PSI_AFTER $PSI_AFTER $PSI_AT_REST
+    log -e PSI_BEFORE $PSI_BEFORE PSI_DURING $PSI_DURING PSI_AFTER \
+      $PSI_AFTER PSI_AT_REST $PSI_AT_REST
     log -e "done testing solenoid $s at `date +%Y-%m-%d-%T`"
     echo
   done
