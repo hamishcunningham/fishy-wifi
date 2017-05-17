@@ -53,15 +53,19 @@ CN=00
 BASE=00
 LOG_STRING=rs485
 DBG_LOG=/tmp/rs485-dbg.txt
-POWER_SENSOR_ELF_IP=192.168.1.119
-PRESSURE_SENSOR_ELF_IP=192.168.1.106
+FISH_ELF_IP=192.168.1.201
+POWER_SENSOR_ELF_IP=192.168.1.202
+PRESSURE_SENSOR_ELF_IP=192.168.1.203
 PUMP_RUNNING_THRESHOLD=400
+PUMP_DURATION_MAX=120
+PRESSURE_RELEASE_VALVE=63
+FAKE_LEAK_VALVE=47
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
 
 ### logging #################################################################
-log() { [ x$1 == x-e ] && shift && echo $*; logger "${LOG_STRING}: $*"; }
+log() { [ "x$1" == x-e ] && shift && echo $*; logger "${LOG_STRING}: $*"; }
 log $0 $*
 
 ### process options #########################################################
@@ -271,6 +275,9 @@ pulse() {
       sleep 9
       echo
     done
+
+    # pause a while to let the pump get up to pressure and turn off
+    sleep 20
   done < ${AREA}
 }
 read_analog_sensor() {
@@ -295,7 +302,7 @@ read_pressure_and_power() {
 #
 # we could also do an explitic clear_all and then check that pressure drops
 # and that the pump stops... but that would be a test not a trap -- see
-# run_leak_test
+# run_solenoid_test
 trap_leaks_and_kill_pump() {
   log -e "starting leak trap at `date +%Y-%m-%d-%T`..."
 
@@ -305,23 +312,55 @@ trap_leaks_and_kill_pump() {
     PUMP_ON_TIME=0
     PUMP_OFF_TIME=0
     POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
+    echo "power is $POWER (1)"
+    if [ -z "$POWER" -o "x$POWER" == x0.00 -o "x$POWER" == x-0.0 ]
+    then
+      echo "power is zero (${POWER}), ignoring (1)"
+      continue
+    fi
+
     if [ `printf "%.0f" $POWER` -gt $PUMP_RUNNING_THRESHOLD ]
     then
       PUMP_ON_TIME=`date +%s`
-      while [ $PUMP_OFF_TIME == 0 ]
+      while :
       do
         POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
-        if [ `printf "%.0f" $POWER` -lt $PUMP_RUNNING_THRESHOLD ]
+        NOW=`date +%s`
+        PUMP_DURATION=$(( $NOW - $PUMP_ON_TIME ))
+        echo "power is $POWER (2), duration is $PUMP_DURATION"
+        if [ -z "$POWER" -o "x$POWER" == x0.00 -o "x$POWER" == x-0.0 ]
         then
-          PUMP_OFF_TIME=`date +%s`
-          PUMP_DURATION=$(( $PUMP_OFF_TIME - $PUMP_ON_TIME ))
-          log -e "pump seen running for $PUMP_DURATION"
+          echo "power is zero (${POWER}), ignoring (2)"
+          continue
         fi
 
-        if [ $PUMP_DURATION -gt PUMP_DURATION_MAX ]
+        if [ `printf "%.0f" $POWER` -lt $PUMP_RUNNING_THRESHOLD ]
         then
-          log -e "oops! killing pump!"
-          # TODO trigger 433 transmitter
+          log -e "pump seen running for $PUMP_DURATION"
+          break
+        fi
+
+        if [ $PUMP_DURATION -gt $PUMP_DURATION_MAX ]
+        then
+          PDATE=`date +%Y-%m-%d-%T`
+          log -e "pump ran for ${PUMP_DURATION} at ${PDATE}: killing power!"
+
+          # trigger 433 transmitter
+          curl "http://${FISH_ELF_IP}/actuate" \
+            -H "Origin: http://${FISH_ELF_IP}" \
+            -H 'Accept-Encoding: gzip, deflate' \
+            -H 'Accept-Language: en-GB,en-US;q=0.8,en;q=0.6' \
+            -H 'Upgrade-Insecure-Requests: 1' \
+            -H 'User-Agent: curl' \
+            -H 'Content-Type: application/x-www-form-urlencoded' \
+            -H 'Accept: text/html,application/xhtml+xml,application/xml' \
+            -H 'Cache-Control: max-age=0' \
+            -H "Referer: http://${FISH_ELF_IP}/" \
+            -H 'Connection: keep-alive' \
+            --data 'state=off' --compressed >>${DBG_LOG}
+
+          # turn pressure release valve on
+          BASE="00" on $PRESSURE_RELEASE_VALVE
         fi
       done
     fi
@@ -332,37 +371,68 @@ trap_leaks_and_kill_pump() {
 
 # try to identify non-functional solenoids (intended to be run when other
 # functions are NOT operating)
-run_leak_test() {
+run_solenoid_test() {
 
-# for s in `cat $( dirname $P )/areas/all-planted`
-s=63
+  :
+  # for s in `cat $( dirname $P )/areas/all-planted`
+  # do
+  #   clear_all
+  #   open pressure release valve
+  #   wait for pump to run;  if pump zero then continue
+  #   close pressure release valve
+  #   wait for pump to stop; if pump zero then continue
+  #   PSI_BEFORE= check pressure;  if pressure zero or pump on then continue
+  #   open s
+  #   PSI_DURING= check pressure;  if pressure zero or pump on then continue
+  #   sleep 2
+  #   PSI_AFTER= check pressure;   if pressure zero or pump on then continue
+  #   sleep 15
+  #   PSI_AT_REST= check pressure; if pressure zero or pump on then continue
+  #   sleep 15
+  #   PSI_FINISH= check pressure;  if pressure zero or pump on then continue
+  #
+  #   ( PSI_BEFORE > PSI_DURING > PSI_AFTER && 
+  #     PSI_AFTER ~= PSI_AT_REST ~= PSI_FINISH ) || FAIL
+  # done
+
+}
+
+# cycle pressure release valve and monitor pump power use and system PSI
+run_pump_monitor() {
   while :
   do
-# TODO check for zeroes at each analog read; if get any then don't do flow
-# calc
-    echo cycling ${s} at `date +%T`...
-    echo -n "before:  "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+    s=${PRESSURE_RELEASE_VALVE}
+    while :
+    do
+      echo cycling ${s} at `date +%T`...
+      echo -n "before:  "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
 
-    BASE="00" on $s >/dev/null 2>&1
-    echo -n "during:  "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+      BASE="00" on $s >/dev/null 2>&1
+      echo -n "during:  "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
 
-    sleep 2
-    clear_all >/dev/null 2>&1
-    sleep 1
-    echo -n "after:   "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
+      sleep 2
+      clear_all >/dev/null 2>&1
+      sleep 1
+      echo -n "after:   "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
 
-    sleep 15
-    echo -n "at rest: "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
-    sleep 15
-    echo -n "finish:  "
-    set `read_pressure_and_power`; PRESSURE=$3; POWER=$7; echo $PRESSURE PSI, $POWER W
-    echo
+      sleep 15
+      echo -n "at rest: "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
+      sleep 15
+      echo -n "finish:  "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
+
+      echo
+    done
   done
-# clear_all
 }
 
 ### CLI access to procedures ################################################
