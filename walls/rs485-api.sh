@@ -254,7 +254,7 @@ hpr() { # print hex number in decimal and binary
     `bc <<< \"ibase=16; obase=2; \`echo $1 |tr '[a-z]' '[A-Z]'\`\"`"
   echo -e "${NC}"
 }
-pulse() { 
+pulse() {
   AREA=$1
   [ -f "$AREA" ] || \
     { echo -e "${RED}oops: ${AREA} doesn't exist :(${NC}"; return; }
@@ -277,7 +277,7 @@ pulse() {
     done
 
     # pause a while to let the pump get up to pressure and turn off
-    sleep 20
+    sleep 25
   done < ${AREA}
 }
 read_analog_sensor() {
