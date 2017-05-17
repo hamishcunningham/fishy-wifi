@@ -305,12 +305,9 @@ read_analog_sensor_safely() { # returns integer; minus 1 for error
 # keep a running talley of how long the pump has been running, and kill it
 # when it goes over threshold
 #
-# TODO implies that we need to pause long enough during water cycles to
-# ensure that the pump stops working
+# (implies that we need to pause long enough during water cycles to
+# ensure that the pump stops working)
 #
-# we could also do an explitic clear_all and then check that pressure drops
-# and that the pump stops... but that would be a test not a trap -- see
-# run_solenoid_test
 trap_leaks_and_kill_pump() {
   log -e "starting leak trap at `date +%Y-%m-%d-%T`..."
 
@@ -380,6 +377,9 @@ trap_leaks_and_kill_pump() {
 # try to identify non-functional solenoids (intended to be run when other
 # functions are NOT operating)
 #
+# starting at a decent level of pressure, open each solenoid under test in
+# turn, and check the pressure drops (and then stops dropping)
+#
 # pseudocode:
 # for s in `cat $( dirname $P )/areas/all-planted`
 # do
@@ -405,6 +405,7 @@ trap_leaks_and_kill_pump() {
 #   ( PSI_BEFORE > PSI_DURING > PSI_AFTER && 
 #     PSI_AFTER ~= PSI_AT_REST ~= PSI_FINISH ) || FAIL
 # done
+#
 run_solenoid_test() {
 
   # TODO try 40?
