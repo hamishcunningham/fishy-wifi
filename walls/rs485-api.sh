@@ -291,6 +291,14 @@ read_pressure_and_power() {
   [ x$PRESSURE == x ] && PRESSURE=-0.0
   echo "pressure = $PRESSURE PSI, power = $POWER W"
 }
+read_analog_sensor_safely() { # returns integer; minus 1 for error
+  ELF_IP=$1
+  V=`read_analog_sensor $ELF_IP`
+  [ -z "$V" -o "$V" == "0.0" -o "$V" == "0.00" ] && \
+    V=`read_analog_sensor $ELF_IP`
+  [ -z "$V" -o "$V" == "0.0" -o "$V" == "0.00" ] && V=-1
+  printf "%.0f" $V
+}
 
 # spot leaks during normal operation, and kill the pump
 #
@@ -371,30 +379,92 @@ trap_leaks_and_kill_pump() {
 
 # try to identify non-functional solenoids (intended to be run when other
 # functions are NOT operating)
+#
+# pseudocode:
+# for s in `cat $( dirname $P )/areas/all-planted`
+# do
+#   clear_all
+#   PSI_START= check pressure;   if pressure zero or pump on then continue
+#   if pressure < 45 then
+#     open pressure release valve
+#     wait for pump to run;  if pump zero then continue
+#     close pressure release valve
+#     wait for pump to stop; if pump zero then continue
+#   fi
+#   PSI_BEFORE= check pressure;  if pressure zero or pump on then continue
+#   open s
+#   PSI_DURING= check pressure;  if pressure zero or pump on then continue
+#   sleep 2
+#   clear_all
+#   PSI_AFTER= check pressure;   if pressure zero or pump on then continue
+#   sleep 15
+#   PSI_AT_REST= check pressure; if pressure zero or pump on then continue
+#   sleep 15
+#   PSI_FINISH= check pressure;  if pressure zero or pump on then continue
+#
+#   ( PSI_BEFORE > PSI_DURING > PSI_AFTER && 
+#     PSI_AFTER ~= PSI_AT_REST ~= PSI_FINISH ) || FAIL
+# done
 run_solenoid_test() {
 
-  :
-  # for s in `cat $( dirname $P )/areas/all-planted`
-  # do
-  #   clear_all
-  #   open pressure release valve
-  #   wait for pump to run;  if pump zero then continue
-  #   close pressure release valve
-  #   wait for pump to stop; if pump zero then continue
-  #   PSI_BEFORE= check pressure;  if pressure zero or pump on then continue
-  #   open s
-  #   PSI_DURING= check pressure;  if pressure zero or pump on then continue
-  #   sleep 2
-  #   PSI_AFTER= check pressure;   if pressure zero or pump on then continue
-  #   sleep 15
-  #   PSI_AT_REST= check pressure; if pressure zero or pump on then continue
-  #   sleep 15
-  #   PSI_FINISH= check pressure;  if pressure zero or pump on then continue
-  #
-  #   ( PSI_BEFORE > PSI_DURING > PSI_AFTER && 
-  #     PSI_AFTER ~= PSI_AT_REST ~= PSI_FINISH ) || FAIL
-  # done
+  # TODO try 40?
+  ENOUGH_PRESSURE_TO_TEST=45
+  #for s in `cat $( dirname $P )/areas/all-planted`
+  #for s in $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE
+  for s in 77 78 83 161 47
+  do
+    log -e "testing solenoid number $s at `date +%Y-%m-%d-%T`..."
+    clear_all >/dev/null 2>&1
+    PSI_START=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
+    [ $PSI_START -eq -1 ]  && continue; echo PSI_START $PSI_START
 
+    if [ $PSI_START -lt $ENOUGH_PRESSURE_TO_TEST ]
+    then
+      echo releasing pressure to trigger pump
+      BASE="00" on $PRESSURE_RELEASE_VALVE >/dev/null 2>&1
+      echo waiting for pump to start
+      for iter in 0 1 2 3 4 5 6 7 8 9 # wait for pump to start
+      do
+        POWER=`read_analog_sensor_safely $POWER_SENSOR_ELF_IP`
+        [ $POWER -gt $PUMP_RUNNING_THRESHOLD ] && break
+        sleep 1
+      done
+      clear_all >/dev/null 2>&1
+      echo waiting for pump to stop
+      for iter in 0 1 2 3 4 5 6 7 8 9 # wait for pump to stop
+      do
+        POWER=`read_analog_sensor_safely $POWER_SENSOR_ELF_IP`
+        [ $POWER -lt $PUMP_RUNNING_THRESHOLD ] && break
+        sleep 4
+      done
+    fi
+
+    PSI_BEFORE=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
+    [ $PSI_BEFORE -eq -1 ]  && continue; echo PSI_BEFORE $PSI_BEFORE
+    BASE="00" on $s >/dev/null 2>&1
+
+    PSI_DURING=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
+    [ $PSI_DURING -eq -1 ]  && continue; echo PSI_DURING $PSI_DURING
+    sleep 1
+    clear_all >/dev/null 2>&1
+
+    PSI_AFTER=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
+    [ $PSI_AFTER -eq -1 ]   && continue; echo PSI_AFTER $PSI_AFTER
+    sleep 10
+
+    PSI_AT_REST=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
+    [ $PSI_AT_REST -eq -1 ] && continue; echo PSI_AT_REST $PSI_AT_REST
+    sleep 10
+
+    # PSI_FINISH=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
+    # [ $PSI_FINISH -eq -1 ]  && continue; echo PSI_FINISH $PSI_FINISH
+
+# TODO failure code
+    echo PSI_BEFORE PSI_DURING PSI_AFTER PSI_AFTER PSI_AT_REST
+    echo $PSI_BEFORE $PSI_DURING $PSI_AFTER $PSI_AFTER $PSI_AT_REST
+    log -e "done testing solenoid $s at `date +%Y-%m-%d-%T`"
+    echo
+  done
 }
 
 # cycle pressure release valve and monitor pump power use and system PSI
