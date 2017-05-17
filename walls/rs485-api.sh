@@ -455,7 +455,20 @@ run_solenoid_test() {
     PSI_AT_REST=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
     [ $PSI_AT_REST -eq -1 ] && continue; log -e $PSI_AT_REST PSI_AT_REST
 
-# TODO failure code
+    # we can now identify failed solenoids
+    if [ $PSI_BEFORE -ge $PSI_AFTER ]
+    then
+      log -e "SOLENOID $s DIDN'T OPEN? PSI_BEFORE ($PSI_BEFORE) >= PSI_AFTER ($PSI_AFTER)"
+      # TODO add to blacklist? send an email?
+    fi
+    DELTA_AFTER=$(( $PSI_AFTER - $PSI_AT_REST ))
+    [ $DELTA_AFTER -lt 0 ] && DELTA_AFTER=$(( -$DELTA_AFTER ))
+    if [ $DELTA_AFTER -gt 1 ]
+    then
+      log -e "SOLENOID $s DIDN'T CLOSE? PSI_AFTER ($PSI_AFTER) !~= PSI_AT_REST ($PSI_AT_REST)"
+      # TODO add to blacklist? send an email?
+    fi
+
     log -e PSI_BEFORE $PSI_BEFORE PSI_DURING $PSI_DURING PSI_AFTER \
       $PSI_AFTER PSI_AT_REST $PSI_AT_REST
     log -e "done testing solenoid $s at `date +%Y-%m-%d-%T`"
