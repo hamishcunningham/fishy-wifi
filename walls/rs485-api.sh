@@ -60,6 +60,7 @@ PUMP_RUNNING_THRESHOLD=400
 PUMP_DURATION_MAX=120
 PRESSURE_RELEASE_VALVE=63
 FAKE_LEAK_VALVE=47
+TESTING_SOLENOIDS=/tmp/TESTING_SOLENOIDS.txt
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
@@ -296,6 +297,8 @@ read_analog_sensor_safely() { # returns integer; minus 1 for error
   V=`read_analog_sensor $ELF_IP`
   [ -z "$V" -o "$V" == "0.0" -o "$V" == "0.00" ] && \
     V=`read_analog_sensor $ELF_IP`
+  [ -z "$V" -o "$V" == "0.0" -o "$V" == "0.00" ] && \
+    V=`read_analog_sensor $ELF_IP`
   [ -z "$V" -o "$V" == "0.0" -o "$V" == "0.00" ] && V=-1
   printf "%.0f" $V
 }
@@ -314,6 +317,13 @@ trap_leaks_and_kill_pump() {
   PUMP_DURATION=0
   while :
   do
+    # don't run when doing solenoid testing
+    if [ -e $TESTING_SOLENOIDS ]
+    then
+      sleep 5
+      continue
+    fi
+
     PUMP_ON_TIME=0
     PUMP_OFF_TIME=0
     POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
@@ -407,17 +417,19 @@ trap_leaks_and_kill_pump() {
 # done
 #
 run_solenoid_test() {
+  ENOUGH_PRESSURE_TO_TEST=40
+  date >$TESTING_SOLENOIDS
+  sleep 5 # wait for the leak trap to stop
 
-  # TODO try 40?
-  ENOUGH_PRESSURE_TO_TEST=45
   #for s in `cat $( dirname $P )/areas/all-planted`
   #for s in $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE $FAKE_LEAK_VALVE
-  for s in 77 78 83 161 47
+  #for s in 77 78 83 161
+  for s in 133 134 138 137 143  74  75  78  84 140 139 141 142 144  76  77  83  98 145 146 154 153 155  97  85  88  89 147 148 152 151 156      87  90  91 157 158 161          92  82  95  99 159 160 168          81  96 100 101 169 170 176         102 103 106 112 171 172 173 174 175 104 105 111 110 180 179 183 184 185 116 113 114 115 109
   do
     log -e "testing solenoid number $s at `date +%Y-%m-%d-%T`..."
     clear_all >/dev/null 2>&1
     PSI_START=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_START -eq -1 ]  && continue; log -e $PSI_START PSI_START
+    [ $PSI_START -eq -1 ]  && echo -1 && continue; log -e $PSI_START PSI_START
 
     if [ $PSI_START -lt $ENOUGH_PRESSURE_TO_TEST ]
     then
@@ -436,38 +448,42 @@ run_solenoid_test() {
       do
         POWER=`read_analog_sensor_safely $POWER_SENSOR_ELF_IP`
         [ $POWER -lt $PUMP_RUNNING_THRESHOLD ] && break
-        sleep 4
+        sleep 5
       done
     fi
 
     PSI_BEFORE=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_BEFORE -eq -1 ]  && continue; log -e $PSI_BEFORE PSI_BEFORE
+    [ $PSI_BEFORE -eq -1 ]  && echo -1 && continue; log -e $PSI_BEFORE PSI_BEFORE
     BASE="00" on $s >/dev/null 2>&1
 
     PSI_DURING=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_DURING -eq -1 ]  && continue; log -e $PSI_DURING PSI_DURING
+    [ $PSI_DURING -eq -1 ]  && echo -1 && continue; log -e $PSI_DURING PSI_DURING
     sleep 1
     clear_all >/dev/null 2>&1
 
     PSI_AFTER=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_AFTER -eq -1 ]   && continue; log -e $PSI_AFTER PSI_AFTER
-    sleep 5
+    [ $PSI_AFTER -eq -1 ]   && echo -1 && continue; log -e $PSI_AFTER PSI_AFTER
+    sleep 4
 
     PSI_AT_REST=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_AT_REST -eq -1 ] && continue; log -e $PSI_AT_REST PSI_AT_REST
+    [ $PSI_AT_REST -eq -1 ] && echo -1 && continue; log -e $PSI_AT_REST PSI_AT_REST
 
     # we can now identify failed solenoids
-    if [ $PSI_BEFORE -ge $PSI_AFTER ]
+    if [ $PSI_BEFORE -le $PSI_AFTER ]
     then
-      log -e "SOLENOID $s DIDN'T OPEN? PSI_BEFORE ($PSI_BEFORE) >= PSI_AFTER ($PSI_AFTER)"
-      # TODO add to blacklist? send an email?
+      FAILM="SOLENOID $s DIDN'T OPEN? PSI_BEFORE ($PSI_BEFORE) <= PSI_AFTER ($PSI_AFTER)"
+      log -e "${FAILM}"
+      echo -e "`date +%Y-%m-%d-%T`\n${FAILM}\n" >> ~/SOLENOID_FAILURES.txt
     fi
     DELTA_AFTER=$(( $PSI_AFTER - $PSI_AT_REST ))
     [ $DELTA_AFTER -lt 0 ] && DELTA_AFTER=$(( -$DELTA_AFTER ))
     if [ $DELTA_AFTER -gt 1 ]
     then
-      log -e "SOLENOID $s DIDN'T CLOSE? PSI_AFTER ($PSI_AFTER) !~= PSI_AT_REST ($PSI_AT_REST)"
-      # TODO add to blacklist? send an email?
+      FAILM="SOLENOID $s DIDN'T CLOSE? PSI_AFTER ($PSI_AFTER) !~= PSI_AT_REST ($PSI_AT_REST)"
+      log -e "${FAILM}"
+      echo -e "`date +%Y-%m-%d-%T`\n${FAILM}\n" >> ~/SOLENOID_FAILURES.txt
+      # TODO turn the pump off and open the pressure release, if this is to
+      # run unattended
     fi
 
     log -e PSI_BEFORE $PSI_BEFORE PSI_DURING $PSI_DURING PSI_AFTER \
@@ -475,6 +491,7 @@ run_solenoid_test() {
     log -e "done testing solenoid $s at `date +%Y-%m-%d-%T`"
     echo
   done
+  rm $TESTING_SOLENOIDS
 }
 
 # cycle pressure release valve and monitor pump power use and system PSI
