@@ -341,7 +341,7 @@ trap_leaks_and_kill_pump() {
 
         if [ `printf "%.0f" $POWER` -lt $PUMP_RUNNING_THRESHOLD ]
         then
-          log -e "pump seen running for $PUMP_DURATION"
+          log -e "pump seen running for $PUMP_DURATION at $NOW"
           break
         fi
 
