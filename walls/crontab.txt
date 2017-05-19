@@ -1,0 +1,3 @@
+0 6 * * * /usr/bin/sudo /sbin/shutdown -r +1
+30 6 * * * /home/pi/fishy-wifi/walls/pump-on-off on
+30 16 * * * /home/pi/fishy-wifi/walls/pump-on-off off
