@@ -278,7 +278,7 @@ pulse() {
     done
 
     # pause a while to let the pump get up to pressure and turn off
-    sleep 25
+    sleep 30
   done < ${AREA}
 }
 read_analog_sensor() {
@@ -320,7 +320,8 @@ trap_leaks_and_kill_pump() {
     # don't run when doing solenoid testing
     if [ -e $TESTING_SOLENOIDS ]
     then
-      sleep 5
+      log -e "leak trap disabled; sleeping 30..."
+      sleep 30
       continue
     fi
 
@@ -348,16 +349,16 @@ trap_leaks_and_kill_pump() {
           echo "power is zero (${POWER}), ignoring (2)"
           continue
         fi
+        PDATE=`date +%Y-%m-%d-%T`
 
         if [ `printf "%.0f" $POWER` -lt $PUMP_RUNNING_THRESHOLD ]
         then
-          log -e "pump seen running for $PUMP_DURATION at $NOW"
+          log -e "pump seen running for $PUMP_DURATION at $PDATE"
           break
         fi
 
         if [ $PUMP_DURATION -gt $PUMP_DURATION_MAX ]
         then
-          PDATE=`date +%Y-%m-%d-%T`
           log -e "pump ran for ${PUMP_DURATION} at ${PDATE}: killing power!"
 
           # trigger 433 transmitter
@@ -419,6 +420,7 @@ trap_leaks_and_kill_pump() {
 run_solenoid_test() {
   ENOUGH_PRESSURE_TO_TEST=40
   date >$TESTING_SOLENOIDS
+# TODO add trap to remove file
   sleep 5 # wait for the leak trap to stop
 
   #for s in 77 78 83 161

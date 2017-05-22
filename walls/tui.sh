@@ -491,6 +491,10 @@ do_test() {
   RET=$?
   if [ $RET -eq 0 ]
   then
+    #for s in                114 115 109  59      61  62 \
+    #                        111 110  48  49  56  53  57 \
+    #                        106 112  47  41  50  55  54 \
+    #                        100 101  36  42  39  44  46
     for s in `cat ${AREA_DIR}/all-planted`
     do
       echo cli_command -c on $s
