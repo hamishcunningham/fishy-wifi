@@ -431,7 +431,8 @@ run_solenoid_test() {
     log -e "testing solenoid number $s at `date +%Y-%m-%d-%T`..."
     clear_all >/dev/null 2>&1
     PSI_START=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_START -eq -1 ]  && echo -1 && continue; log -e $PSI_START PSI_START
+    [ $PSI_START -eq -1 ]  && log -e "-1 (a)" && continue
+    log -e $PSI_START PSI_START
 
     if [ $PSI_START -lt $ENOUGH_PRESSURE_TO_TEST ]
     then
@@ -455,20 +456,24 @@ run_solenoid_test() {
     fi
 
     PSI_BEFORE=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_BEFORE -eq -1 ]  && echo -1 && continue; log -e $PSI_BEFORE PSI_BEFORE
+    [ $PSI_BEFORE -eq -1 ]  && log -e "-1 (b)" && continue
+    log -e $PSI_BEFORE PSI_BEFORE
     BASE="00" on $s >/dev/null 2>&1
 
     PSI_DURING=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_DURING -eq -1 ]  && echo -1 && continue; log -e $PSI_DURING PSI_DURING
+    [ $PSI_DURING -eq -1 ]  && log -e "-1 (c)" && continue
+    log -e $PSI_DURING PSI_DURING
     sleep 1
     clear_all >/dev/null 2>&1
 
     PSI_AFTER=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_AFTER -eq -1 ]   && echo -1 && continue; log -e $PSI_AFTER PSI_AFTER
+    [ $PSI_AFTER -eq -1 ]   && log -e "-1 (d)" && continue
+    log -e $PSI_AFTER PSI_AFTER
     sleep 4
 
     PSI_AT_REST=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
-    [ $PSI_AT_REST -eq -1 ] && echo -1 && continue; log -e $PSI_AT_REST PSI_AT_REST
+    [ $PSI_AT_REST -eq -1 ] && log -e "-1 (e)" && continue
+    log -e $PSI_AT_REST PSI_AT_REST
 
     # we can now identify failed solenoids
     if [ $PSI_BEFORE -le $PSI_AFTER ]
