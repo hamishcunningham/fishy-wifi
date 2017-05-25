@@ -495,14 +495,17 @@ do_test() {
     #                        111 110  48  49  56  53  57 \
     #                        106 112  47  41  50  55  54 \
     #                        100 101  36  42  39  44  46
-    for s in `cat ${AREA_DIR}/all-planted`
-    do
-      echo cli_command -c on $s
-      cli_command -c on $s
-      sleep 2
-      echo cli_command -c clear_all
-      cli_command -c clear_all
-    done
+    #
+    #for s in `cat ${AREA_DIR}/all-planted`
+    #do
+    #  echo cli_command -c on $s
+    #  cli_command -c on $s
+    #  sleep 2
+    #  echo cli_command -c clear_all
+    #  cli_command -c clear_all
+    #done
+    cli_command -c run_solenoid_test
+
     read -p "hit return to continue"
   fi
   return 0
