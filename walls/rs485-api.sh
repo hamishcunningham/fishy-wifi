@@ -288,6 +288,7 @@ rapid() {
   log "running rapid watering from file at ${AREA}..."
   echo -e "${BLUE}running rapid watering from file at ${AREA}...${NC}"
   echo -e "${RED}DON'T RUN UNATTENDED! NO LEAK TRAP!${NC}"
+  sleep 2
 
   date >$TESTING_SOLENOIDS
   AREA_TAC=/tmp/$$-area.txt
