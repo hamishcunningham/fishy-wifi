@@ -281,6 +281,31 @@ pulse() {
     sleep 30
   done < ${AREA}
 }
+rapid() {
+  AREA=$1
+  [ -f "$AREA" ] || \
+    { echo -e "${RED}oops: ${AREA} doesn't exist :(${NC}"; return; }
+  log "running rapid watering from file at ${AREA}..."
+  echo -e "${BLUE}running rapid watering from file at ${AREA}...${NC}"
+  echo -e "${RED}DON'T RUN UNATTENDED! NO LEAK TRAP!${NC}"
+
+  date >$TESTING_SOLENOIDS
+  AREA_TAC=/tmp/$$-area.txt
+  tac $AREA >$AREA_TAC
+  while read SOL_SET
+  do
+    echo -e "${GREEN}pulsing ${SOL_SET}...${NC}"
+    echo "  "on ${SOL_SET}...
+    log "  "on ${SOL_SET}...
+    BASE="00" on $SOL_SET && sleep 3
+    echo "  "off...
+    log "  "off...
+    clear_all; sleep 1; clear_all
+    echo
+  done < ${AREA_TAC}
+
+  rm $AREA_TAC $TESTING_SOLENOIDS
+}
 read_analog_sensor() {
   timeout 3 \
     wget -O - "http://$1/data" 2>/dev/null |grep analog |head -1 |cut -f 2 |xargs
