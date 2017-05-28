@@ -295,7 +295,7 @@ rapid() {
   tac $AREA >$AREA_TAC
   while read SOL_SET
   do
-    echo -e "${GREEN}pulsing ${SOL_SET}...${NC}"
+    echo -e "${GREEN}watering ${SOL_SET}...${NC}"
     echo "  "on ${SOL_SET}...
     log "  "on ${SOL_SET}...
     BASE="00" on $SOL_SET && sleep 3
