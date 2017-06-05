@@ -30,6 +30,7 @@
  
 void setup()
 {
+  //Wire.pins(4, 5);
   Wire.begin();
  
   Serial.begin(115200);

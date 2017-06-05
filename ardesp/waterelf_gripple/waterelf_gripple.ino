@@ -423,7 +423,7 @@ void loop() {
 void startAP() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(apSSID,"wegrowdotsocial");
+  WiFi.softAP(apSSID,"BIGSECRET!");
   dln(startupDBG, "Soft AP started");
 }
 
@@ -1035,9 +1035,9 @@ void getAnalog(float* a) {
   if(! GOT_ANALOG_SENSOR) {
     (*a) = 0.0;
   } else if(analogSensor == "analog_mains") {
-    (*a) = (float) ( emon1.calcIrms(1480) / 10 /*fudge!*/ );
+    (*a) = (float) ( emon1.calcIrms(1480) * 13.4 - 6.6); // fudge! & to give power in W
     dbg(analogDBG, "mains reading is ");
-    dbg(analogDBG, (*a)); dbg(analogDBG, "A\n");
+    dbg(analogDBG, (*a)); dbg(analogDBG, "W\n");
   } else if(analogSensor == "analog_pressure") {
     int analogValue = analogRead(A0);
 
