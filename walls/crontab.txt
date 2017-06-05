@@ -1,12 +1,12 @@
 0                6 * * * /usr/bin/sudo /sbin/shutdown -r +1
-30,31,32         6 * * * /home/pi/fishy-wifi/walls/pump-on-off on
+30,31,32         6 * * * /home/pi/fishy-wifi/walls/pump-on-off.sh on
 0             7-17 * * * /home/pi/fishy-wifi/walls/rs485-api.sh -c pulse /home/pi/fishy-wifi/walls/areas/lettuce
 5             7,17 * * * /home/pi/fishy-wifi/walls/rs485-api.sh -c pulse /home/pi/fishy-wifi/walls/areas/alpines
 10 7,9,11,13,15,17 * * * /home/pi/fishy-wifi/walls/rs485-api.sh -c pulse /home/pi/fishy-wifi/walls/areas/non-alpines
-00,01,10        18 * * * /home/pi/fishy-wifi/walls/pump-on-off off
-00,01,10        18 * * * /home/pi/fishy-wifi/walls/pump-on-off off
+00,01,10        18 * * * /home/pi/fishy-wifi/walls/pump-on-off.sh off
+00,01,10        18 * * * /home/pi/fishy-wifi/walls/pump-on-off.sh off
 
 # greenwall
 #0               6 * * * /usr/bin/sudo /sbin/shutdown -r +1
-#34              6 * * * /home/pi/fishy-wifi/walls/pump-on-off on
-#02             18 * * * /home/pi/fishy-wifi/walls/pump-on-off off
+#34              6 * * * /home/pi/fishy-wifi/walls/pump-on-off.sh on
+#02             18 * * * /home/pi/fishy-wifi/walls/pump-on-off.sh off
