@@ -5,9 +5,9 @@
 # standard locals
 alias cd='builtin cd'
 P="$0"
-USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-S(taging)] [-H(EAD)] [-8 (1.6.8)] [-1 (1.8.1)]"
+USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-S(taging)] [-H(EAD)] [-8 (1.6.8)] [-1 (1.8.1)] [-3 (1.8.3)]"
 DBG=:
-OPTIONSTRING=hdSHx:81
+OPTIONSTRING=hdSHx:813
 
 # specific locals
 IDEBASE=~/esp-arduino-ide
@@ -16,15 +16,18 @@ SPREFSDIR=${IDEBASE}/dot-arduino15-staging
 HPREFSDIR=${IDEBASE}/dot-arduino15-head
 EIGHTPREFSDIR=${IDEBASE}/dot-arduino15-168
 ONE8ONEPREFSDIR=${IDEBASE}/dot-arduino15-181
+ONE83PREFSDIR=${IDEBASE}/dot-arduino15-183
 X=
 STAGING=
 HEAD=
 EIGHT=
 ONE8ONE=
+ONE83=
 STAGINGDIR=${IDEBASE}/arduino-1.6.5-r5
 HEADDIR=${IDEBASE}/arduino-1.6.5-r5--local-esp
 EIGHTDIR=${IDEBASE}/arduino-1.6.8
 ONE8ONEDIR=${IDEBASE}/arduino-1.8.1
+ONE83DIR=${IDEBASE}/arduino-1.8.3
 
 # message & exit if exit num present
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
@@ -39,6 +42,7 @@ do
     H)	HEAD=yes ;;
     8)	EIGHT=yes ;;
     1)	ONE8ONE=yes ;;
+    3)	ONE83=yes ;;
     x)	X="${OPTARG}" ;;
     *)	usage 1 ;;
   esac
@@ -46,9 +50,9 @@ done
 shift `expr $OPTIND - 1`
 
 # need to specify a version to run
-if [ x$STAGING == x -a x$HEAD == x -a x$EIGHT == x -a x$ONE8ONE == x ]
+if [ x$STAGING == x -a x$HEAD == x -a x$EIGHT == x -a x$ONE8ONE == x -a x$ONE83 == x ]
 then
-  echo you must choose staging or head or 8 or 1
+  echo you must choose staging or head or 8 or 1 or 3
   usage 2
 fi
 
@@ -69,6 +73,10 @@ elif [ x$ONE8ONE == xyes ]
 then
   USEPREFS=${ONE8ONEPREFSDIR}
   USEIDE=${ONE8ONEDIR}
+elif [ x$ONE83 == xyes ]
+then
+  USEPREFS=${ONE83PREFSDIR}
+  USEIDE=${ONE83DIR}
 else
   echo 'erk!'
   usage 3
