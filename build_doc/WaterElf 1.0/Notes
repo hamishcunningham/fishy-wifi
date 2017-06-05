@@ -1,7 +1,7 @@
 I2C devices:
 
 Scanning...
-I2C device found at address 0x20  !
-I2C device found at address 0x29  !
+I2C device found at address 0x20  ! MCP23008?
+I2C device found at address 0x29  ! pH ADC?
 I2C device found at address 0x40  ! Si7006 Humidity / Temp
 done
