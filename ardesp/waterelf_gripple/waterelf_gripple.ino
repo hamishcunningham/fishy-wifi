@@ -423,7 +423,7 @@ void loop() {
 void startAP() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(apSSID,"BIGSECRET!");
+  WiFi.softAP(apSSID,"BIGSECRETS!");
   dln(startupDBG, "Soft AP started");
 }
 
