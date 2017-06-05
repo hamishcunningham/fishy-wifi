@@ -1,18 +1,19 @@
-
-#include <IRDaikinESP.h>
+/* Copyright 2016 sillyfrog */
+#include <IRsend.h>
+#include <ir_Daikin.h>
 
 IRDaikinESP dakinir(D1);
 
-void setup(){
+void setup() {
   dakinir.begin();
   Serial.begin(115200);
 }
 
 
-void loop(){
+void loop() {
   Serial.println("Sending...");
 
-  // Set up what we want to send. See IRDaikinESP.cpp for all the options.
+  // Set up what we want to send. See ir_Daikin.cpp for all the options.
   dakinir.on();
   dakinir.setFan(1);
   dakinir.setMode(DAIKIN_COOL);
