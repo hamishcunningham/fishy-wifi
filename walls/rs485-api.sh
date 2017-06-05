@@ -388,18 +388,27 @@ trap_leaks_and_kill_pump() {
           log -e "pump ran for ${PUMP_DURATION} at ${PDATE}: killing power!"
 
           # trigger 433 transmitter
-          curl "http://${FISH_ELF_IP}/actuate" \
-            -H "Origin: http://${FISH_ELF_IP}" \
-            -H 'Accept-Encoding: gzip, deflate' \
-            -H 'Accept-Language: en-GB,en-US;q=0.8,en;q=0.6' \
-            -H 'Upgrade-Insecure-Requests: 1' \
-            -H 'User-Agent: curl' \
-            -H 'Content-Type: application/x-www-form-urlencoded' \
-            -H 'Accept: text/html,application/xhtml+xml,application/xml' \
-            -H 'Cache-Control: max-age=0' \
-            -H "Referer: http://${FISH_ELF_IP}/" \
-            -H 'Connection: keep-alive' \
-            --data 'state=off' --compressed >>${DBG_LOG}
+          for ELF_IP in \
+            $PRESSURE_SENSOR_ELF_IP $FISH_ELF_IP $POWER_SENSOR_ELF_IP
+          do
+            log -e "\nsending off to $ELF_IP ..."
+            /usr/bin/curl \
+              -v "http://${ELF_IP}/actuate" \
+              -H "Origin: http://${ELF_IP}" \
+              -H 'Accept-Encoding: gzip, deflate' \
+              -H 'Accept-Language: en-GB,en-US;q=0.8,en;q=0.6' \
+              -H 'Upgrade-Insecure-Requests: 1' \
+              -H 'User-Agent: curl' \
+              -H 'Content-Type: application/x-www-form-urlencoded' \
+              -H 'Accept: text/html,application/xhtml+xml,application/xml' \
+              -H 'Cache-Control: max-age=0' \
+              -H "Referer: http://${ELF_IP}/" \
+              -H 'Connection: keep-alive' \
+              --data "state=off" --compressed >>${DBG_LOG}
+            echo >>${DBG_LOG}
+            log -e "\ndone"
+            sleep 1
+          done
 
           # turn pressure release valve on
           BASE="00" on $PRESSURE_RELEASE_VALVE
