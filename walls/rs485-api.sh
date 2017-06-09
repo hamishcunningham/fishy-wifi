@@ -465,8 +465,7 @@ run_solenoid_test() {
 # TODO add trap to remove file
   sleep 5 # wait for the leak trap to stop
 
- # for s in `tac $( dirname $P )/areas/all-planted`
-  for s in `cat $( dirname $P )/areas/top-row`
+  for s in `tac ${AREA}`
   do
     log -e "testing solenoid number $s at `date +%Y-%m-%d-%T`..."
     clear_all >/dev/null 2>&1
