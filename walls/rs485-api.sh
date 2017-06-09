@@ -453,12 +453,20 @@ trap_leaks_and_kill_pump() {
 # done
 #
 run_solenoid_test() {
+  AREA=$1
+  [ x${AREA} == x ] && AREA=$( dirname $P )/areas/all-planted
+  [ -f "$AREA" ] || \
+    { echo -e "${RED}oops: ${AREA} doesn't exist :(${NC}"; return; }
+  log -e "running solenoid test protocol from file at ${AREA}..."
+  echo -e "${RED}DON'T RUN UNATTENDED! NO LEAK TRAP!${NC}"
+
   ENOUGH_PRESSURE_TO_TEST=40
   date >$TESTING_SOLENOIDS
 # TODO add trap to remove file
   sleep 5 # wait for the leak trap to stop
 
-  for s in `tac $( dirname $P )/areas/all-planted`
+ # for s in `tac $( dirname $P )/areas/all-planted`
+  for s in `cat $( dirname $P )/areas/top-row`
   do
     log -e "testing solenoid number $s at `date +%Y-%m-%d-%T`..."
     clear_all >/dev/null 2>&1
