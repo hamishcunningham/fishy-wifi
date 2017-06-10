@@ -100,6 +100,7 @@ cd $USEIDE
 echo running arduino IDE from `pwd`
 if [ -x ./arduino ] 
 then
+  #./arduino --pref sketchbook.path="${HOME}/iot/com3505/labs"
   ./arduino
 else 
   cd build
