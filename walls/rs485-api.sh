@@ -460,7 +460,7 @@ run_solenoid_test() {
   log -e "running solenoid test protocol from file at ${AREA}..."
   echo -e "${RED}DON'T RUN UNATTENDED! NO LEAK TRAP!${NC}"
 
-  ENOUGH_PRESSURE_TO_TEST=40
+  ENOUGH_PRESSURE_TO_TEST=45
   date >$TESTING_SOLENOIDS
 # TODO add trap to remove file
   sleep 5 # wait for the leak trap to stop
@@ -503,6 +503,7 @@ run_solenoid_test() {
     [ $PSI_DURING -eq -1 ]  && log -e "-1 (c)" && continue
     log -e $PSI_DURING PSI_DURING
     sleep 1
+    # TODO perhaps reduce ENOUGH to 38 if adding: sleep 0.5 ?
     clear_all >/dev/null 2>&1
 
     sleep 2
