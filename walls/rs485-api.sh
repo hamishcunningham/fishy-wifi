@@ -322,9 +322,9 @@ read_analog_sensor_safely() { # returns integer; minus 1 for error
   ELF_IP=$1
   V=`read_analog_sensor $ELF_IP`
   [ -z "$V" -o "$V" == "0.0" -o "$V" == "0.00" ] && \
-    V=`read_analog_sensor $ELF_IP`
+    sleep 1 && V=`read_analog_sensor $ELF_IP`
   [ -z "$V" -o "$V" == "0.0" -o "$V" == "0.00" ] && \
-    V=`read_analog_sensor $ELF_IP`
+    sleep 2 && V=`read_analog_sensor $ELF_IP`
   [ -z "$V" -o "$V" == "0.0" -o "$V" == "0.00" ] && V=-1
   printf "%.0f" $V
 }
@@ -505,6 +505,7 @@ run_solenoid_test() {
     sleep 1
     clear_all >/dev/null 2>&1
 
+    sleep 2
     PSI_AFTER=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
     [ $PSI_AFTER -eq -1 ]   && log -e "-1 (d)" && continue
     log -e $PSI_AFTER PSI_AFTER
