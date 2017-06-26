@@ -1,9 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-// waterelf.ino /////////////////////////////////////////////////////////////
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <ESP8266WebServer.h>
-#include <FS.h>
+// waterelf32.ino /////////////////////////////////////////////////////////////
+#include <Preferences.h>
+#include <WiFi.h>
+#include <ESPWebServer.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <DHT.h>
@@ -23,12 +22,16 @@ const int TICK_WIFI_DEBUG = 500;
 const int TICK_POST_DEBUG = 200;
 const int TICK_HEAP_DEBUG = 1000;
 
+// MAC address ///////////////////////////////////////////////////////////////
+char MAC_ADDRESS[13]; // MAC addresses are 12 chars, plus the NULL terminator
+void getMAC(char *);
+
 /////////////////////////////////////////////////////////////////////////////
 // wifi management stuff ////////////////////////////////////////////////////
 IPAddress apIP(192, 168, 99, 1);
 IPAddress netMsk(255, 255, 255, 0);
-ESP8266WebServer webServer(80);
-String apSSIDStr = "WaterElf-" + String(ESP.getChipId());
+ESPWebServer webServer(80);
+String apSSIDStr = "WaterElf-" + String(MAC_ADDRESS);
 const char* apSSID = apSSIDStr.c_str();
 String svrAddr = ""; // address of a local server TODO delete?
 
@@ -325,6 +328,7 @@ FlowController flowController;
 
 /////////////////////////////////////////////////////////////////////////////
 // config utils /////////////////////////////////////////////////////////////
+Preferences preferences;
 boolean getCloudShare();
 void setCloudShare(boolean b);
 String getSvrAddrP();
@@ -335,13 +339,13 @@ void setAnalogSensorP(String s);
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
 void setup() {
+  getMAC(MAC_ADDRESS);
   Serial.begin(115200);
 
   pinMode(BUILTIN_LED, OUTPUT); // turn built-in LED on
   blink(3);                     // signal we're starting setup
 
   // read persistent config
-  SPIFFS.begin();
   svrAddr = getSvrAddrP();
   analogSensor = getAnalogSensorP();
 
@@ -359,10 +363,12 @@ void setup() {
     mcp.pinMode(mcpPins[i], OUTPUT);
 
   // try and set the host name
+/*
   if(WiFi.hostname("waterelf"))
     dln(netDBG, "set hostname succeeded");
   else
     dln(netDBG, "set hostname failed");
+*/
   delay(300); blink(3);         // signal we've finished config
 }
 
@@ -521,7 +527,7 @@ String genAPForm() {
       dbg(netDBG, " (");
       dbg(netDBG, WiFi.RSSI(i));
       dbg(netDBG, ")");
-      dln(netDBG, (WiFi.encryptionType(i) == ENC_TYPE_NONE)?" ":"*");
+      dln(netDBG, (WiFi.encryptionType(i) == WIFI_AUTH_OPEN)?" ":"*");
 
       f.concat("<input type='radio' name='ssid' value='");
       f.concat(WiFi.SSID(i));
@@ -1057,55 +1063,48 @@ void getAnalog(float* a) {
 /////////////////////////////////////////////////////////////////////////////
 // config utils /////////////////////////////////////////////////////////////
 boolean getCloudShare() {
-  boolean b = false;
-  File f = SPIFFS.open("/cloudShare.txt", "r");
-  if(f) {
-    b = true;
-    f.close();
-  }
+  preferences.begin("cloudshare", true);
+  boolean b = preferences.getBool("enabled", false);
+  preferences.end();
   return b;
 }
 void setCloudShare(boolean b) {
+  preferences.begin("cloudshare", false);
   if(b) {
-    File f = SPIFFS.open("/cloudShare.txt", "w");
-    f.println("");
-    f.close();
+    preferences.putBool("enabled", b);
   } else {
-    SPIFFS.remove("/cloudShare.txt");
+    preferences.clear();
   }
+  preferences.end();
 }
 String getSvrAddrP() {
-  String s = "";
-  File f = SPIFFS.open("/svrAddr.txt", "r");
-  if(f) {
-    s = f.readString();
-    s.trim();
-    f.close();
-  }
+  preferences.begin("serveradd", false);
+  String s = preferences.getString("ipadd", "");
+  s.trim();
+  preferences.end();
   return s;
 }
 void setSvrAddrP(String s) {
-  File f = SPIFFS.open("/svrAddr.txt", "w");
-  f.println(s);
-  f.close();
+  preferences.begin("serveradd", false);
+  preferences.putString("ipadd", s);
+  preferences.end();
 }
 String getAnalogSensorP() {
   analogSensor = ANALOG_SENSOR_NONE; // the default is...
   GOT_ANALOG_SENSOR = false;         // ...no sensor
-  String s = "";
-  File f = SPIFFS.open("/analogSensor.txt", "r");
-  if(f) {
+  preferences.begin("analog", false);
+  String s = preferences.getString("details", "");
+  if(s) {
     GOT_ANALOG_SENSOR = true;
-    s = f.readString();
     s.trim();
-    f.close();
+    preferences.end();
   }
   return s;
 }
 void setAnalogSensorP(String s) {
-  File f = SPIFFS.open("/analogSensor.txt", "w");
-  f.println(s);
-  f.close();
+  preferences.begin("analog", true);
+  preferences.putString("details", s);
+  preferences.end();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1123,4 +1122,8 @@ String ip2str(IPAddress address) {
   return
     String(address[0]) + "." + String(address[1]) + "." + 
     String(address[2]) + "." + String(address[3]);
+}
+void getMAC(char *buf) { // the MAC is 6 bytes, so needs careful conversion...
+  uint64_t mac = ESP.getEfuseMac(); // ...to string (high 2, low 4):
+  sprintf(buf, "%04X%08X", (uint16_t) (mac >> 32), (uint32_t) mac);
 }
