@@ -24,14 +24,14 @@ const int TICK_HEAP_DEBUG = 1000;
 
 // MAC address ///////////////////////////////////////////////////////////////
 char MAC_ADDRESS[13]; // MAC addresses are 12 chars, plus the NULL terminator
-void getMAC(char *);
+char *getMAC(char *);
 
 /////////////////////////////////////////////////////////////////////////////
 // wifi management stuff ////////////////////////////////////////////////////
 IPAddress apIP(192, 168, 99, 1);
 IPAddress netMsk(255, 255, 255, 0);
 ESPWebServer webServer(80);
-String apSSIDStr = "WaterElf-" + String(MAC_ADDRESS);
+String apSSIDStr = "WaterElf-" + String(getMAC(MAC_ADDRESS));
 const char* apSSID = apSSIDStr.c_str();
 String svrAddr = ""; // address of a local server TODO delete?
 
@@ -125,15 +125,15 @@ String ip2str(IPAddress address);
 #define dln(b, s) if(b) Serial.println(s)
 #define startupDBG true
 #define valveDBG false
-#define monitorDBG false
+#define monitorDBG true
 #define netDBG true
 #define miscDBG false
 #define citsciDBG false
-#define analogDBG true
+#define analogDBG false
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
-OneWire ds(2); // DS1820 on pin 2 (a 4.7K resistor is necessary)
+OneWire ds(15); // DS1820 pin (a 4.7K resistor is necessary)
 DallasTemperature tempSensor(&ds);  // pass through reference to library
 void getTemperature(float* waterCelsius);
 boolean GOT_TEMP_SENSOR = false; // we'll change later if we detect sensor
@@ -141,7 +141,7 @@ DeviceAddress tempAddr; // array to hold device address
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
-DHT dht(0, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
+DHT dht(21, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
 boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -339,7 +339,6 @@ void setAnalogSensorP(String s);
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
 void setup() {
-  getMAC(MAC_ADDRESS);
   Serial.begin(115200);
 
   pinMode(BUILTIN_LED, OUTPUT); // turn built-in LED on
@@ -1123,7 +1122,8 @@ String ip2str(IPAddress address) {
     String(address[0]) + "." + String(address[1]) + "." + 
     String(address[2]) + "." + String(address[3]);
 }
-void getMAC(char *buf) { // the MAC is 6 bytes, so needs careful conversion...
+char *getMAC(char *buf) { // the MAC is 6 bytes, so needs careful conversion...
   uint64_t mac = ESP.getEfuseMac(); // ...to string (high 2, low 4):
   sprintf(buf, "%04X%08X", (uint16_t) (mac >> 32), (uint32_t) mac);
+  return buf;
 }
