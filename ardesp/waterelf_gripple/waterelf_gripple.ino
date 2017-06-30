@@ -50,6 +50,7 @@ const char* pageDefault = // TODO build the growbeds according to their num
   "<li><a href='/wifi'>Join a wifi network</a></li>\n"
   "<li><a href='/serverconf'>Configure data sharing</a></li>\n"
   "<li><a href='/analogconf'>Configure analog sensor</a></li>\n"
+  "<li><a href='/pHconf'>Configure & calibrate pH sensor</a></li>\n"
   "<li>"
     "<form method='POST' action='valve1'>\n"
     "Growbed 1: "
@@ -118,15 +119,16 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON);
 void ledOn();
 void ledOff();
 String ip2str(IPAddress address);
+byte hextoi();
 #define dbg(b, s) if(b) Serial.print(s)
 #define dln(b, s) if(b) Serial.println(s)
 #define startupDBG true
 #define valveDBG false
-#define monitorDBG false
+#define monitorDBG true
 #define netDBG true
 #define miscDBG false
 #define citsciDBG false
-#define analogDBG true
+#define analogDBG false
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
@@ -148,14 +150,17 @@ boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // pH sensor stuff //////////////////////////////////////////////////////////
-const byte pH_Add = 0x4E;  // change this to match ph ADC address
-int pH7Cal = 2048; // assume ideal probe and amp conditions 1/2 of 4096
-int pH4Cal = 1286; // ideal probe slope -> this many 12bit units on 4 scale
-float pHStep = 59.16; // ideal probe slope
+byte pHAddr;  // loaded from SPIFFS
+int pH7Cal; // assume ideal probe and amp conditions 1/2 of 4096 (default value) loaded from SPIFFS
+int pH4Cal; // ideal probe slope -> this many 12bit units on 4 scale (default value) loaded from SPIFFS
+float pHStep; // probe slope loaded from SPIFFS
 const float vRef = 4.096; // our vRef into the ADC wont be exact
 // since you can run VCC lower than Vref its best to measure and adjust here
+// If you change from 4.096 then update the pH7Cal checks (25mV from midrange) in probe health calculator!
 const float opampGain = 5.25; //what is our Op-Amps gain (stage 1)
 boolean GOT_PH_SENSOR = false; // we'll change later if we detect sensor
+int getpHraw();
+String pHHealth = "Unknown!";
 
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
@@ -331,6 +336,14 @@ String getSvrAddrP();
 void setSvrAddrP(String s);
 String getAnalogSensorP();
 void setAnalogSensorP(String s);
+byte getpHAddrP();
+void setpHAddrP(byte b);
+int getpH4CalP();
+void setpH4CalP(int i4);
+int getpH7CalP();
+void setpH7CalP(int i7);
+float getpHStepP();
+void setpHStepP(float s);
 
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
@@ -344,6 +357,10 @@ void setup() {
   SPIFFS.begin();
   svrAddr = getSvrAddrP();
   analogSensor = getAnalogSensorP();
+  pHAddr = getpHAddrP();
+  pH4Cal = getpH4CalP();
+  pH7Cal = getpH7CalP();
+  pHStep = getpHStepP();
 
   // start the sensors, the DNS and webserver, etc.
   startPeripherals();
@@ -423,7 +440,7 @@ void loop() {
 void startAP() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(apSSID,"BIGSECRETS!");
+  WiFi.softAP(apSSID,"wegrowdotsocial");
   dln(startupDBG, "Soft AP started");
 }
 
@@ -446,9 +463,11 @@ void startWebServer() {
   webServer.on("/elfstatus", handle_elfstatus);
   webServer.on("/serverconf", handle_serverconf);
   webServer.on("/analogconf", handle_analogconf);
+  webServer.on("/pHconf", handle_pHconf);
   webServer.on("/wfchz", handle_wfchz);
   webServer.on("/svrchz", handle_svrchz);
   webServer.on("/algchz", handle_algchz);
+  webServer.on("/pHchz", handle_pHchz);  
   webServer.on("/data", handle_data);
   webServer.on("/actuate", handle_actuate);
   webServer.on("/valve1", handle_valve1);
@@ -591,9 +610,22 @@ void handle_elfstatus() {
   toSend += "</li>\n";
   toSend += "\n<li>Analog sensor type: "; toSend += analogSensor;
   toSend += "</li>\n";
-
+  toSend += "\n<li>pH sensor I2C address: 0x"; toSend += String(pHAddr,HEX);
+  toSend += "</li>\n";
+  if (GOT_PH_SENSOR) {
+    toSend += "\n<li>pH 4 calibration value: "; toSend += String(pH4Cal);
+    toSend += "</li>\n";
+    toSend += "\n<li>pH 7 calibration value: "; toSend += String(pH7Cal);
+    toSend += "</li>\n";
+    toSend += "\n<li>pH probe slope: "; toSend += String(pHStep);
+    toSend += "</li>\n";
+    if (pHStep >= 56.20 && pHStep < 60.35 && pH7Cal >= 2023 && pH7Cal < 2074) pHHealth="<font color='green'>Good</font>";
+    else if (pHStep >= 50.29 && pHStep < 62.19 && pH7Cal >= 2023 && pH7Cal < 2074) pHHealth="<font color='orange'>Aging but still OK</font>";
+    else pHHealth="<font color='red'>Poor - replace probe now!</font>";
+    toSend += "\n<li>pH probe health: "; toSend += String(pHHealth);
+    toSend += "</li>\n";
+    }
   toSend += "</ul></p>";
-
   toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
 }
@@ -663,6 +695,27 @@ String genAnalogConfForm() {
   f += pageFooter;
   return f;
 }
+String genpHConfForm() {
+  String f = pageTop;
+  f += ": pH Sensor Config & Calibration";
+  f += pageTop2;
+  f += "<h2>Configure & Calibrate pH Sensor</h2><p>\n";
+  
+  f += "<form method='POST' action='pHchz'> ";
+  f += "<br/>pH sensor I2C address (hex): ";
+  f += "<input type='textarea' name='pHAdd'><br/><br/>\n";
+  if (GOT_PH_SENSOR) {
+    f += "To calibrate the pH sensor, place pH probe in calibration ";
+    f += "solution, wait several minutes for readings to settle, then select the relevant ";
+    f += "radio button below and click submit<br/><br/>";
+    f += "<li>none <input type='radio' name='ph_Cal' value='NoCal' checked>\n";
+    f += "<li>pH4 Calibration <input type='radio' name='ph_Cal' value='pH4Cal'>\n";
+    f += "<li>pH7 Calibration <input type='radio' name='ph_Cal' value='pH7Cal'>\n</li>"; 
+  }
+  f += "<br/><input type='submit' value='Submit'></form></p>";
+  f += pageFooter;
+  return f;
+}
 void handle_serverconf() {
   dln(netDBG, "serving page at /serverconf");
   String toSend = genServerConfForm();
@@ -671,6 +724,11 @@ void handle_serverconf() {
 void handle_analogconf() {
   dln(netDBG, "serving page at /analogconf");
   String toSend = genAnalogConfForm();
+  webServer.send(200, "text/html", toSend);
+}
+void handle_pHconf() {
+  dln(netDBG, "serving page at /pHconf");
+  String toSend = genpHConfForm();
   webServer.send(200, "text/html", toSend);
 }
 void handle_svrchz() {
@@ -721,7 +779,7 @@ void handle_algchz() {
         analogSensor = ANALOG_SENSOR_PRESSURE;
         GOT_ANALOG_SENSOR = true;
       } else if(argVal != "analog_none") {
-        Serial.println("unknown analog sensor type");
+        dln(analogDBG, "unknown analog sensor type");
       }
       toSend += "<h2>Added analog sensor config...</h2>";
       toSend += "<p>...for ";
@@ -733,6 +791,47 @@ void handle_algchz() {
 
   toSend += pageFooter;
   dbg(analogDBG, analogSensor); dbg(analogDBG, "\n");
+  webServer.send(200, "text/html", toSend);
+}
+void handle_pHchz() {
+  dln(netDBG, "serving page at /pHchz");
+  String toSend = pageTop;
+  toSend += ": pH sensor configured";
+  toSend += pageTop2;
+
+  for(uint8_t i = 0; i < webServer.args(); i++) {
+    if(webServer.argName(i) == "pHAdd" && webServer.arg(i)!="") {
+      pHAddr = 16*hextoi(webServer.arg(i).charAt(0)) + hextoi(webServer.arg(i).charAt(1));
+      toSend += "<h2>Added pH sensor I2C address...</h2>";
+      toSend += "<p>...of 0x";
+      toSend += webServer.arg(i).substring(0, 2);
+      toSend += "</p>";
+      setpHAddrP(pHAddr);   // persist the config
+      SPIFFS.end(); // because we're gonna reboot and it might help...
+      toSend += "<h3>Now rebooting to use new address...</h3>";
+      toSend += pageFooter;
+      webServer.send(200, "text/html", toSend);
+      delay(20); // just to help webserver stuff clear
+      ESP.restart();
+    }
+    if(webServer.argName(i) == "ph_Cal") {
+      if(webServer.arg(i) == "pH4Cal") {
+        pH4Cal = getpHraw();
+        setpH4CalP(pH4Cal);   // persist the cal value
+        pHStep = ((((vRef*(float)(pH7Cal-pH4Cal))/4096)*1000)/opampGain)/3;
+        setpHStepP(pHStep);   // persist the probe slope
+      } else if(webServer.arg(i) == "pH7Cal") {
+        pH7Cal = getpHraw();
+        setpH7CalP(pH7Cal);   // persist the cal value
+        pHStep = ((((vRef*(float)(pH7Cal-pH4Cal))/4096)*1000)/opampGain)/3;
+        setpHStepP(pHStep);   // persist the probe slope
+      } else if(webServer.arg(i) != "noCal") {
+        dln(netDBG, "unknown cal response!");
+      }
+    }
+  }
+
+  toSend += pageFooter;
   webServer.send(200, "text/html", toSend);
 }
 void handle_actuate() {
@@ -848,7 +947,7 @@ void startPeripherals() {
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS); // longest (dim)
   }
   
-  Wire.beginTransmission(pH_Add);
+  Wire.beginTransmission(pHAddr);
   error = Wire.endTransmission();
   if(error==0){
     GOT_PH_SENSOR = true;
@@ -988,19 +1087,8 @@ void getLight(uint16_t* lux) {
   return;
 }
 void getPH(float* pH) {
-// this is our I2C ADC interface section
-// assign 2 BYTES variables to capture the LSB & MSB (or Hi Low in this case)
-  byte adc_high;
-  byte adc_low;
-  // we'll assemble the 2 in this variable
-  int adc_result;
-  
-  Wire.requestFrom(pH_Add, 2); // requests 2 bytes
-  while(Wire.available() < 2); // while two bytes to receive
-  adc_high = Wire.read();      // set...
-  adc_low = Wire.read();       // ...them
-  // now assemble them, remembering byte maths; a Union works well here too
-  adc_result = (adc_high * 256) + adc_low;
+  int adc_result = getpHraw();
+
   // we have a our Raw pH reading from the ADC; now figure out what the pH is  
   float milliVolts = (((float)adc_result/4096)*vRef)*1000;
   float temp = ((((vRef*(float)pH7Cal)/4096)*1000) - milliVolts) / opampGain;
@@ -1009,6 +1097,21 @@ void getPH(float* pH) {
   dbg(monitorDBG, *pH);
   dln(monitorDBG, " pH");
   return;
+}
+int getpHraw() {
+  // this is our I2C ADC interface section
+  // assign 2 BYTES variables to capture the LSB & MSB (or Hi Low in this case)
+  byte adc_high;
+  byte adc_low;
+  // we'll assemble the 2 in this variable
+  int adc_result;
+  Wire.requestFrom(pHAddr, 2); // requests 2 bytes
+  while(Wire.available() < 2); // while two bytes to receive
+  adc_high = Wire.read();      // set...
+  adc_low = Wire.read();       // ...them
+  // now assemble them, remembering byte maths; a Union works well here too
+  adc_result = (adc_high * 256) + adc_low;
+  return adc_result;
 }
 void getLevel(int echoPin, long* waterLevel) {
   long duration;
@@ -1107,6 +1210,62 @@ void setAnalogSensorP(String s) {
   f.println(s);
   f.close();
 }
+byte getpHAddrP() {
+  byte b = 0x4e;
+  File f = SPIFFS.open("/pHAddr.txt", "r");
+  if(f) {
+    b = f.parseInt(); 
+    f.close();
+  }
+  return b;
+}
+void setpHAddrP(byte b) {
+  File f = SPIFFS.open("/pHAddr.txt", "w");
+  f.println(b);
+  f.close();
+}
+int getpH4CalP() {
+  int i4 = 1286; // ideal probe slope -> this many 12bit units on 4 scale (default value)
+  File f = SPIFFS.open("/pH4Cal.txt", "r");
+  if(f) {
+    i4 = f.parseInt();
+    f.close();
+  }
+  return i4;
+}
+void setpH4CalP(int i4) {
+  File f = SPIFFS.open("/pH4Cal.txt", "w");
+  f.println(i4);
+  f.close();
+}
+int getpH7CalP() {
+  int i7 = 2048; // assume ideal probe and amp conditions 1/2 of 4096 (default value)
+  File f = SPIFFS.open("/pH7Cal.txt", "r");
+  if(f) {
+    i7 = f.parseInt();
+    f.close();
+  }
+  return i7;
+}
+void setpH7CalP(int i7) {
+  File f = SPIFFS.open("/pH7Cal.txt", "w");
+  f.println(i7);
+  f.close();
+}
+float getpHStepP() {
+  float s = 59.16; // default ideal probe value
+  File f = SPIFFS.open("/pHStep.txt", "r");
+  if(f) {
+    s = f.parseFloat();
+    f.close();
+  }
+  return s;
+}
+void setpHStepP(float s) {
+  File f = SPIFFS.open("/pHStep.txt", "w");
+  f.println(s);
+  f.close();
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
@@ -1123,4 +1282,14 @@ String ip2str(IPAddress address) {
   return
     String(address[0]) + "." + String(address[1]) + "." + 
     String(address[2]) + "." + String(address[3]);
+}
+byte hextoi(char c)
+{
+   if(c >= '0' && c <= '9')
+     return (byte)(c - '0');
+   if(c >= 'A' && c <= 'F')
+     return (byte)(c-'A'+10);
+   if(c >= 'a' && c <= 'f')
+     return (byte)(c-'a'+10);
+   return 0;
 }
