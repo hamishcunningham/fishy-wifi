@@ -328,6 +328,13 @@ read_analog_sensor_safely() { # returns integer; minus 1 for error
   [ -z "$V" -o "$V" == "0.0" -o "$V" == "0.00" ] && V=-1
   printf "%.0f" $V
 }
+report_fault() {
+  for n in `cat ~/phones.txt`
+  do
+    sudo aws sns publish --region eu-west-1 --subject AquaMosaic \
+      --message "$*" --phone-number $n
+  done
+}
 
 # spot leaks during normal operation, and kill the pump
 #
@@ -385,7 +392,9 @@ trap_leaks_and_kill_pump() {
 
         if [ $PUMP_DURATION -gt $PUMP_DURATION_MAX ]
         then
-          log -e "pump ran for ${PUMP_DURATION} at ${PDATE}: killing power!"
+          MESS="AquaMosaic fault? Pump ran for ${PUMP_DURATION} at ${PDATE}: killing power!"
+          log -e "$MESS"
+          report_fault "$MESS"
 
           # trigger 433 transmitter
           for ELF_IP in \
@@ -460,7 +469,7 @@ run_solenoid_test() {
   log -e "running solenoid test protocol from file at ${AREA}..."
   echo -e "${RED}DON'T RUN UNATTENDED! NO LEAK TRAP!${NC}"
 
-  ENOUGH_PRESSURE_TO_TEST=45
+  ENOUGH_PRESSURE_TO_TEST=40
   date >$TESTING_SOLENOIDS
 # TODO add trap to remove file
   sleep 5 # wait for the leak trap to stop
