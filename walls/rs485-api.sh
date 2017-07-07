@@ -333,6 +333,9 @@ report_fault() {
   do
     sudo aws sns publish --region eu-west-1 --subject AquaMosaic \
       --message "$*" --phone-number $n
+    sudo aws sns publish --region eu-west-2 --subject AquaMosaic \
+      --message "$*" --topic-arn \
+      "arn:aws:sns:eu-west-2:859791308343:gripple-riverside-aquamosaic-faults"
   done
 }
 
