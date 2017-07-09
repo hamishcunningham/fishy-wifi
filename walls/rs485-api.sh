@@ -61,6 +61,7 @@ PUMP_DURATION_MAX=120
 PRESSURE_RELEASE_VALVE=63
 FAKE_LEAK_VALVE=47
 TESTING_SOLENOIDS=/tmp/TESTING_SOLENOIDS.txt
+FAULT_SMS_SENT=/tmp/FAULT_SMS_SENT.txt
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
@@ -329,14 +330,21 @@ read_analog_sensor_safely() { # returns integer; minus 1 for error
   printf "%.0f" $V
 }
 report_fault() {
-  for n in `cat ~/phones.txt`
-  do
-    sudo aws sns publish --region eu-west-1 --subject AquaMosaic \
-      --message "$*" --phone-number $n
-    sudo aws sns publish --region eu-west-2 --subject AquaMosaic \
-      --message "$*" --topic-arn \
-      "arn:aws:sns:eu-west-2:859791308343:gripple-riverside-aquamosaic-faults"
-  done
+  # send email
+  sudo aws sns publish --region eu-west-2 --subject AquaMosaic \
+    --message "$*" --topic-arn \
+    "arn:aws:sns:eu-west-2:859791308343:gripple-riverside-aquamosaic-faults"
+
+  # if no SMS sent yet today, then send one
+  if [ ! -f $FAULT_SMS_SENT ]
+  then
+    for n in `cat ~/phones.txt`
+    do
+      sudo aws sns publish --region eu-west-1 --subject AquaMosaic \
+        --message "$*" --phone-number $n
+    done
+    date >$FAULT_SMS_SENT
+  fi
 }
 
 # spot leaks during normal operation, and kill the pump
@@ -423,7 +431,7 @@ trap_leaks_and_kill_pump() {
           done
 
           # turn pressure release valve on
-          BASE="00" on $PRESSURE_RELEASE_VALVE
+          # TODO BASE="00" on $PRESSURE_RELEASE_VALVE
         fi
       done
     fi
