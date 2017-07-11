@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# ardesp-ide.sh -- run the ESP8266 Arduino IDE
+# ardesp-ide.sh -- run the Arduino IDE
 
 # standard locals
 alias cd='builtin cd'
