@@ -127,9 +127,9 @@ String ip2str(IPAddress address);
 #define valveDBG false
 #define monitorDBG true
 #define netDBG true
-#define miscDBG false
+#define miscDBG true
 #define citsciDBG false
-#define analogDBG false
+#define analogDBG true
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
@@ -141,7 +141,7 @@ DeviceAddress tempAddr; // array to hold device address
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
-DHT dht(21, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
+DHT dht(14, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
 boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -180,10 +180,10 @@ const int valvePinMap[][2] = {
 
 /////////////////////////////////////////////////////////////////////////////
 // level sensing stuff //////////////////////////////////////////////////////
-const int LEVEL_TRIG_PIN=12;
-const int LEVEL_ECHO_PIN1=13;
-const int LEVEL_ECHO_PIN2=14;
-const int LEVEL_ECHO_PIN3=16;
+const int LEVEL_TRIG_PIN=25;
+const int LEVEL_ECHO_PIN1=34;
+const int LEVEL_ECHO_PIN2=34;
+const int LEVEL_ECHO_PIN3=34;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
