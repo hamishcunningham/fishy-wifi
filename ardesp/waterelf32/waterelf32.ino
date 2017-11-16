@@ -13,6 +13,11 @@
 #include "Adafruit_MCP23008.h"
 #include "EmonLib.h" // Emon Library, see openenergymonitor.org
 
+
+/////////////////////////////////////////////////////////////////////////////
+// LED //////////////////////////////////////////////////////////////////////
+#define BUILTIN_LED 13
+
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
 int loopCounter = 0;
@@ -814,6 +819,7 @@ void startPeripherals() {
   }
   
   dht.begin();    // start the humidity and air temperature sensor
+  delay(2000);
   float airHumid = dht.readHumidity();
   float airCelsius = dht.readTemperature();
   if (isnan(airHumid) || isnan(airCelsius)) {
