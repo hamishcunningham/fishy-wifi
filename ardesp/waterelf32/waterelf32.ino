@@ -12,6 +12,7 @@
 #include <RCSwitch.h>
 #include "Adafruit_MCP23008.h"
 #include "EmonLib.h" // Emon Library, see openenergymonitor.org
+#include "joinme.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
@@ -352,6 +353,7 @@ void setup() {
   startPeripherals();
   startAP();
   printIPs();
+  joinme_setup(&webServer,apIP);
   startWebServer();
 
   // initialise the MCP and the flow controller
@@ -374,6 +376,7 @@ void setup() {
 /////////////////////////////////////////////////////////////////////////////
 // looooooooooooooooooooop //////////////////////////////////////////////////
 void loop() {
+  joinme_turn();
   webServer.handleClient();
 
   if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
