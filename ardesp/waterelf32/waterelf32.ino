@@ -448,10 +448,6 @@ void printIPs() {
 }
 void startWebServer() {
   webServer.on("/", handle_root);
-  webServer.on("/generate_204", handle_root); // Android support
-  webServer.on("/L0", handle_root);
-  webServer.on("/L2", handle_root);
-  webServer.on("/ALL", handle_root);
   webServer.onNotFound(handleNotFound);
   webServer.on("/wifi", handle_wifi);
   webServer.on("/elfstatus", handle_elfstatus);
