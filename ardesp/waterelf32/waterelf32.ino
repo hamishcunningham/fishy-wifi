@@ -351,9 +351,10 @@ void setup() {
 
   // start the sensors, the DNS and webserver, etc.
   startPeripherals();
+  joinme_dhcps_hack();
   startAP();
   printIPs();
-  joinme_setup(&webServer,apIP);
+  joinme_setup(&webServer,WiFi.softAPIP());
   startWebServer();
 
   // initialise the MCP and the flow controller
@@ -430,7 +431,9 @@ void loop() {
 // wifi and web server management stuff /////////////////////////////////////
 void startAP() {
   WiFi.mode(WIFI_AP_STA);
-  WiFi.softAPConfig(apIP, apIP, netMsk);
+  if (!WiFi.softAPConfig(apIP, apIP, netMsk)){
+    dbg(startupDBG,"WARNING: Failed to set AP IP");
+  }
   WiFi.softAP(apSSID,"wegrowdotsocial");
   dln(startupDBG, "Soft AP started");
 }
