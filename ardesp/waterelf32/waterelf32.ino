@@ -12,6 +12,7 @@
 #include <RCSwitch.h>
 #include "Adafruit_MCP23008.h"
 #include "EmonLib.h" // Emon Library, see openenergymonitor.org
+#include "joinme.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
@@ -350,8 +351,10 @@ void setup() {
 
   // start the sensors, the DNS and webserver, etc.
   startPeripherals();
+  joinme_dhcps_hack();
   startAP();
   printIPs();
+  joinme_setup(&webServer,WiFi.softAPIP());
   startWebServer();
 
   // initialise the MCP and the flow controller
@@ -374,6 +377,7 @@ void setup() {
 /////////////////////////////////////////////////////////////////////////////
 // looooooooooooooooooooop //////////////////////////////////////////////////
 void loop() {
+  joinme_turn();
   webServer.handleClient();
 
   if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
@@ -427,7 +431,9 @@ void loop() {
 // wifi and web server management stuff /////////////////////////////////////
 void startAP() {
   WiFi.mode(WIFI_AP_STA);
-  WiFi.softAPConfig(apIP, apIP, netMsk);
+  if (!WiFi.softAPConfig(apIP, apIP, netMsk)){
+    dbg(startupDBG,"WARNING: Failed to set AP IP");
+  }
   WiFi.softAP(apSSID,"wegrowdotsocial");
   dln(startupDBG, "Soft AP started");
 }
@@ -442,10 +448,6 @@ void printIPs() {
 }
 void startWebServer() {
   webServer.on("/", handle_root);
-  webServer.on("/generate_204", handle_root); // Android support
-  webServer.on("/L0", handle_root);
-  webServer.on("/L2", handle_root);
-  webServer.on("/ALL", handle_root);
   webServer.onNotFound(handleNotFound);
   webServer.on("/wifi", handle_wifi);
   webServer.on("/elfstatus", handle_elfstatus);
