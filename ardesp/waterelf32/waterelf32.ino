@@ -1039,7 +1039,7 @@ void getLevel(int echoPin, long* waterLevel) {
   duration = pulseIn(echoPin, HIGH, TIMEOUT);   // wait for response
 
   (*waterLevel) = (duration/2) / 29.1;
-  delay(35);                                    // anti-interference measure
+  delay(60);                                    // anti-interference measure
 
   dbg(monitorDBG, "Water Level: ");
   dbg(monitorDBG, *waterLevel);
