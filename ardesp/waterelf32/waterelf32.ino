@@ -103,9 +103,9 @@ typedef struct {
   float airHumid;
   uint16_t lux;
   float pH;
-  long waterLevel1; // TODO should be an array
-  long waterLevel2;
-  long waterLevel3;
+  long waterLevel[5]; // TODO should be an array
+  //long waterLevel2;
+  //long waterLevel3;
   float analog;
 } monitor_t;
 monitor_t monitorData[MONITOR_POINTS];
@@ -279,9 +279,11 @@ class Valve { // each valve /////////////////////////////////////////////////
   bool full(monitor_t *now) {
     int l = -1;
     switch(number) {
-      case 1: l = now->waterLevel1; break;
-      case 2: l = now->waterLevel2; break;
-      case 3: l = now->waterLevel3; break;
+      case 1: l = now->waterLevel[0]; break;
+      case 2: l = now->waterLevel[1]; break;
+      case 3: l = now->waterLevel[2]; break;
+      case 4: l = now->waterLevel[3]; break;
+      case 5: l = now->waterLevel[4]; break;
     }
     dbg(valveDBG, "full? l = "); dln(valveDBG, l);
 
@@ -394,13 +396,17 @@ void loop() {
     if(GOT_LIGHT_SENSOR) { getLight(&now->lux);         yield(); }
     if(GOT_PH_SENSOR) { getPH(&now->pH);                yield(); }
     if(GOT_LEVEL_SENSOR) {
-      getLevel(LEVEL_ECHO_PIN1, &now->waterLevel1);     yield();
-      getLevel(LEVEL_ECHO_PIN2, &now->waterLevel2);     yield();
-      getLevel(LEVEL_ECHO_PIN3, &now->waterLevel3);     yield();
+      getLevel(LEVEL_ECHO_PIN1, &now->waterLevel[0]);     yield();
+      getLevel(LEVEL_ECHO_PIN2, &now->waterLevel[1]);     yield();
+      getLevel(LEVEL_ECHO_PIN3, &now->waterLevel[2]);     yield();
+      getLevel(LEVEL_ECHO_PIN3, &now->waterLevel[3]);     yield();
+      getLevel(LEVEL_ECHO_PIN3, &now->waterLevel[4]);     yield();
       dln(valveDBG, "");
-      dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel1);
-      dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel2);
-      dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel3);
+      dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel[0]);
+      dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel[1]);
+      dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel[2]);
+      dbg(valveDBG, "; wL4: "); dln(valveDBG, now->waterLevel[3]);
+      dbg(valveDBG, "; wL5: "); dln(valveDBG, now->waterLevel[4]);
     }
     if(GOT_ANALOG_SENSOR) { getAnalog(&now->analog);    yield(); }
 
@@ -942,11 +948,15 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
     buf->concat(m->pH);
   }
   if(GOT_LEVEL_SENSOR){
-    buf->concat("^ ~waterLevel1~+ "); buf->concat(m->waterLevel1);
+    buf->concat("^ ~waterLevel1~+ "); buf->concat(m->waterLevel[0]);
     if(! JSON) buf->concat("\tcm");
-    buf->concat("^ ~waterLevel2~+ "); buf->concat(m->waterLevel2);
+    buf->concat("^ ~waterLevel2~+ "); buf->concat(m->waterLevel[1]);
     if(! JSON) buf->concat("\tcm");
-    buf->concat("^ ~waterLevel3~+ "); buf->concat(m->waterLevel3);
+    buf->concat("^ ~waterLevel3~+ "); buf->concat(m->waterLevel[2]);
+    if(! JSON) buf->concat("\tcm");
+    buf->concat("^ ~waterLevel4~+ "); buf->concat(m->waterLevel[3]);
+    if(! JSON) buf->concat("\tcm");
+    buf->concat("^ ~waterLevel5~+ "); buf->concat(m->waterLevel[4]);
     if(! JSON) buf->concat("\tcm");
   }
   if(GOT_ANALOG_SENSOR){
