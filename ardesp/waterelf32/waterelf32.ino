@@ -185,6 +185,8 @@ const int LEVEL_TRIG_PIN=25;
 const int LEVEL_ECHO_PIN1=34;
 const int LEVEL_ECHO_PIN2=34;
 const int LEVEL_ECHO_PIN3=34;
+const int LEVEL_ECHO_PIN4=34;
+const int LEVEL_ECHO_PIN5=34;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -399,8 +401,8 @@ void loop() {
       getLevel(LEVEL_ECHO_PIN1, &now->waterLevel[0]);     yield();
       getLevel(LEVEL_ECHO_PIN2, &now->waterLevel[1]);     yield();
       getLevel(LEVEL_ECHO_PIN3, &now->waterLevel[2]);     yield();
-      getLevel(LEVEL_ECHO_PIN3, &now->waterLevel[3]);     yield();
-      getLevel(LEVEL_ECHO_PIN3, &now->waterLevel[4]);     yield();
+      getLevel(LEVEL_ECHO_PIN4, &now->waterLevel[3]);     yield();
+      getLevel(LEVEL_ECHO_PIN5, &now->waterLevel[4]);     yield();
       dln(valveDBG, "");
       dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel[0]);
       dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel[1]);
@@ -835,6 +837,8 @@ void startPeripherals() {
   pinMode(LEVEL_ECHO_PIN1, INPUT);
   pinMode(LEVEL_ECHO_PIN2, INPUT);
   pinMode(LEVEL_ECHO_PIN3, INPUT);
+  pinMode(LEVEL_ECHO_PIN4, INPUT);
+  pinMode(LEVEL_ECHO_PIN5, INPUT);
   GOT_LEVEL_SENSOR = true;
 
   Wire.begin();
