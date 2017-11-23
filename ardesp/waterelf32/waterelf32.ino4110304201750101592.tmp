@@ -403,7 +403,6 @@ void loop() {
       getLevel(LEVEL_ECHO_PIN3, &now->waterLevel[2]);     yield();
       getLevel(LEVEL_ECHO_PIN4, &now->waterLevel[3]);     yield();
       getLevel(LEVEL_ECHO_PIN5, &now->waterLevel[4]);     yield();
-      cleanWaterLevel = cleanWaterData(waterLevel);       yield();
       dln(valveDBG, "");
       dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel[0]);
       dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel[1]);
@@ -963,8 +962,6 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
     if(! JSON) buf->concat("\tcm");
     buf->concat("^ ~waterLevel5~+ "); buf->concat(m->waterLevel[4]);
     if(! JSON) buf->concat("\tcm");
-    buf->concat("^ ~cleanWaterLevel~+ "); buf->concat(m->cleanWaterLevel);
-    if(! JSON) buf->concat("\tcm");
   }
   if(GOT_ANALOG_SENSOR){
     buf->concat("^ ~analog~+ ");
@@ -1079,7 +1076,7 @@ void getAnalog(float* a) {
 }
 
 long cleanWaterData(long* waterLevel) { /* Data cleanup of waterLevel array
-  Returns a mean that excludes extreme numbers*/
+  Sets cleanWaterLevel to a mean that excludes extreme numbers*/
   
   long mean, variance, stdDev, runningSum = 0, varianceSum = 0, cleanSum = 0, cleanCount = 0;
   
@@ -1115,10 +1112,7 @@ long cleanWaterData(long* waterLevel) { /* Data cleanup of waterLevel array
     }
   }
 
-  dbg(monitorDBG, "Cleaned mean: ");
-  dln(monitorDBG, cleanSum/cleanCount);
-
-  return cleanSum/cleanCount;
+  return = cleanSum/cleanCount;
   
 }
 
