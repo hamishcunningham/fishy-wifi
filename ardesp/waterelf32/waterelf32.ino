@@ -1084,12 +1084,11 @@ long cleanWaterData(long levelAray[], int arayCount) { /* Data cleanup of waterL
   Takes array of water levels and the array size as arguments*/
   
   long mean, variance, stdDev, runningSum = 0, varianceSum = 0, cleanSum = 0, cleanCount = 0;
-  //long* ptr1 = levelAray, ptr2 = levelAray, ptr3 = levelAray;
   
   for(int i = 0; i < arayCount; i++) {
     runningSum += levelAray[i]; // Compute sum of elements
-    //ptr1++;
   }
+  
   dbg(cleanerDBG, "runningSum: ");
   dln(cleanerDBG, runningSum);
 
@@ -1098,7 +1097,6 @@ long cleanWaterData(long levelAray[], int arayCount) { /* Data cleanup of waterL
   // Compute variance and standard deviation
   for(int i = 0; i < arayCount; i++) {
     varianceSum += pow((levelAray[i] - mean), 2);
-    //*ptr2++;
   }
   variance = varianceSum/arayCount;
   stdDev = sqrt(variance);
@@ -1117,18 +1115,17 @@ long cleanWaterData(long levelAray[], int arayCount) { /* Data cleanup of waterL
     if(sqrt(pow(levelAray[i] - mean, 2)) <= stdDev) {
       cleanSum += levelAray[i];
       cleanCount++;
-      //*ptr3++;
     }
   }
 
 
   if (cleanCount == 0) {
-    dln(monitorDBG, "Data variance too high to clean");
+    dln(cleanerDBG, "Data variance too high to clean");
     return mean;
     
   } else {
-    dbg(monitorDBG, "Cleaned mean: ");
-    dln(monitorDBG, cleanSum/cleanCount);
+    dbg(cleanerDBG, "Cleaned mean: ");
+    dln(cleanerDBG, cleanSum/cleanCount);
     return cleanSum/cleanCount;
   }
   
