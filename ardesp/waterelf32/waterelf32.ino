@@ -131,6 +131,7 @@ String ip2str(IPAddress address);
 #define miscDBG true
 #define citsciDBG false
 #define analogDBG true
+#define cleanerDBG true
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
@@ -403,7 +404,7 @@ void loop() {
       getLevel(LEVEL_ECHO_PIN3, &now->waterLevel[2]);     yield();
       getLevel(LEVEL_ECHO_PIN4, &now->waterLevel[3]);     yield();
       getLevel(LEVEL_ECHO_PIN5, &now->waterLevel[4]);     yield();
-      &now->cleanWaterLevel = cleanWaterData(&now->waterLevel, WATER_READINGS); yield();
+      now->cleanWaterLevel = cleanWaterData(now->waterLevel, WATER_READINGS); yield();
       dln(valveDBG, "");
       dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel[0]);
       dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel[1]);
@@ -1078,45 +1079,45 @@ void getAnalog(float* a) {
   return;
 }
 
-long cleanWaterData(long* levelAray, int arayCount) { /* Data cleanup of waterLevel array
+long cleanWaterData(long levelAray[], int arayCount) { /* Data cleanup of waterLevel array
   Returns a mean that excludes extreme numbers
   Takes array of water levels and the array size as arguments*/
   
   long mean, variance, stdDev, runningSum = 0, varianceSum = 0, cleanSum = 0, cleanCount = 0;
-  long* ptr1 = levelAray, ptr2 = levelAray, ptr3 = levelAray;
+  //long* ptr1 = levelAray, ptr2 = levelAray, ptr3 = levelAray;
   
   for(int i = 0; i < arayCount; i++) {
-    runningSum += *ptr1; // Compute sum of elements
-    ptr1++;
+    runningSum += levelAray[i]; // Compute sum of elements
+    //ptr1++;
   }
-  dbg(monitorDBG, "runningSum: ");
-  dln(monitorDBG, runningSum);
+  dbg(cleanerDBG, "runningSum: ");
+  dln(cleanerDBG, runningSum);
 
   mean = runningSum / (float)arayCount; 
 
   // Compute variance and standard deviation
   for(int i = 0; i < arayCount; i++) {
-    varianceSum += pow((*ptr2 - mean), 2);
-    *ptr2++;
+    varianceSum += pow((levelAray[i] - mean), 2);
+    //*ptr2++;
   }
   variance = varianceSum/arayCount;
   stdDev = sqrt(variance);
   
-  dbg(monitorDBG, "Water level mean: ");
-  dln(monitorDBG, mean);
-  dbg(monitorDBG, "Variance sum: ");
-  dln(monitorDBG, varianceSum);
-  dbg(monitorDBG, "Variance: ");
-  dln(monitorDBG, variance);
-  dbg(monitorDBG, "Standard deviation: ");
-  dln(monitorDBG, stdDev);
+  dbg(cleanerDBG, "Water level mean: ");
+  dln(cleanerDBG, mean);
+  dbg(cleanerDBG, "Variance sum: ");
+  dln(cleanerDBG, varianceSum);
+  dbg(cleanerDBG, "Variance: ");
+  dln(cleanerDBG, variance);
+  dbg(cleanerDBG, "Standard deviation: ");
+  dln(cleanerDBG, stdDev);
 
   // Compute a mean that excludes extreme values
   for(int i = 0; i < arayCount; i++) {
-    if(sqrt(pow(*ptr3 - mean, 2)) <= stdDev) {
-      cleanSum += *ptr3;
+    if(sqrt(pow(levelAray[i] - mean, 2)) <= stdDev) {
+      cleanSum += levelAray[i];
       cleanCount++;
-      *ptr3++;
+      //*ptr3++;
     }
   }
 
