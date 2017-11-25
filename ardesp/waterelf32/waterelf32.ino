@@ -403,7 +403,7 @@ void loop() {
       getLevel(LEVEL_ECHO_PIN3, &now->waterLevel[2]);     yield();
       getLevel(LEVEL_ECHO_PIN4, &now->waterLevel[3]);     yield();
       getLevel(LEVEL_ECHO_PIN5, &now->waterLevel[4]);     yield();
-      cleanWaterLevel = cleanWaterData(waterLevel);       yield();
+      &now->cleanWaterLevel = cleanWaterData(&now->waterLevel, WATER_READINGS); yield();
       dln(valveDBG, "");
       dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel[0]);
       dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel[1]);
@@ -1078,24 +1078,28 @@ void getAnalog(float* a) {
   return;
 }
 
-long cleanWaterData(long* waterLevel) { /* Data cleanup of waterLevel array
-  Returns a mean that excludes extreme numbers*/
+long cleanWaterData(long* levelAray, int arayCount) { /* Data cleanup of waterLevel array
+  Returns a mean that excludes extreme numbers
+  Takes array of water levels and the array size as arguments*/
   
   long mean, variance, stdDev, runningSum = 0, varianceSum = 0, cleanSum = 0, cleanCount = 0;
+  long* ptr1 = levelAray, ptr2 = levelAray, ptr3 = levelAray;
   
-  for(int i = 0; i < WATER_READINGS; i++) {
-    runningSum += waterLevel[i]; // Compute sum of elements
+  for(int i = 0; i < arayCount; i++) {
+    runningSum += *ptr1; // Compute sum of elements
+    ptr1++;
   }
   dbg(monitorDBG, "runningSum: ");
   dln(monitorDBG, runningSum);
 
-  mean = runningSum / (float)WATER_READINGS; 
+  mean = runningSum / (float)arayCount; 
 
   // Compute variance and standard deviation
-  for(int i = 0; i < WATER_READINGS; i++) {
-    varianceSum += pow((waterLevel[i] - mean), 2);
+  for(int i = 0; i < arayCount; i++) {
+    varianceSum += pow((*ptr2 - mean), 2);
+    *ptr2++;
   }
-  variance = varianceSum/WATER_READINGS;
+  variance = varianceSum/arayCount;
   stdDev = sqrt(variance);
   
   dbg(monitorDBG, "Water level mean: ");
@@ -1108,17 +1112,24 @@ long cleanWaterData(long* waterLevel) { /* Data cleanup of waterLevel array
   dln(monitorDBG, stdDev);
 
   // Compute a mean that excludes extreme values
-  for(int i = 0; i < WATER_READINGS; i++) {
-    if(sqrt(pow(waterLevel[i] - mean, 2)) <= stdDev) {
-      cleanSum += waterLevel[i];
+  for(int i = 0; i < arayCount; i++) {
+    if(sqrt(pow(*ptr3 - mean, 2)) <= stdDev) {
+      cleanSum += *ptr3;
       cleanCount++;
+      *ptr3++;
     }
   }
 
-  dbg(monitorDBG, "Cleaned mean: ");
-  dln(monitorDBG, cleanSum/cleanCount);
 
-  return cleanSum/cleanCount;
+  if (cleanCount == 0) {
+    dln(monitorDBG, "Data variance too high to clean");
+    return mean;
+    
+  } else {
+    dbg(monitorDBG, "Cleaned mean: ");
+    dln(monitorDBG, cleanSum/cleanCount);
+    return cleanSum/cleanCount;
+  }
   
 }
 
