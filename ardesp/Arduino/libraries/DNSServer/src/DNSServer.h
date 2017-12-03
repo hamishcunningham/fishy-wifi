@@ -69,4 +69,3 @@ class DNSServer
     void replyWithCustomCode();
 };
 #endif
-

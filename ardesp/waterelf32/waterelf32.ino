@@ -96,6 +96,7 @@ const char* pageFooter =
 // data monitoring stuff ////////////////////////////////////////////////////
 const boolean SEND_DATA = true;  // turn off posting of data if required here
 const int MONITOR_POINTS = 60; // number of data points to store
+const int READINGS = 5; // Same as size of number arrays, required for generating cleaned number after readings
 typedef struct {
   unsigned long timestamp;
   float waterCelsius;
@@ -103,17 +104,24 @@ typedef struct {
   float airHumid;
   uint16_t lux;
   float pH;
-  long waterLevel[3];
-  long waterLevelOne[5];
-  long waterLevelTwo[5];
-  long waterLevelThree[5];
+  long waterLevel[3]; // Array of cleaned readings from 3 ultrasonic sensor pins
   float analog;
+
+  long waterLevelOne[READINGS];   // 5 readings on first ultrasonic pin, used for cleaning
+  long waterLevelTwo[READINGS];   // 5 readings on second ultrasonic pin, used for cleaning
+  long waterLevelThree[READINGS]; // 5 readings on third ultrasonic pin, used for cleaning
+  float waterCelsReads[READINGS]; // Cleaning array
+  float airCelsReads[READINGS];   // Cleaning array
+  float airHumReads[READINGS];    // Cleaning array
+  uint16_t luxReads[READINGS];    // Cleaning array
+  float pHReads[READINGS];        // Cleaning array
+  float analogReads[READINGS];    // Cleaning array
 } monitor_t;
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
 int monitorSize = 0;
 const int DATA_ENTRIES = 4; // size of /data rpt; must be <= MONITOR_POINTS
-const int READINGS=5; // Same as size of number arrays, required for generating cleaned number after readings
+
 void updateSensorData(monitor_t *monitorData);
 void postSensorData(monitor_t *monitorData);
 void printMonitorEntry(monitor_t m, String* buf);
@@ -388,24 +396,46 @@ void loop() {
     if(monitorSize < MONITOR_POINTS)
       monitorSize++;
     now->timestamp = millis();
+
     if(GOT_TEMP_SENSOR) {
-      getTemperature(&now->waterCelsius);               yield();
+      for(int i=0; i<READINGS; i++){
+        getTemperature(&now->waterCelsReads[i]);     yield();
+      }
+      now->waterCelsius = cleanFloatData(now->waterCelsReads, READINGS); yield();
     }
+
     if(GOT_HUMID_SENSOR) {
-      getHumidity(&now->airCelsius, &now->airHumid);    yield();
+      for(int i=0; i<READINGS; i++){
+        getHumidity(&now->airCelsReads[i], &now->airHumReads[i]);     yield();
+      }
+      now->airCelsius = cleanFloatData(now->airCelsReads, READINGS); yield();
+      now->airHumid = cleanFloatData(now->airHumReads, READINGS); yield();
     }
-    if(GOT_LIGHT_SENSOR) { getLight(&now->lux);         yield(); }
-    if(GOT_PH_SENSOR) { getPH(&now->pH);                yield(); }
+
+    if(GOT_LIGHT_SENSOR) {
+      for(int i=0; i<READINGS; i++){
+        getLight(&now->luxReads[i]);     yield();
+      }
+      now->lux = cleanLuxData(now->luxReads, READINGS); yield();
+    }
+
+    if(GOT_PH_SENSOR) {
+      for(int i=0; i<READINGS; i++){
+        getPH(&now->pHReads[i]);     yield();
+      }
+      now->pH = cleanFloatData(now->pHReads, READINGS); yield();
+    }
+
     if(GOT_LEVEL_SENSOR) {
-      for(i=0; i<5; i++){
+      for(int i=0; i<READINGS; i++){
         getLevel(LEVEL_ECHO_PIN1, &now->waterLevelOne[i]);     yield();
-        }
-      for(i=0; i<5; i++){
+      }
+      for(int i=0; i<READINGS; i++){
         getLevel(LEVEL_ECHO_PIN2, &now->waterLevelTwo[i]);     yield();
-        }
-      for(i=0; i<5; i++){
+      }
+      for(int i=0; i<READINGS; i++){
         getLevel(LEVEL_ECHO_PIN3, &now->waterLevelThree[i]);     yield();
-        }
+      }
       now->waterLevel[0] = cleanLongData(now->waterLevelOne, READINGS); yield();
       now->waterLevel[1] = cleanLongData(now->waterLevelTwo, READINGS); yield();
       now->waterLevel[2] = cleanLongData(now->waterLevelThree, READINGS); yield();
@@ -413,8 +443,14 @@ void loop() {
       dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel[0]);
       dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel[1]);
       dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel[2]);
+     }
+
+    if(GOT_ANALOG_SENSOR) {
+      for(int i=0; i<READINGS; i++){
+        getAnalog(&now->analogReads[i]);     yield();
+      }
+      now->analog = cleanFloatData(now->analogReads, READINGS); yield();
     }
-    if(GOT_ANALOG_SENSOR) { getAnalog(&now->analog);    yield(); }
 
     flowController.step(now); yield();  // set valves on and off etc.
     if(SEND_DATA) {                     // push data to the cloud
@@ -960,12 +996,6 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
     if(! JSON) buf->concat("\tcm");
     buf->concat("^ ~waterLevel3~+ "); buf->concat(m->waterLevel[2]);
     if(! JSON) buf->concat("\tcm");
-    buf->concat("^ ~waterLevel4~+ "); buf->concat(m->waterLevel[3]);
-    if(! JSON) buf->concat("\tcm");
-    buf->concat("^ ~waterLevel5~+ "); buf->concat(m->waterLevel[4]);
-    if(! JSON) buf->concat("\tcm");
-    buf->concat("^ ~cleanWaterLevel~+ "); buf->concat(m->cleanWaterLevel);
-    if(! JSON) buf->concat("\tcm");
   }
   if(GOT_ANALOG_SENSOR){
     buf->concat("^ ~analog~+ ");
@@ -1176,6 +1206,58 @@ float cleanFloatData(float numAray[], int arayCount) { /* Data cleanup of arrays
     dln(cleanerDBG, "Data variance too high to clean");
     return 0;
     
+  } else {
+    dbg(cleanerDBG, "Cleaned mean: ");
+    dln(cleanerDBG, cleanSum/cleanCount);
+    return cleanSum/cleanCount;
+  }
+}
+
+uint16_t cleanLuxData(uint16_t numAray[], int arayCount) { /* Data cleanup of arrays
+  Returns a mean that excludes extreme numbers
+  Takes array of uint16_t (used for lux readings) and the array size as arguments
+  If array variance is too high, it returns a 0 to avoid ruining Adafruit feed graphs*/
+
+  float mean, variance, stdDev, runningSum = 0, varianceSum = 0, cleanSum = 0, cleanCount = 0;
+
+  for(int i = 0; i < arayCount; i++) {
+    runningSum += numAray[i]; // Compute sum of elements
+  }
+
+  dbg(cleanerDBG, "runningSum: ");
+  dln(cleanerDBG, runningSum);
+
+  mean = runningSum / (uint16_t)arayCount;
+
+  // Compute variance and standard deviation
+  for(int i = 0; i < arayCount; i++) {
+    varianceSum += pow((numAray[i] - mean), 2);
+  }
+  variance = varianceSum/arayCount;
+  stdDev = sqrt(variance);
+
+  dbg(cleanerDBG, "Mean: ");
+  dln(cleanerDBG, mean);
+  dbg(cleanerDBG, "Variance sum: ");
+  dln(cleanerDBG, varianceSum);
+  dbg(cleanerDBG, "Variance: ");
+  dln(cleanerDBG, variance);
+  dbg(cleanerDBG, "Standard deviation: ");
+  dln(cleanerDBG, stdDev);
+
+  // Compute a mean that excludes extreme values
+  for(int i = 0; i < arayCount; i++) {
+    if(sqrt(pow(numAray[i] - mean, 2)) <= stdDev) {
+      cleanSum += numAray[i];
+      cleanCount++;
+    }
+  }
+
+
+  if (cleanCount == 0) {
+    dln(cleanerDBG, "Data variance too high to clean");
+    return 0;
+
   } else {
     dbg(cleanerDBG, "Cleaned mean: ");
     dln(cleanerDBG, cleanSum/cleanCount);

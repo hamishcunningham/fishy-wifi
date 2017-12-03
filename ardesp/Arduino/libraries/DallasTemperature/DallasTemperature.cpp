@@ -349,7 +349,7 @@ bool DallasTemperature::requestTemperaturesByAddress(const uint8_t* deviceAddres
 
 // Continue to check if the IC has responded with a temperature
 void DallasTemperature::blockTillConversionComplete(uint8_t bitResolution, const uint8_t* deviceAddress){
-    
+
     int delms = millisToWaitForConversion(bitResolution);
     if (deviceAddress != NULL && checkForConversion && !parasite){
         unsigned long now = millis();
@@ -357,7 +357,7 @@ void DallasTemperature::blockTillConversionComplete(uint8_t bitResolution, const
     } else {
         delay(delms);
     }
-    
+
 }
 
 // returns number of milliseconds to wait till conversion is complete (based on IC datasheet)

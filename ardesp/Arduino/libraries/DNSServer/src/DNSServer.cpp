@@ -162,4 +162,3 @@ void DNSServer::replyWithCustomCode()
   _udp.write(_buffer, sizeof(DNSHeader));
   _udp.endPacket();
 }
-

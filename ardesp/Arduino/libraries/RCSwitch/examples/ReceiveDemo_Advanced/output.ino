@@ -49,4 +49,3 @@ static char* bin2tristate(char* bin) {
   returnValue[pos2] = '\0';
   return returnValue;
 }
-

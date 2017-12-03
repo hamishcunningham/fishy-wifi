@@ -32,7 +32,7 @@ def validate_elf_existance(elf):
 def validate_date_format(date):
     _setwd_input()
     """Make sure a date is in the YYYY-MM-DD format
-    
+
        This format is set assuming that the elf text files use this date format
     """
     try:
@@ -69,14 +69,14 @@ def load_elf_data(elf, date):
     with open(filepath) as f:
         frame = pd.read_json('[%s]' % ','.join(f.readlines()))
 
-    frame['file_date'] = date 
+    frame['file_date'] = date
     frame['elf_id'] = elf
     return frame
 
 def try_load_elf_data(elf, date, die_on_missing):
     _setwd_input()
     """Return data for a given elf on a given date.
-    
+
        die_on_missing boolean flag controls whether or not the program
        should raise an exception if the file cannot be opened.
     """
@@ -130,7 +130,7 @@ def load_elves_data_last_n_days(elves, n_days, die_on_missing=True, today_date_o
         concat_for_date = load_elves_data(elves, date, die_on_missing=die_on_missing)
         if concat_for_date is not None:
             concat_date_frames.append(concat_for_date)
-    
+
     if concat_date_frames:
         return pd.concat(concat_date_frames)
     return None
@@ -142,4 +142,3 @@ if __name__ == "__main__":
     date = "2016-12-20"
     frame = load_elves_data_last_n_days(elves, 5, die_on_missing=False, today_date_override=date)
     print set(frame.file_date)
-
