@@ -103,15 +103,17 @@ typedef struct {
   float airHumid;
   uint16_t lux;
   float pH;
-  long waterLevel[5];
-  long cleanWaterLevel;
+  long waterLevel[3];
+  long waterLevelOne[5];
+  long waterLevelTwo[5];
+  long waterLevelThree[5];
   float analog;
 } monitor_t;
 monitor_t monitorData[MONITOR_POINTS];
 int monitorCursor = 0;
 int monitorSize = 0;
 const int DATA_ENTRIES = 4; // size of /data rpt; must be <= MONITOR_POINTS
-const int WATER_READINGS=5; // Same as size of waterLevel array, required for array cleanup after readings
+const int READINGS=5; // Same as size of number arrays, required for generating cleaned number after readings
 void updateSensorData(monitor_t *monitorData);
 void postSensorData(monitor_t *monitorData);
 void printMonitorEntry(monitor_t m, String* buf);
@@ -186,8 +188,6 @@ const int LEVEL_TRIG_PIN=25;
 const int LEVEL_ECHO_PIN1=34;
 const int LEVEL_ECHO_PIN2=34;
 const int LEVEL_ECHO_PIN3=34;
-const int LEVEL_ECHO_PIN4=34;
-const int LEVEL_ECHO_PIN5=34;
 boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -285,8 +285,6 @@ class Valve { // each valve /////////////////////////////////////////////////
       case 1: l = now->waterLevel[0]; break;
       case 2: l = now->waterLevel[1]; break;
       case 3: l = now->waterLevel[2]; break;
-      case 4: l = now->waterLevel[3]; break;
-      case 5: l = now->waterLevel[4]; break;
     }
     dbg(valveDBG, "full? l = "); dln(valveDBG, l);
 
@@ -399,18 +397,22 @@ void loop() {
     if(GOT_LIGHT_SENSOR) { getLight(&now->lux);         yield(); }
     if(GOT_PH_SENSOR) { getPH(&now->pH);                yield(); }
     if(GOT_LEVEL_SENSOR) {
-      getLevel(LEVEL_ECHO_PIN1, &now->waterLevel[0]);     yield();
-      getLevel(LEVEL_ECHO_PIN2, &now->waterLevel[1]);     yield();
-      getLevel(LEVEL_ECHO_PIN3, &now->waterLevel[2]);     yield();
-      getLevel(LEVEL_ECHO_PIN4, &now->waterLevel[3]);     yield();
-      getLevel(LEVEL_ECHO_PIN5, &now->waterLevel[4]);     yield();
-      now->cleanWaterLevel = cleanWaterData(now->waterLevel, WATER_READINGS); yield();
+      for(i=0; i<5; i++){
+        getLevel(LEVEL_ECHO_PIN1, &now->waterLevelOne[i]);     yield();
+        }
+      for(i=0; i<5; i++){
+        getLevel(LEVEL_ECHO_PIN2, &now->waterLevelTwo[i]);     yield();
+        }
+      for(i=0; i<5; i++){
+        getLevel(LEVEL_ECHO_PIN3, &now->waterLevelThree[i]);     yield();
+        }
+      now->waterLevel[0] = cleanLongData(now->waterLevelOne, READINGS); yield();
+      now->waterLevel[1] = cleanLongData(now->waterLevelTwo, READINGS); yield();
+      now->waterLevel[2] = cleanLongData(now->waterLevelThree, READINGS); yield();
       dln(valveDBG, "");
       dbg(valveDBG, "wL1: "); dbg(valveDBG, now->waterLevel[0]);
       dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel[1]);
       dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel[2]);
-      dbg(valveDBG, "; wL4: "); dln(valveDBG, now->waterLevel[3]);
-      dbg(valveDBG, "; wL5: "); dln(valveDBG, now->waterLevel[4]);
     }
     if(GOT_ANALOG_SENSOR) { getAnalog(&now->analog);    yield(); }
 
@@ -839,8 +841,6 @@ void startPeripherals() {
   pinMode(LEVEL_ECHO_PIN1, INPUT);
   pinMode(LEVEL_ECHO_PIN2, INPUT);
   pinMode(LEVEL_ECHO_PIN3, INPUT);
-  pinMode(LEVEL_ECHO_PIN4, INPUT);
-  pinMode(LEVEL_ECHO_PIN5, INPUT);
   GOT_LEVEL_SENSOR = true;
 
   Wire.begin();
@@ -1079,14 +1079,15 @@ void getAnalog(float* a) {
   return;
 }
 
-long cleanWaterData(long levelAray[], int arayCount) { /* Data cleanup of waterLevel array
+long cleanLongData(long numAray[], int arayCount) { /* Data cleanup of arrays
   Returns a mean that excludes extreme numbers
-  Takes array of water levels and the array size as arguments*/
+  Takes array of floats and the array size as arguments
+  If array variance is too high, it returns a 0 to avoid ruining Adafruit feed graphs*/
   
   long mean, variance, stdDev, runningSum = 0, varianceSum = 0, cleanSum = 0, cleanCount = 0;
   
   for(int i = 0; i < arayCount; i++) {
-    runningSum += levelAray[i]; // Compute sum of elements
+    runningSum += numAray[i]; // Compute sum of elements
   }
   
   dbg(cleanerDBG, "runningSum: ");
@@ -1096,12 +1097,12 @@ long cleanWaterData(long levelAray[], int arayCount) { /* Data cleanup of waterL
 
   // Compute variance and standard deviation
   for(int i = 0; i < arayCount; i++) {
-    varianceSum += pow((levelAray[i] - mean), 2);
+    varianceSum += pow((numAray[i] - mean), 2);
   }
   variance = varianceSum/arayCount;
   stdDev = sqrt(variance);
   
-  dbg(cleanerDBG, "Water level mean: ");
+  dbg(cleanerDBG, "Mean: ");
   dln(cleanerDBG, mean);
   dbg(cleanerDBG, "Variance sum: ");
   dln(cleanerDBG, varianceSum);
@@ -1112,8 +1113,8 @@ long cleanWaterData(long levelAray[], int arayCount) { /* Data cleanup of waterL
 
   // Compute a mean that excludes extreme values
   for(int i = 0; i < arayCount; i++) {
-    if(sqrt(pow(levelAray[i] - mean, 2)) <= stdDev) {
-      cleanSum += levelAray[i];
+    if(sqrt(pow(numAray[i] - mean, 2)) <= stdDev) {
+      cleanSum += numAray[i];
       cleanCount++;
     }
   }
@@ -1121,14 +1122,65 @@ long cleanWaterData(long levelAray[], int arayCount) { /* Data cleanup of waterL
 
   if (cleanCount == 0) {
     dln(cleanerDBG, "Data variance too high to clean");
-    return mean;
+    return 0;
     
   } else {
     dbg(cleanerDBG, "Cleaned mean: ");
     dln(cleanerDBG, cleanSum/cleanCount);
     return cleanSum/cleanCount;
   }
+}
+
+float cleanFloatData(float numAray[], int arayCount) { /* Data cleanup of arrays
+  Returns a mean that excludes extreme numbers
+  Takes array of longs and the array size as arguments
+  If array variance is too high, it returns a 0 to avoid ruining Adafruit feed graphs*/
   
+  float mean, variance, stdDev, runningSum = 0, varianceSum = 0, cleanSum = 0, cleanCount = 0;
+  
+  for(int i = 0; i < arayCount; i++) {
+    runningSum += numAray[i]; // Compute sum of elements
+  }
+  
+  dbg(cleanerDBG, "runningSum: ");
+  dln(cleanerDBG, runningSum);
+
+  mean = runningSum / (float)arayCount; 
+
+  // Compute variance and standard deviation
+  for(int i = 0; i < arayCount; i++) {
+    varianceSum += pow((numAray[i] - mean), 2);
+  }
+  variance = varianceSum/arayCount;
+  stdDev = sqrt(variance);
+  
+  dbg(cleanerDBG, "Mean: ");
+  dln(cleanerDBG, mean);
+  dbg(cleanerDBG, "Variance sum: ");
+  dln(cleanerDBG, varianceSum);
+  dbg(cleanerDBG, "Variance: ");
+  dln(cleanerDBG, variance);
+  dbg(cleanerDBG, "Standard deviation: ");
+  dln(cleanerDBG, stdDev);
+
+  // Compute a mean that excludes extreme values
+  for(int i = 0; i < arayCount; i++) {
+    if(sqrt(pow(numAray[i] - mean, 2)) <= stdDev) {
+      cleanSum += numAray[i];
+      cleanCount++;
+    }
+  }
+
+
+  if (cleanCount == 0) {
+    dln(cleanerDBG, "Data variance too high to clean");
+    return 0;
+    
+  } else {
+    dbg(cleanerDBG, "Cleaned mean: ");
+    dln(cleanerDBG, cleanSum/cleanCount);
+    return cleanSum/cleanCount;
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////
