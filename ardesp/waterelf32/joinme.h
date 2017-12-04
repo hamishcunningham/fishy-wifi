@@ -2,7 +2,7 @@
 #define JOINME_H
 
 #ifdef ESP32
-#include <ESPWebServer.h>
+#include <ESPAsyncWebServer.h>
 #elif
 #include <ESP8266WebServer.h>
 typedef ESP8266WebServer ESPWebServer;
@@ -15,7 +15,7 @@ void joinme_dhcps_hack();
  * You *must* regularly call joinme_turn and server.handleClient()
  * server *must* live until after you last call joinme_turn
  */
-void joinme_setup(ESPWebServer* server, IPAddress apIP);
+void joinme_setup(AsyncWebServer* server, IPAddress apIP);
 //joinme_turn must be run once per main loop iteration
 void joinme_turn();
 
