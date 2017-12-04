@@ -967,15 +967,15 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
   }
 }
 void getTemperature(float* waterCelsius) {
-  portDISABLE_INTERRUPTS();
+  taskDISABLE_INTERRUPTS();
   // send command to get temperatures
   tempSensor.requestTemperaturesByAddress(tempAddr);
-  portENABLE_INTERRUPTS();
+  taskENABLE_INTERRUPTS();
   //these interrupt disables are separate as we don't care about interrupts
   //between readings
-  portDISABLE_INTERRUPTS();
+  taskDISABLE_INTERRUPTS();
   (*waterCelsius) = tempSensor.getTempC(tempAddr);
-  portENABLE_INTERRUPTS();
+  taskENABLE_INTERRUPTS();
   dbg(monitorDBG, "Water temp: ");
   dbg(monitorDBG, *waterCelsius);
   dln(monitorDBG, " C, ");
