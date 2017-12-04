@@ -967,6 +967,9 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
   }
 }
 void getTemperature(float* waterCelsius) {
+  //HACK: we need to manually disable interrupts here because the arduino
+  //      functions `interrupts` and `noInterrupts` are no-ops in esp32-arduino
+  //      see: https://github.com/espressif/arduino-esp32/issues/832
   taskDISABLE_INTERRUPTS();
   // send command to get temperatures
   tempSensor.requestTemperaturesByAddress(tempAddr);
