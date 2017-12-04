@@ -1,11 +1,11 @@
 // AdafruitIFTTT.ino
 // Author - Andrejs Ruzencevs
-#include <WiFi.h>
+//#include <WiFi.h>
 
-WiFiClient wifi;
+static WiFiClient wifi;
 //Adafruit and IFTTT clients
-HttpClient ioClient = HttpClient(wifi, "io.adafruit.com", 80);
-HttpClient IFTTTClient = HttpClient(wifi, "maker.ifttt.com", 80);
+static HttpClient ioClient = HttpClient(wifi, "io.adafruit.com", 80);
+static HttpClient IFTTTClient = HttpClient(wifi, "maker.ifttt.com", 80);
 
 bool createAdafruitFeed(String feedName) {
   String io_username = IO_USERNAME;
