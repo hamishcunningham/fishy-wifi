@@ -1,3 +1,12 @@
 [submodule "ardesp/Arduino/libraries/Adafruit_TSL2591_Library"]
 	path = ardesp/Arduino/libraries/Adafruit_TSL2591_Library
 	url = git@github.com:hamishcunningham/Adafruit_TSL2591_Library.git
+[submodule "ardesp/Arduino/libraries/AsyncTCP"]
+	path = ardesp/Arduino/libraries/AsyncTCP
+	url = https://github.com/me-no-dev/AsyncTCP
+[submodule "ardesp/Arduino/libraries/ESPAsyncWebServer"]
+	path = ardesp/Arduino/libraries/ESPAsyncWebServer
+	url = https://github.com/me-no-dev/ESPAsyncWebServer
+[submodule "ardesp/Arduino/hardware/espressif/esp32"]
+	path = ardesp/Arduino/hardware/espressif/esp32
+	url = https://github.com/espressif/arduino-esp32
