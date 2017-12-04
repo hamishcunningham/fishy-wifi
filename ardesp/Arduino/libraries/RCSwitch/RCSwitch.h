@@ -8,7 +8,7 @@
   - Skineffect / http://forum.ardumote.com/viewtopic.php?f=2&t=46
   - Dominik Fischer / dom_fischer(at)web(dot)de
   - Frank Oltmanns / <first name>.<last name>(at)gmail(dot)com
-
+  
   Project home: http://code.google.com/p/rc-switch/
 
   This library is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@
 #if defined(ARDUINO) && ARDUINO >= 100
     #include "Arduino.h"
 #elif defined(ENERGIA) // LaunchPad, FraunchPad and StellarPad specific
-    #include "Energia.h"
+    #include "Energia.h"	
 #else
     #include "WProgram.h"
 #endif
@@ -57,7 +57,7 @@ class RCSwitch {
 
   public:
     RCSwitch();
-
+    
     void switchOn(int nGroupNumber, int nSwitchNumber);
     void switchOff(int nGroupNumber, int nSwitchNumber);
     void switchOn(char* sGroup, int nSwitchNumber);
@@ -72,7 +72,7 @@ class RCSwitch {
     void sendTriState(char* Code);
     void send(unsigned long Code, unsigned int length);
     void send(char* Code);
-
+    
     #if not defined( RCSwitchDisableReceiving )
     void enableReceive(int interrupt);
     void enableReceive();

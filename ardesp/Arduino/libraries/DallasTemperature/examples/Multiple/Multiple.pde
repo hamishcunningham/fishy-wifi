@@ -141,3 +141,4 @@ void loop(void)
   printData(insideThermometer);
   printData(outsideThermometer);
 }
+

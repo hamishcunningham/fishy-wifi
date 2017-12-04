@@ -179,7 +179,7 @@ static const pin_map_t digitalPinMap[] = {
   {&DDRA, &PINA, &PORTA, 2},  // D29 PA2
   {&DDRA, &PINA, &PORTA, 1},  // D30 PA1
   {&DDRA, &PINA, &PORTA, 0}   // D31 PA0
-};
+};                         
 //------------------------------------------------------------------------------
 #elif defined(__AVR_ATmega128RFA1__) && defined(CORE_MICRODUINO)
 // Microduino Core RF
@@ -217,7 +217,7 @@ static const pin_map_t digitalPinMap[] = {
   {&DDRD, &PIND, &PORTD, 0},  // D19 PD0
   {&DDRF, &PINF, &PORTF, 3},  // D20 PF3
   {&DDRF, &PINF, &PORTF, 2},  // D21 PF2
-};
+};                         
 //------------------------------------------------------------------------------
 #elif defined(__AVR_ATmega32U4__) && defined(CORE_MICRODUINO)
 // Microduino Core USB
@@ -255,7 +255,7 @@ static const pin_map_t digitalPinMap[] = {
   {&DDRD, &PIND, &PORTD, 0},  // D19 - PD0
   {&DDRF, &PINF, &PORTF, 1},  // D20 - A6 - PF1
   {&DDRF, &PINF, &PORTF, 0},  // D21 - A7 - PF0
-};
+};               
 //------------------------------------------------------------------------------
 #elif defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644__)
 // Sanguino
