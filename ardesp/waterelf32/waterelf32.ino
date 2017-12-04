@@ -12,6 +12,8 @@
 #include <RCSwitch.h>
 #include "Adafruit_MCP23008.h"
 #include "EmonLib.h" // Emon Library, see openenergymonitor.org
+#include "AdafruitIFTTT.h"
+
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////

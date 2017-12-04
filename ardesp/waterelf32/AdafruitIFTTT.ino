@@ -1,5 +1,11 @@
-// AdafruitIFTTT.cpp
+// AdafruitIFTTT.ino
 // Author - Andrejs Ruzencevs
+#include <WiFi.h>
+
+WiFiClient wifi;
+//Adafruit and IFTTT clients
+HttpClient ioClient = HttpClient(wifi, "io.adafruit.com", 80);
+HttpClient IFTTTClient = HttpClient(wifi, "maker.ifttt.com", 80);
 
 bool createAdafruitFeed(String feedName) {
   String io_username = IO_USERNAME;
@@ -78,7 +84,7 @@ bool createAdafruitIOTrigger(String feedID, String op, int value) {
   postData += ",\"operator\": \"" + op + "\"";
   postData += ",\"value\": " + String(value);
   postData += ",\"action\": \"webhook\"";
-  postData += ",\"action_value\": \"https://maker.ifttt.com/trigger/us_readings/with/key/bIg_ReTcrDg468BFTUNt0v?value1=" + generateUltraSonicFeedName() + "&value2=" + String(value) + "\"";
+  postData += ",\"action_value\": \"https://maker.ifttt.com/trigger/us_readings/with/key/bIg_ReTcrDg468BFTUNt0v?value1=" + generateSensorFeedName("uswe-") + "&value2=" + String(value) + "\"";
   postData += ",\"trigger_type\": \"reactive\"";
   postData += "}";
 

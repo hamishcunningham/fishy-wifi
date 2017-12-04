@@ -3,8 +3,8 @@
 #ifndef AdafruitIFTTT
 #define AdafruitIFTTT
 
-#define IO_USERNAME    "andrisole"
-#define IO_KEY         "63cc3971e9a044c0b7c54dae5a2ffaff"
+#define IO_USERNAME    "ADAFRUITIO_USRNAME"
+#define IO_KEY         "ADAFRUITIO_KEY"
 
 /******************************* WIFI **************************************/
 
@@ -19,15 +19,11 @@
 #define IFTTT_KEY       "<IFTTT_KEY>"
 #define IFTTT_EVENT_NAME       "<IFTTT_EVENT_NAME>"
 #include "AdafruitIO_WiFi.h"
-#include <WiFi.h>
 #include <AdafruitIO_Feed.h>
 #include <ArduinoHttpClient.h>
 // Connecting to Adafruit.IO APIs
 AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
-WiFiClient wifi;
-//Adafruit and IFTTT clients
-HttpClient ioClient = HttpClient(wifi, "io.adafruit.com", 80);
-HttpClient IFTTTClient = HttpClient(wifi, "maker.ifttt.com", 80);
+
 
 // Value for triggering something
 int UltraSonicTriggerValue = 20;
