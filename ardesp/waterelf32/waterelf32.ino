@@ -5,7 +5,7 @@
 #include <ESPWebServer.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <DHT.h>
+#include "DHT.h"
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_TSL2591.h>
