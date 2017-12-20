@@ -29,7 +29,7 @@ pins on header connector, looking from above, tab at top
 pins on board, looking from sensor side, connections at bottom
 
 esp32 pins
-36  air temp/humid
+33  air temp/humid
 27  water temp
 23  i2c SDA
 22  i2c SCL
