@@ -2,7 +2,7 @@
 // waterelf32.ino /////////////////////////////////////////////////////////////
 #include <Preferences.h>
 #include <WiFi.h>
-#include <ESPWebServer.h>
+#include <ESPAsyncWebServer.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include "DHT.h"
@@ -31,7 +31,7 @@ char *getMAC(char *);
 // wifi management stuff ////////////////////////////////////////////////////
 IPAddress apIP(192, 168, 99, 1);
 IPAddress netMsk(255, 255, 255, 0);
-ESPWebServer webServer(80);
+AsyncWebServer webServer(80);
 String apSSIDStr = "WaterElf-" + String(getMAC(MAC_ADDRESS));
 const char* apSSID = apSSIDStr.c_str();
 String svrAddr = ""; // address of a local server TODO delete?
@@ -378,7 +378,6 @@ void setup() {
 // looooooooooooooooooooop //////////////////////////////////////////////////
 void loop() {
   joinme_turn();
-  webServer.handleClient();
 
   if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
     monitor_t* now = &monitorData[monitorCursor];
@@ -464,21 +463,21 @@ void startWebServer() {
   webServer.begin();
   dln(startupDBG, "HTTP server started");
 }
-void handleNotFound() {
+void handleNotFound(AsyncWebServerRequest *request) {
   dbg(netDBG, "URI Not Found: ");
-  dln(netDBG, webServer.uri());
+  dln(netDBG, request->url());
   // TODO send redirect to /? or just use handle_root?
-  webServer.send(200, "text/plain", "URI Not Found");
+  request->send(200, "text/plain", "URI Not Found");
 }
-void handle_root() {
+void handle_root(AsyncWebServerRequest *request) {
   dln(netDBG, "serving page notionally at /");
   String toSend = pageTop;
   toSend += pageTop2;
   toSend += pageDefault;
   toSend += pageFooter;
-  webServer.send(200, "text/html", toSend);
+  request->send(200, "text/html", toSend);
 }
-void handle_data() {
+void handle_data(AsyncWebServerRequest *request) {
   dln(netDBG, "serving page at /data");
   String toSend = pageTop;
   toSend += ": Sensor Data";
@@ -499,7 +498,7 @@ void handle_data() {
 
   toSend += "</pre>\n";
   toSend += pageFooter;
-  webServer.send(200, "text/html", toSend);
+  request->send(200, "text/html", toSend);
 }
 String genAPForm() {
   String f = pageTop;
@@ -549,13 +548,13 @@ String genAPForm() {
   f += pageFooter;
   return f;
 }
-void handle_wifi() {
+void handle_wifi(AsyncWebServerRequest *request) {
   dln(netDBG, "serving page at /wifi");
   String toSend = genAPForm();
-  webServer.send(200, "text/html", toSend);
+  request->send(200, "text/html", toSend);
 }
 
-void handle_elfstatus() {
+void handle_elfstatus(AsyncWebServerRequest *request) {
   dln(netDBG, "serving page at /elfstatus");
 
   String toSend = pageTop;
@@ -602,9 +601,9 @@ void handle_elfstatus() {
   toSend += "</ul></p>";
 
   toSend += pageFooter;
-  webServer.send(200, "text/html", toSend);
+  request->send(200, "text/html", toSend);
 }
-void handle_wfchz() {
+void handle_wfchz(AsyncWebServerRequest *request) {
   dln(netDBG, "serving page at /wfchz");
   String toSend = pageTop;
   toSend += ": joining wifi network";
@@ -612,12 +611,12 @@ void handle_wfchz() {
   String ssid = "";
   String key = "";
 
-  for(uint8_t i = 0; i < webServer.args(); i++ ) {
+  for(uint8_t i = 0; i < request->args(); i++ ) {
     //dln(netDBG, " " + webServer.argName(i) + ": " + webServer.arg(i));
-    if(webServer.argName(i) == "ssid")
-      ssid = webServer.arg(i);
-    else if(webServer.argName(i) == "key")
-      key = webServer.arg(i);
+    if(request->argName(i) == "ssid")
+      ssid = request->arg(i);
+    else if(request->argName(i) == "key")
+      key = request->arg(i);
   }
 
   if(ssid == "") {
@@ -634,8 +633,9 @@ void handle_wfchz() {
   }
 
   toSend += pageFooter;
-  webServer.send(200, "text/html", toSend);
+  request->send(200, "text/html", toSend);
 }
+
 String genServerConfForm() {
   String f = pageTop;
   f += ": Server Config";
@@ -670,32 +670,32 @@ String genAnalogConfForm() {
   f += pageFooter;
   return f;
 }
-void handle_serverconf() {
+void handle_serverconf(AsyncWebServerRequest *request) {
   dln(netDBG, "serving page at /serverconf");
   String toSend = genServerConfForm();
-  webServer.send(200, "text/html", toSend);
+  request->send(200, "text/html", toSend);
 }
-void handle_analogconf() {
+void handle_analogconf(AsyncWebServerRequest *request) {
   dln(netDBG, "serving page at /analogconf");
   String toSend = genAnalogConfForm();
-  webServer.send(200, "text/html", toSend);
+  request->send(200, "text/html", toSend);
 }
-void handle_svrchz() {
+void handle_svrchz(AsyncWebServerRequest *request) {
   dln(netDBG, "serving page at /svrchz");
   String toSend = pageTop;
   toSend += ": data sharing configured";
   toSend += pageTop2;
 
   boolean cloudShare = false;
-  for(uint8_t i = 0; i < webServer.args(); i++) {
-    if(webServer.argName(i) == "svraddr") {
-      svrAddr = webServer.arg(i);
+  for(uint8_t i = 0; i < request->args(); i++) {
+    if(request->argName(i) == "svraddr") {
+      svrAddr = request->arg(i);
       toSend += "<h2>Added local server config...</h2>";
       toSend += "<p>...at ";
       toSend += svrAddr;
       toSend += "</p>";
-    } else if(webServer.argName(i) == "key") {
-      if(webServer.arg(i) == "on")
+    } else if(request->argName(i) == "key") {
+      if(request->arg(i) == "on")
         cloudShare = true;
     }
   }
@@ -708,17 +708,17 @@ void handle_svrchz() {
   // add srvstatus, or roll that into elfstatus, or...?
 
   toSend += pageFooter;
-  webServer.send(200, "text/html", toSend);
+  request->send(200, "text/html", toSend);
 }
-void handle_algchz() {
+void handle_algchz(AsyncWebServerRequest *request) {
   dln(netDBG, "serving page at /algchz");
   String toSend = pageTop;
   toSend += ": analog sensor configured";
   toSend += pageTop2;
 
-  for(uint8_t i = 0; i < webServer.args(); i++) {
-    if(webServer.argName(i) == "analog_sensor") { // remember/persist the type
-      String argVal = webServer.arg(i);
+  for(uint8_t i = 0; i < request->args(); i++) {
+    if(request->argName(i) == "analog_sensor") { // remember/persist the type
+      String argVal = request->arg(i);
       analogSensor = ANALOG_SENSOR_NONE; // the default is...
       GOT_ANALOG_SENSOR = false;         // ...no sensor
       if(argVal == "analog_mains") {
@@ -740,18 +740,18 @@ void handle_algchz() {
 
   toSend += pageFooter;
   dbg(analogDBG, analogSensor); dbg(analogDBG, "\n");
-  webServer.send(200, "text/html", toSend);
+  request->send(200, "text/html", toSend);
 }
-void handle_actuate() {
+void handle_actuate(AsyncWebServerRequest *request) {
   dln(netDBG, "serving page at /actuate");
   String toSend = pageTop;
   toSend += ": Setting Actuator";
   toSend += pageTop2;
 
   boolean newState = false;
-  for(uint8_t i = 0; i < webServer.args(); i++ ) {
-    if(webServer.argName(i) == "state") {
-      if(webServer.arg(i) == "on")
+  for(uint8_t i = 0; i < request->args(); i++ ) {
+    if(request->argName(i) == "state") {
+      if(request->arg(i) == "on")
         newState = true;
     }
   }
@@ -770,12 +770,12 @@ void handle_actuate() {
   toSend += (newState) ? "on" : "off";
   toSend += ".)</p>\n";
   toSend += pageFooter;
-  webServer.send(200, "text/html", toSend);
+  request->send(200, "text/html", toSend);
 }
-void handle_valve1() { handle_valve(0); } // valves in the UI are...
-void handle_valve2() { handle_valve(1); } // ...numbered from 1, but...
-void handle_valve3() { handle_valve(2); } // ...from 0 in the FlowController
-void handle_valve(int valveNum) {
+void handle_valve1(AsyncWebServerRequest *request) { handle_valve(request,0); } // valves in the UI are...
+void handle_valve2(AsyncWebServerRequest *request) { handle_valve(request,1); } // ...numbered from 1, but...
+void handle_valve3(AsyncWebServerRequest *request) { handle_valve(request,2); } // ...from 0 in the FlowController
+void handle_valve(AsyncWebServerRequest *request,int valveNum) {
   dbg(valveDBG, "serving page at /valve");
   dln(valveDBG, valveNum + 1);
   String toSend = pageTop;
@@ -784,9 +784,9 @@ void handle_valve(int valveNum) {
   toSend += pageTop2;
 
   boolean newState = false;
-  for(uint8_t i = 0; i < webServer.args(); i++ ) {
-    if(webServer.argName(i) == "state") {
-      if(webServer.arg(i) == "on")
+  for(uint8_t i = 0; i < request->args(); i++ ) {
+    if(request->argName(i) == "state") {
+      if(request->arg(i) == "on")
         newState = true;
     }
   }
@@ -799,7 +799,7 @@ void handle_valve(int valveNum) {
   toSend += (newState) ? "on" : "off";
   toSend += ".)</p>\n";
   toSend += pageFooter;
-  webServer.send(200, "text/html", toSend);
+  request->send(200, "text/html", toSend);
 }
 
 /////////////////////////////////////////////////////////////////////////////

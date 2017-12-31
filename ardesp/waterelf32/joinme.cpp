@@ -17,28 +17,28 @@ const byte DNS_PORT = 53;
 //browser for sites they were captured from until they cleared their cache
 int TEMPORARY_REDIRECT = 307;
 DNSServer dnsServer;
-ESPWebServer* server_;
 IPAddress apIP_;
 
-void do_redirect(){
+void do_redirect(AsyncWebServerRequest* request){
   Serial.printf(
     "joinme redirecting captured client to: %s",
     apIP_.toString().c_str()
   );
-  server_->sendHeader("Location","http://"+apIP_.toString()+"/");
-  server_->send(TEMPORARY_REDIRECT,"text/plain","");
+  auto response = request->beginResponse(TEMPORARY_REDIRECT,"text/plain","");
+  response->addHeader("Location","http://"+apIP_.toString()+"/");
+  request->send(response);
 }
 
-void handle_L0() {
-  do_redirect();
+void handle_L0(AsyncWebServerRequest* request) {
+  do_redirect(request);
 }
 
-void handle_L2() {
-  do_redirect();
+void handle_L2(AsyncWebServerRequest* request) {
+  do_redirect(request);
 }
 
-void handle_ALL() {
-  do_redirect();
+void handle_ALL(AsyncWebServerRequest* request) {
+  do_redirect(request);
 }
 
 void joinme_dhcps_hack(){
@@ -55,9 +55,8 @@ void joinme_dhcps_hack(){
   );
 }
 
-void joinme_setup(ESPWebServer* server, IPAddress apIP) {
+void joinme_setup(AsyncWebServer* server, IPAddress apIP) {
   assert(server != NULL);
-  server_ = server;
   apIP_ = apIP;
   Serial.printf(
     "joinme will direct captured clients to: %s\n",
@@ -66,10 +65,10 @@ void joinme_setup(ESPWebServer* server, IPAddress apIP) {
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP_);
   Serial.println("joinme captive dns server started");
-  server_->on("/generate_204", do_redirect);  //Android captive portal
-  server_->on("/L0", handle_L0);
-  server_->on("/L2", handle_L2);
-  server_->on("/ALL", handle_ALL);
+  server->on("/generate_204", do_redirect);  //Android captive portal
+  server->on("/L0", handle_L0);
+  server->on("/L2", handle_L2);
+  server->on("/ALL", handle_ALL);
   Serial.println("joinme http handlers added");
 }
 
