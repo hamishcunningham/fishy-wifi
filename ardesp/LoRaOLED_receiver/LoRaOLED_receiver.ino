@@ -44,16 +44,17 @@ void setup() {
   digitalWrite(16, HIGH);
 
   display.init();
-  display.flipScreenVertically();
-  display.setFont(ArialMT_Plain_10);
+  //display.flipScreenVertically();
+  display.setFont(ArialMT_Plain_16);
   display.setTextAlignment(TEXT_ALIGN_LEFT);
   
   Serial.begin(115200);
-  while (!Serial); //if just the the basic function, must connect to a computer
+  //while (!Serial); //if just the the basic function, must connect to a computer
   delay(1000);
   
   Serial.println("LoRa Receiver");
-  display.drawString(5,5,"LoRa Receiver");
+  display.drawString(12,0,"LoRa ListenElf");
+  display.setFont(ArialMT_Plain_10);
   display.display();
   SPI.begin(5,19,27,18);
   LoRa.setPins(SS,RST,DI0);
@@ -83,7 +84,7 @@ void setup() {
 
   LoRa.setCodingRate4(codingRateDenominator);
   
-  display.drawString(5,25,"LoRa Initializing OK!");
+  display.drawString(15,25,"LoRa Initializing OK!");
   display.display();
 }
 
@@ -104,7 +105,7 @@ void loop() {
     while (LoRa.available()) {
       String data = LoRa.readString();
       Serial.print(data);
-      display.drawString(20,0, data);
+      display.drawStringMaxWidth(0, 0, 128, data);
       display.display();
     }
     
@@ -116,8 +117,7 @@ void loop() {
     // display.drawString(0, 45, "RSSI: ");
     // display.drawString(50, 45, (String)LoRa.packetRssi());
     
-    display.drawString(25, 52, (String)LoRa.packetRssi() + "dB (" + (String)LoRa.packetSnr() +"dB)");
-        
+    display.drawString(45, 52, (String)LoRa.packetRssi() + "dB (" + (String)LoRa.packetSnr() +"dB)");
     display.display();
   }
 }

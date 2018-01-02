@@ -23,16 +23,16 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // OLED display stuff ///////////////////////////////////////////////////////
-//#include <SSD1306.h>
+#include <SSD1306.h>
 //OLED pins to ESP32 GPIOs via this connecthin:
 //OLED_SDA — GPIO4
 //OLED_SCL — GPIO15
 //OLED_RST — GPIO16
-//SSD1306 display(0x3c, 4, 15);
+SSD1306 display(0x3c, 4, 15);
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
-#include <DHT.h>
+#include "DHT.h"
 DHT dht(21, DHT22); // pin for humidity/temp data, plus type DHT22 aka AM2302
 float airCelsius, airHumid;
 boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
@@ -40,7 +40,7 @@ boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
 /////////////////////////////////////////////////////////////////////////////
 // light sensor stuff ///////////////////////////////////////////////////////
 #include <Adafruit_Sensor.h>
-#include <Adafruit_TSL2591.h>
+#include "Adafruit_TSL2591.h"
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // sensor id
 int lux;
 boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
@@ -56,25 +56,25 @@ float temp;
 boolean GOT_TEMP_SENSOR = false; // we'll change later if we detect sensor
 
 void setup() {
-  //Wire.begin(4,15);
   pinMode(25,OUTPUT); //Send success, LED will bright 1 second
   
-//  pinMode(16,OUTPUT);
-//  digitalWrite(16, LOW); // set GPIO16 low to reset OLED
-//  delay(50);
-//  digitalWrite(16, HIGH);
+  pinMode(16,OUTPUT);
+  digitalWrite(16, LOW); // set GPIO16 low to reset OLED
+  delay(50);
+  digitalWrite(16, HIGH);
   
   Serial.begin(115200);
 //  while (!Serial); //If just the the basic function, must connect to a computer
 
 // Initialising the UI will init the display too.
-//  display.init();
+  display.init();
   
-//  display.flipScreenVertically();
-//  display.setFont(ArialMT_Plain_10);
-//  display.setTextAlignment(TEXT_ALIGN_LEFT);
-//  display.drawString(5,0,"LoRa Sender");
-//  display.display();
+  //display.flipScreenVertically();
+  display.setFont(ArialMT_Plain_16);
+  display.setTextAlignment(TEXT_ALIGN_LEFT);
+  display.drawString(15,0,"LoRa Sender");
+  display.setFont(ArialMT_Plain_10);
+  display.display();
   Serial.println("LoRa Sender");
 
   SPI.begin(5,19,27,18);
@@ -98,8 +98,8 @@ void setup() {
   LoRa.setPreambleLength(preambleLength);
   
   Serial.println("LoRa Initial OK");
-//  display.drawString(5,10,"LoRa Initializing OK");
-//  display.display();
+  display.drawString(15,20,"LoRa Initializing OK");
+  display.display();
   delay(2000);
 
   byte error;
@@ -126,14 +126,10 @@ void setup() {
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_500MS);
     // tsl.setTiming(TSL2591_INTEGRATIONTIME_600MS); // longest (dim)
    
- // display.setFont(ArialMT_Plain_16);
- // display.drawString(15,0,"LoRa Sender");
- // display.setFont(ArialMT_Plain_10);
-
-//  display.drawString(17,20,"Light sensor found");
+  display.drawString(17,30,"Light sensor found");
   } else {
     Serial.println("NO light sensor!");
-//  display.drawString(17,20,"NO light sensor!");
+  display.drawString(17,30,"NO light sensor!");
   }
   
 taskDISABLE_INTERRUPTS();
@@ -146,10 +142,10 @@ taskDISABLE_INTERRUPTS();
     tempSensor.setResolution(tempAddr, 12); // 12 bit res (DS18B20 does 9-12)
     taskENABLE_INTERRUPTS();
     Serial.println("Temp sensor found");
-  //display.drawString(15,30,"Temp sensor found");
+  display.drawString(15,40,"Temp sensor found");
   } else {
     Serial.println("NO temp sensor!");
-  //display.drawString(15,30,"NO temp sensor!");
+  display.drawString(15,40,"NO temp sensor!");
   }
   
   dht.begin();    // start the humidity and air temperature sensor
@@ -157,13 +153,13 @@ taskDISABLE_INTERRUPTS();
   airCelsius = dht.readTemperature();
   if (isnan(airHumid) || isnan(airCelsius)) {
     Serial.println("NO humidity sensor!");
-//  display.drawString(10,40,"NO humidity sensor!");
+  display.drawString(10,50,"NO humidity sensor!");
   } else {
     GOT_HUMID_SENSOR = true;
     Serial.println("Humidity sensor found");
-//  display.drawString(10,40,"Humidity sensor found");
+  display.drawString(10,50,"Humidity sensor found");
   }
-//display.display();
+  display.display();
   delay(2000);
 }
 
@@ -184,35 +180,35 @@ void loop() {
     airHumid = dht.readHumidity();
   }  
   Serial.print("Sending packet: ");
-//display.clear();
-//display.setFont(ArialMT_Plain_16);
-//display.drawString(10, 0, "Sending packet ");
-//display.setFont(ArialMT_Plain_10);
+  display.clear();
+  display.setFont(ArialMT_Plain_16);
+  display.drawString(10, 0, "Sending packet ");
+  display.setFont(ArialMT_Plain_10);
   LoRa.beginPacket();
   if (GOT_LIGHT_SENSOR) {
     Serial.println(lux);
-//  display.drawString(10, 20, String(lux));
+    display.drawString(10, 20, String(lux));
     LoRa.print("Lux: ");
     LoRa.println(lux); 
   }
   if (GOT_TEMP_SENSOR) {
     Serial.println(temp,1);
-//  display.drawString(10, 35, String(temp,1));
+    display.drawString(10, 35, String(temp,1));
     LoRa.print("Temp: ");
     LoRa.println(temp,1);
   }
   if (GOT_HUMID_SENSOR) {
     Serial.println(airCelsius,1);
     Serial.println(airHumid,1);
-//  display.drawString(50, 35, String(airCelsius,1));
-//  display.drawString(90, 35, String(airHumid,1));
+    display.drawString(50, 35, String(airCelsius,1));
+    display.drawString(90, 35, String(airHumid,1));
     LoRa.print("Air Temp: ");
     LoRa.println(airCelsius,1);
     LoRa.print("Air Humid: ");
     LoRa.println(airHumid,1);
   }
 
-//display.display();
+  display.display();
   LoRa.endPacket();
 
   digitalWrite(25, HIGH); // turn the LED on (HIGH is the voltage level)
