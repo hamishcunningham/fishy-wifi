@@ -363,7 +363,7 @@ void setAdafruitIOuserP(String s);
 AdafruitIO_WiFi *io_p;
 String IO_USERNAME;
 String IO_KEY;
-AdafruitIO_Feed *airtfeed = io_p->feed("AirTemperature");
+AdafruitIO_Feed *airtfeed_p;
 
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
@@ -399,6 +399,7 @@ void setup() {
     IO_USERNAME.toCharArray(iouserchars, IO_USERNAME.length()+1);
     IO_KEY.toCharArray(iokeychars, IO_KEY.length()+1);
     io_p = new AdafruitIO_WiFi(iouserchars, iokeychars, "", "");
+    airtfeed_p = io_p->feed("AirTemperature");
     // connect to io.adafruit.com
     io_p->connect();
 
@@ -1077,7 +1078,7 @@ void postSensorData(monitor_t *monitorData) {
 void pushAdafruitIOData(monitor_t *monitorData) {
   dln(adaDBG, "\npushAdafruitIOData");
   dln(adaDBG, monitorData->airCelsius);
-  airtfeed->save(monitorData->airCelsius);
+  airtfeed_p->save(monitorData->airCelsius);
 }
 
 void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
