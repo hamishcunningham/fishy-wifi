@@ -363,7 +363,7 @@ void setAdafruitIOuserP(String s);
 AdafruitIO_WiFi *io_p;
 String IO_USERNAME;
 String IO_KEY;
-//AdafruitIO_Feed *airtfeed = io_p.feed("AirTemperature");
+AdafruitIO_Feed *airtfeed = io_p->feed("AirTemperature");
 
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
@@ -383,31 +383,31 @@ void setup() {
   }
   dln(loraDBG,"LoRa Receiver");
   
-  WiFi.begin();                 // start client wifi in case we can use stored credentials
+  WiFi.begin();  // start client wifi in case we can use stored credentials
   pinMode(BUILTIN_LED, OUTPUT); // turn built-in LED on
-  blink(3);                     // signal we're starting setup
+  blink(3);           // signal we're starting setup
 
   // read persistent config
-  SPIFFS.begin(true);           // passing (true) triggers format if flash is unpartitioned
+  SPIFFS.begin(true); // passing true triggers format if flash unpartitioned
   svrAddr = getSvrAddrP();
   analogSensor = getAnalogSensorP();
   IO_USERNAME = getAdafruitIOuserP();
   IO_KEY = getAdafruitIOkeyP();
-  if (IO_USERNAME!=""){
+  if (IO_USERNAME!="") {
     char iouserchars[IO_USERNAME.length()+1];
     char iokeychars[IO_KEY.length()+1];
     IO_USERNAME.toCharArray(iouserchars, IO_USERNAME.length()+1);
     IO_KEY.toCharArray(iokeychars, IO_KEY.length()+1);
-//    io_p = & new AdafruitIO_WiFi(iouserchars, iokeychars, "", "");
-//    connect to io.adafruit.com
-//  io.connect();
+    io_p = new AdafruitIO_WiFi(iouserchars, iokeychars, "", "");
+    // connect to io.adafruit.com
+    io_p->connect();
 
-  // wait for a connection
-//  while(io.status() < AIO_CONNECTED) {
-//    dbg(adaDBG,".");
-//    delay(500);
-//    }
-//    dln(adaDBG,io.statusText());
+    // wait for a connection
+    while(io_p->status() < AIO_CONNECTED) {
+      dbg(adaDBG,".");
+      delay(500);
+    }
+    dln(adaDBG, io_p->statusText());
   }
   // start the sensors, the DNS and webserver, etc.
   //startPeripherals();
@@ -463,8 +463,8 @@ void setup() {
 void loop() {
   String data;
   joinme_turn();
-  if (IO_USERNAME!="") {             // service adafruit io if details aren't blank
-    io.run();
+  if (IO_USERNAME != "") {  // service adafruit io if details aren't blank
+    io_p->run();
   }
   if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
     // try to parse packet
@@ -512,7 +512,7 @@ void loop() {
       if(SEND_DATA) {                     // push data to the cloud
         postSensorData(&monitorData[monitorCursor]); yield();
       }
-      if (IO_USERNAME!="") {             // send to adafruit io if details aren't blank
+      if (IO_USERNAME != "") { // send to adafruit io if details aren't blank
         pushAdafruitIOData(&monitorData[monitorCursor]);
       }
     }
@@ -1077,7 +1077,7 @@ void postSensorData(monitor_t *monitorData) {
 void pushAdafruitIOData(monitor_t *monitorData) {
   dln(adaDBG, "\npushAdafruitIOData");
   dln(adaDBG, monitorData->airCelsius);
-  AirTemperature->save(monitorData->airCelsius);
+  airtfeed->save(monitorData->airCelsius);
 }
 
 void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
