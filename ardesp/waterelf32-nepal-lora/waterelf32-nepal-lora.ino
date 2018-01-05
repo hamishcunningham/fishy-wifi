@@ -40,7 +40,7 @@ SSD1306 display(0x3c, 4, 15);
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
 int loopCounter = 0;
-const int LOOP_ROLLOVER = 5000; // how many loops per action slice
+const int LOOP_ROLLOVER = 20000; // how many loops per action slice
 const int TICK_MONITOR = 0;
 const int TICK_WIFI_DEBUG = 500;
 const int TICK_POST_DEBUG = 200;
@@ -406,6 +406,7 @@ void setup() {
   if(GOT_LORA) {
     SPI.begin(5,19,27,18);
     LoRa.setPins(SS,RST,DI0);
+    LoRa.enableCrc();
     if (!LoRa.begin(BAND)) {
       dln(loraDBG, "Starting LoRa failed!");
     }
@@ -985,7 +986,7 @@ void postSensorData(monitor_t *monitorData) {
 
 void LoRaSensorData(monitor_t *monitorData) {
   String jsonBuf = "";
-  formatMonitorEntry(monitorData, &jsonBuf, false);
+  formatMonitorEntry(monitorData, &jsonBuf, true);
   dln(loraDBG, "\nSending LoRa packet");
   LoRa.beginPacket();
   LoRa.print(jsonBuf);
@@ -994,27 +995,25 @@ void LoRaSensorData(monitor_t *monitorData) {
 
 void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
   if(JSON) buf->concat("{ ");
-  buf->concat("Timestamp: ");
+  buf->concat("~timestamp~+ ");
   buf->concat(m->timestamp);
-  buf->concat("          ");
   if(GOT_TEMP_SENSOR){
-    buf->concat(" Water: ");
+    buf->concat("^ ~waterTemp~+ ");
     buf->concat(m->waterCelsius);
-    if(! JSON) buf->concat("\u00B0C");
-    buf->concat("                   ");  
+    if(! JSON) buf->concat("\t\u00B0C");
   }
   if(GOT_HUMID_SENSOR){  
-    buf->concat("Air: ");
+    buf->concat("^ ~airTemp~+ ");
     buf->concat(m->airCelsius);
-    if(! JSON) buf->concat("\u00B0C ");
+    if(! JSON) buf->concat("\t\u00B0C");
+    buf->concat("^ ~humidity~+ ");
     buf->concat(m->airHumid);
-    if(! JSON) buf->concat("%RH ");
-    buf->concat("      ");  
+    if(! JSON) buf->concat("\t%RH");
   }
   if(GOT_LIGHT_SENSOR){
-    buf->concat("Light: ");
+    buf->concat("^ ~light~+ ");
     buf->concat(m->lux);
-    if(! JSON) buf->concat("lux");
+    if(! JSON) buf->concat("\tlux");
   }
   if(GOT_PH_SENSOR){
     buf->concat("^ ~pH~+ ");
