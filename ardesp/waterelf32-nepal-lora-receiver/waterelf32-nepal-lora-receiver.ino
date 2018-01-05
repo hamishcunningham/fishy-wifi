@@ -16,10 +16,6 @@
 #include "EmonLib.h" // Emon Library, see openenergymonitor.org
 #include "joinme.h"
 #include <ArduinoJson.h>
-#include "AdafruitIO_WiFi.h"
-AdafruitIO_WiFi *io_p;
-String IO_USERNAME;
-String IO_KEY;
 
 /////////////////////////////////////////////////////////////////////////////
 // LoRa stuff ///////////////////////////////////////////////////////////////
@@ -146,6 +142,7 @@ void updateSensorData(monitor_t *monitorData);
 void postSensorData(monitor_t *monitorData);
 void printMonitorEntry(monitor_t m, String* buf);
 void formatMonitorEntry(monitor_t *m, String* buf, bool JSON);
+void pushAdafruitIOData(monitor_t *monitorData);
 
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
@@ -162,6 +159,7 @@ String ip2str(IPAddress address);
 #define citsciDBG false
 #define analogDBG false
 #define loraDBG true
+#define adaDBG true
 #define GOT_LORA true
 #define GOT_OLED true
 
@@ -350,7 +348,6 @@ FlowController flowController;
 
 /////////////////////////////////////////////////////////////////////////////
 // config utils /////////////////////////////////////////////////////////////
-//Preferences preferences;
 String getSvrAddrP();
 void setSvrAddrP(String s);
 String getAnalogSensorP();
@@ -359,6 +356,15 @@ String getAdafruitIOkeyP();
 void setAdafruitIOkeyP(String s);
 String getAdafruitIOuserP();
 void setAdafruitIOuserP(String s);
+
+/////////////////////////////////////////////////////////////////////////////
+// Adafruit IO stuff/////////////////////////////////////////////////////////
+#include "AdafruitIO_WiFi.h"
+AdafruitIO_WiFi *io_p;
+String IO_USERNAME;
+String IO_KEY;
+//AdafruitIO_Feed *airtfeed = io_p.feed("AirTemperature");
+
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
 void setup() {
@@ -385,11 +391,24 @@ void setup() {
   SPIFFS.begin(true);           // passing (true) triggers format if flash is unpartitioned
   svrAddr = getSvrAddrP();
   analogSensor = getAnalogSensorP();
-  IO_USERNAME = getAdafruitIOkeyP();
-  IO_KEY = getAdafruitIOkeyP(); 
+  IO_USERNAME = getAdafruitIOuserP();
+  IO_KEY = getAdafruitIOkeyP();
+  if (IO_USERNAME!=""){
+    char iouserchars[IO_USERNAME.length()+1];
+    char iokeychars[IO_KEY.length()+1];
+    IO_USERNAME.toCharArray(iouserchars, IO_USERNAME.length()+1);
+    IO_KEY.toCharArray(iokeychars, IO_KEY.length()+1);
+//    io_p = & new AdafruitIO_WiFi(iouserchars, iokeychars, "", "");
+//    connect to io.adafruit.com
+//  io.connect();
 
-//  io_p = & new AdafruitIO_WiFi(IO_USERNAME, IO_KEY, "", "");
-
+  // wait for a connection
+//  while(io.status() < AIO_CONNECTED) {
+//    dbg(adaDBG,".");
+//    delay(500);
+//    }
+//    dln(adaDBG,io.statusText());
+  }
   // start the sensors, the DNS and webserver, etc.
   //startPeripherals();
   joinme_dhcps_hack();
@@ -444,7 +463,9 @@ void setup() {
 void loop() {
   String data;
   joinme_turn();
-  
+  if (IO_USERNAME!="") {             // service adafruit io if details aren't blank
+    io.run();
+  }
   if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
     // try to parse packet
     int packetSize = LoRa.parsePacket();
@@ -490,6 +511,9 @@ void loop() {
       now->lux = lx;
       if(SEND_DATA) {                     // push data to the cloud
         postSensorData(&monitorData[monitorCursor]); yield();
+      }
+      if (IO_USERNAME!="") {             // send to adafruit io if details aren't blank
+        pushAdafruitIOData(&monitorData[monitorCursor]);
       }
     }
     if(++monitorCursor == MONITOR_POINTS) {
@@ -684,7 +708,7 @@ void handle_elfstatus(AsyncWebServerRequest *request) {
   toSend += "\n<li>CitSci data sharing server address: "; toSend += svrAddr; toSend += "</li>\n<br>";
 //  toSend += "\n<li>Analog sensor type: "; toSend += analogSensor; toSend += "</li>\n";
   toSend += "\n<li>Adafruit IO username: "; toSend += IO_USERNAME; toSend += "</li>\n<br>";
-  toSend += "\n<li>Adafruit IO key:: "; toSend += IO_KEY; toSend += "</li>\n<br>";
+  toSend += "\n<li>Adafruit IO key: "; toSend += IO_KEY; toSend += "</li>\n<br>";
 
   toSend += "</ul></p>";
 
@@ -793,17 +817,39 @@ void handle_svrchz(AsyncWebServerRequest *request) {
         toSend += "</p>";
       }
     }
-    
+    if(request->argName(i) == "AIOuser") {
+      IO_USERNAME = request->arg(i);
+      if(IO_USERNAME==""){
+        toSend += "<h2>Cleared AIO username config</h2>";
+      } else {
+        toSend += "<h2>Added AIO username config...</h2>";
+        toSend += "<p>...of ";
+        toSend += IO_USERNAME;
+        toSend += "</p>";
+      }
+    }
+    if(request->argName(i) == "AIOkey") {
+      IO_KEY = request->arg(i);
+      if(IO_KEY==""){
+        toSend += "<h2>Cleared AIO key config</h2>";
+      } else {
+        toSend += "<h2>Added AIO key config...</h2>";
+        toSend += "<p>...of ";
+        toSend += IO_KEY;
+        toSend += "</p>";
+      }
+    }    
 //      if(request->arg(i) == "on")
 //    } else if(request->argName(i) == "key") {
 //      if(request->arg(i) == "on")
 //        cloudShare = true;
     
   }
-
+  toSend += "A reboot is needed if the Adafruit details have changed...";
   // persist the config
   setSvrAddrP(svrAddr);
-  setAdafruitIOuser(
+  setAdafruitIOuserP(IO_USERNAME);
+  setAdafruitIOkeyP(IO_KEY);
   // TODO some way of verifying if server config worked
   // add srvstatus, or roll that into elfstatus, or...?
 
@@ -1028,7 +1074,11 @@ void postSensorData(monitor_t *monitorData) {
   return;
 }
 
-//void postSensorData(monitor_t *monitorData) {
+void pushAdafruitIOData(monitor_t *monitorData) {
+  dln(adaDBG, "\npushAdafruitIOData");
+  dln(adaDBG, monitorData->airCelsius);
+  AirTemperature->save(monitorData->airCelsius);
+}
 
 void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
   if(JSON) buf->concat("{ ");
