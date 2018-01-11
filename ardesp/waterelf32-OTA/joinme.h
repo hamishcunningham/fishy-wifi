@@ -1,7 +1,7 @@
 #ifndef JOINME_H
 #define JOINME_H
 
-#include <ESPWebServer.h>
+#include <ESPAsyncWebServer.h>
 
 //must be called before starting access points in setup
 void joinme_dhcps_hack();
@@ -10,7 +10,7 @@ void joinme_dhcps_hack();
  * You *must* regularly call joinme_turn and server.handleClient()
  * server *must* live until after you last call joinme_turn
  */
-void joinme_setup(ESPWebServer* server, IPAddress apIP);
+void joinme_setup(AsyncWebServer* server, IPAddress apIP);
 //joinme_turn must be run once per main loop iteration
 void joinme_turn();
 
