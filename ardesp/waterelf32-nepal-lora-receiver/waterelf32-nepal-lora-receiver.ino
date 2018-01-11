@@ -404,9 +404,15 @@ void setup() {
     io_p->connect();
 
     // wait for a connection
+    long nowtime = millis();
     while(io_p->status() < AIO_CONNECTED) {
       dbg(adaDBG,".");
       delay(500);
+      if (millis()>nowtime+4000) {
+        dln(adaDBG,"Giving up on adafruit IO");
+        IO_USERNAME="";
+        break;
+      }
     }
     dln(adaDBG, io_p->statusText());
   }

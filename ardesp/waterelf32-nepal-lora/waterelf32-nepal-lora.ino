@@ -40,7 +40,7 @@ SSD1306 display(0x3c, 4, 15);
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
 int loopCounter = 0;
-const int LOOP_ROLLOVER = 20000; // how many loops per action slice
+int LOOP_ROLLOVER = 10000; // how many loops per action slice
 const int TICK_MONITOR = 0;
 const int TICK_WIFI_DEBUG = 500;
 const int TICK_POST_DEBUG = 200;
@@ -862,7 +862,7 @@ void handle_valve(AsyncWebServerRequest *request,int valveNum) {
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
   dln(monitorDBG, "\nstartPeripherals...");
-  mySwitch.enableTransmit(17);   // RC transmitter is connected to Pin 4
+  //mySwitch.enableTransmit(17);   // RC transmitter is connected to Pin 4
 
   taskDISABLE_INTERRUPTS();
   tempSensor.begin();     // start the onewire temperature sensor
@@ -876,6 +876,7 @@ void startPeripherals() {
     taskENABLE_INTERRUPTS();
   } else {
     dln(monitorDBG, "Temperature sensor FAIL");
+    LOOP_ROLLOVER =+10000;
   }
   
   dht.begin();    // start the humidity and air temperature sensor
@@ -883,6 +884,8 @@ void startPeripherals() {
   float airCelsius = dht.readTemperature();
   if (isnan(airHumid) || isnan(airCelsius)) {
     dln(monitorDBG, "Humidity sensor FAIL");
+    LOOP_ROLLOVER =+15000;
+
   } else {
     GOT_HUMID_SENSOR = true;
     dln(monitorDBG, "Found humidity sensor");
@@ -907,8 +910,8 @@ void startPeripherals() {
     tsl.begin();  // startup light sensor
     // can change gain of light sensor on the fly, to adapt 
     // brighter/dimmer light situations
-    // tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
-    tsl.setGain(TSL2591_GAIN_MED);       // 25x gain
+     tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
+    //tsl.setGain(TSL2591_GAIN_MED);       // 25x gain
     // tsl.setGain(TSL2591_GAIN_HIGH);   // 428x gain
   
     // changing the integration time gives you a longer time over which to
