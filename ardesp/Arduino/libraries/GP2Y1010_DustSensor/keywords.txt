@@ -1,0 +1,7 @@
+GP2Y1010_DustSensor	KEYWORD1
+begin	KEYWORD2
+getDustDensity	KEYWORD2
+setADCbit	KEYWORD2
+getADCbit	KEYWORD2
+setInputVolts	KEYWORD2
+getInputVolts	KEYWORD2
