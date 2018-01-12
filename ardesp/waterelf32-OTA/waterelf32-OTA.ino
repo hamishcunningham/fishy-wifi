@@ -3,7 +3,7 @@
 #include <FS.h>
 #include <SPIFFS.h>
 #include <WiFi.h>
-#include <AsyncWebServer.h>
+#include <ESPAsyncWebServer.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include "DHT.h"
@@ -19,6 +19,12 @@
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+
+/////////////////////////////////////////////////////////////////////////////
+// SPIFFS editor (ace.js) stuff /////////////////////////////////////////////
+#include <SPIFFSEditor.h>
+const char* SPIFFS_username = "admin";
+const char* SPIFFS_password = "admin";
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
@@ -501,6 +507,9 @@ void startWebServer() {
   webServer.on("/valve1", handle_valve1);
   webServer.on("/valve2", handle_valve2);
   webServer.on("/valve3", handle_valve3);
+  webServer.serveStatic("/", SPIFFS, "/");
+  webServer.addHandler(new SPIFFSEditor(SPIFFS, SPIFFS_username,SPIFFS_password));
+
   webServer.begin();
   dln(startupDBG, "HTTP server started");
 }
@@ -636,7 +645,7 @@ void handle_elfstatus(AsyncWebServerRequest *request) {
   toSend += "</li>\n";
   toSend += "\n<li>Analog sensor type: "; toSend += analogSensor;
   toSend += "</li>\n";
-  toSend += "\n<li>Software Version: "; toSend += "waterelf32-OTA v1.01";
+  toSend += "\n<li>Software Version: "; toSend += "waterelf32-OTA v1.04";
   toSend += "</li>\n";
 
   toSend += "</ul></p>";
@@ -674,7 +683,7 @@ void handle_wfchz(AsyncWebServerRequest *request) {
   }
 
   toSend += pageFooter;
-  request->.send(200, "text/html", toSend);
+  request->send(200, "text/html", toSend);
 }
 String genServerConfForm() {
   String f = pageTop;
@@ -727,7 +736,7 @@ void handle_svrchz(AsyncWebServerRequest *request) {
   toSend += pageTop2;
 
   boolean cloudShare = false;
-  for(uint8_t i = 0; i < webServer.args(); i++) {
+  for(uint8_t i = 0; i < request->args(); i++) {
     if(request->argName(i) == "svraddr") {
       svrAddr = request->arg(i);
       toSend += "<h2>Added local server config...</h2>";
@@ -755,9 +764,9 @@ void handle_algchz(AsyncWebServerRequest *request) {
   toSend += ": analog sensor configured";
   toSend += pageTop2;
 
-  for(uint8_t i = 0; i < webServer.args(); i++) {
+  for(uint8_t i = 0; i < request->args(); i++) {
     if(request->argName(i) == "analog_sensor") { // remember/persist the type
-      String argVal = webServer.arg(i);
+      String argVal = request->arg(i);
       analogSensor = ANALOG_SENSOR_NONE; // the default is...
       GOT_ANALOG_SENSOR = false;         // ...no sensor
       if(argVal == "analog_mains") {
@@ -767,7 +776,7 @@ void handle_algchz(AsyncWebServerRequest *request) {
         analogSensor = ANALOG_SENSOR_PRESSURE;
         GOT_ANALOG_SENSOR = true;
       } else if(argVal != "analog_none") {
-        Serial.println("unknown analog sensor type");
+        dln(analogDBG,"unknown analog sensor type");
       }
       toSend += "<h2>Added analog sensor config...</h2>";
       toSend += "<p>...for ";
@@ -778,7 +787,7 @@ void handle_algchz(AsyncWebServerRequest *request) {
   }
 
   toSend += pageFooter;
-  dbg(analogDBG, analogSensor); dbg(analogDBG, "\n");
+  dln(analogDBG, analogSensor);
   request->send(200, "text/html", toSend);
 }
 void handle_actuate(AsyncWebServerRequest *request) {

@@ -30,15 +30,15 @@ void do_redirect(AsyncWebServerRequest* request){
 }
 
 void handle_L0(AsyncWebServerRequest* request) {
-  do_redirect();
+  do_redirect(request);
 }
 
 void handle_L2(AsyncWebServerRequest* request) {
-  do_redirect();
+  do_redirect(request);
 }
 
 void handle_ALL(AsyncWebServerRequest* request) {
-  do_redirect();
+  do_redirect(request);
 }
 
 void joinme_dhcps_hack(){
