@@ -19,11 +19,11 @@ Pin	Wire colour			Function
 
 Colour code for 4 pin connector:
 Temp/Humidity Sensor AM2302
-Pin	Wire Colour		    Function
-1	Red         	    Vcc (3.3V)
-2	White           	Data
-3	            		NC
-4	Black           	Gnd
+Pin	Wire Colour     Alt Colour	    Function
+1	Red         	Orange          Vcc (3.3V)
+2	White           Green       	Data
+3	NC
+4	Black           Blue           	Gnd
 
 pins on header connector, looking from above, tab at top
 pins on board, looking from sensor side, connections at bottom

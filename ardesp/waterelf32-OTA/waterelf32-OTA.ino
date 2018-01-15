@@ -24,7 +24,7 @@
 // SPIFFS editor (ace.js) stuff /////////////////////////////////////////////
 #include <SPIFFSEditor.h>
 const char* SPIFFS_username = "admin";
-const char* SPIFFS_password = "admin";
+const char* SPIFFS_password = "secretpassword";
 
 /////////////////////////////////////////////////////////////////////////////
 // resource management stuff ////////////////////////////////////////////////
@@ -34,6 +34,7 @@ const int TICK_MONITOR = 0;
 const int TICK_WIFI_DEBUG = 500;
 const int TICK_POST_DEBUG = 200;
 const int TICK_HEAP_DEBUG = 1000;
+bool reboot=false;  
 
 // MAC address ///////////////////////////////////////////////////////////////
 char MAC_ADDRESS[13]; // MAC addresses are 12 chars, plus the NULL terminator
@@ -141,7 +142,7 @@ String ip2str(IPAddress address);
 #define valveDBG true
 #define monitorDBG true
 #define netDBG true
-#define miscDBG true
+#define miscDBG false
 #define citsciDBG false
 #define analogDBG false
 
@@ -165,7 +166,7 @@ boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // pH sensor stuff //////////////////////////////////////////////////////////
-const byte pH_Add = 0x4C;  // change this to match ph ADC address
+const byte pH_Add = 0x4A;  // change this to match ph ADC address
 int pH7Cal = 2048; // assume ideal probe and amp conditions 1/2 of 4096
 int pH4Cal = 1286; // ideal probe slope -> this many 12bit units on 4 scale
 float pHStep = 59.16; // ideal probe slope
@@ -349,6 +350,7 @@ void setup() {
 
   WiFi.begin();  // lets hope the stored credentials work...
 
+  ArduinoOTA.setPasswordHash("1dee0c92b097b253f201a7da39dce6df");
   ArduinoOTA
   .onStart([]() {
     String type;
@@ -382,7 +384,7 @@ void setup() {
   ArduinoOTA.begin();
   
   if (!MDNS.begin(apSSID)) {
-    dln(startupDBG, "Error setting up MDNS responder!");
+    dln(startupDBG, "Error setting up mDNS responder!");
     while(1) {
       delay(1000);
     }
@@ -424,7 +426,10 @@ void setup() {
 void loop() {
   joinme_turn();      // keep the access point stuff serviced
   ArduinoOTA.handle();  // and keep the OTA handler serviced
-
+  if(reboot==true) {
+    SPIFFS.end();
+    ESP.restart();
+  }
   if(loopCounter == TICK_MONITOR) { // monitor levels, step valves, push data
     monitor_t* now = &monitorData[monitorCursor];
     if(monitorSize < MONITOR_POINTS)
@@ -507,6 +512,7 @@ void startWebServer() {
   webServer.on("/valve1", handle_valve1);
   webServer.on("/valve2", handle_valve2);
   webServer.on("/valve3", handle_valve3);
+  webServer.on("/reboot", handle_reboot);
   webServer.serveStatic("/", SPIFFS, "/");
   webServer.addHandler(new SPIFFSEditor(SPIFFS, SPIFFS_username,SPIFFS_password));
 
@@ -645,9 +651,12 @@ void handle_elfstatus(AsyncWebServerRequest *request) {
   toSend += "</li>\n";
   toSend += "\n<li>Analog sensor type: "; toSend += analogSensor;
   toSend += "</li>\n";
-  toSend += "\n<li>Software Version: "; toSend += "waterelf32-OTA v1.04";
+  toSend += "\n<li>Software Version: "; toSend += "waterelf32-OTA v1.07";
   toSend += "</li>\n";
-
+  
+  toSend += "<h3>Reboot WaterElf?</h3>"; 
+  toSend += "<form method='POST' action='reboot'> ";
+  toSend += "<input type='submit' value='Reboot'></form></p>";
   toSend += "</ul></p>";
 
   toSend += pageFooter;
@@ -850,6 +859,13 @@ void handle_valve(AsyncWebServerRequest *request, int valveNum) {
   request->send(200, "text/html", toSend);
 }
 
+void handle_reboot(AsyncWebServerRequest *request) {
+  String toSend = pageTop;
+  toSend += "<h1>Rebooting Waterelf...</h1>";
+  toSend += pageFooter;
+  request->send(200, "text/html", toSend);
+  reboot=true;  
+}
 /////////////////////////////////////////////////////////////////////////////
 // sensor/actuator stuff ////////////////////////////////////////////////////
 void startPeripherals() {
