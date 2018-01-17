@@ -2,17 +2,7 @@
 // waterelf32.ino /////////////////////////////////////////////////////////////
 #include <FS.h>
 #include <SPIFFS.h>
-#include <WiFi.h>
-#include <ESPAsyncWebServer.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
-#include "DHT.h"
-#include <Wire.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_TSL2591.h>
-#include <RCSwitch.h>
-#include "EmonLib.h" // Emon Library, see openenergymonitor.org
-#include "joinme.h"
+#include <ArduinoJson.h>
 
 /////////////////////////////////////////////////////////////////////////////
 // OTA stuff ////////////////////////////////////////////////////////////////
@@ -33,7 +23,7 @@ const int LOOP_ROLLOVER = 5000; // how many loops per action slice
 const int TICK_MONITOR = 0;
 const int TICK_WIFI_DEBUG = 500;
 const int TICK_POST_DEBUG = 200;
-const int TICK_HEAP_DEBUG = 1000;
+const int TICK_HEAP_DEBUG = 100000;
 bool reboot=false;  
 
 // MAC address ///////////////////////////////////////////////////////////////
@@ -42,12 +32,15 @@ char *getMAC(char *);
 
 /////////////////////////////////////////////////////////////////////////////
 // wifi management stuff ////////////////////////////////////////////////////
+#include <WiFi.h>
+#include <ESPAsyncWebServer.h>
+#include "joinme.h"
 IPAddress apIP(192, 168, 99, 1);
 IPAddress netMsk(255, 255, 255, 0);
 AsyncWebServer webServer(80);
 String apSSIDStr = "WaterElf-" + String(getMAC(MAC_ADDRESS));
 const char* apSSID = apSSIDStr.c_str();
-String svrAddr = ""; // address of a local server TODO delete?
+String svrAddr = ""; // loaded from config.txt
 
 /////////////////////////////////////////////////////////////////////////////
 // page generation stuff ////////////////////////////////////////////////////
@@ -103,6 +96,7 @@ const char* pageDefault = // TODO build the growbeds according to their num
   "</ul></p>\n";
 const char* pageFooter =
   "\n<p><a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;"
+  "<a href='/edit'>SPIFFS file editor</a>&nbsp;&nbsp;&nbsp;"
   "<a href='https://wegrow.social/'>WeGrow</a></p></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////
@@ -139,15 +133,17 @@ String ip2str(IPAddress address);
 #define dln(b, s) if(b) Serial.println(s)
 #define dbf(b, s, v) if(b) Serial.printf(s, v)
 #define startupDBG true
-#define valveDBG true
-#define monitorDBG true
+#define valveDBG false
+#define monitorDBG false
 #define netDBG true
-#define miscDBG false
+#define miscDBG true
 #define citsciDBG false
 #define analogDBG false
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
+#include <OneWire.h>
+#include <DallasTemperature.h>
 OneWire ds(27); // DS1820 pin (a 4.7K resistor is necessary)
 DallasTemperature tempSensor(&ds);  // pass through reference to library
 void getTemperature(float* waterCelsius);
@@ -156,11 +152,15 @@ DeviceAddress tempAddr; // array to hold device address
 
 /////////////////////////////////////////////////////////////////////////////
 // humidity sensor stuff ////////////////////////////////////////////////////
+#include "DHT.h"
 DHT dht(33, DHT22); // what digital pin we're on, plus type DHT22 aka AM2302
 boolean GOT_HUMID_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // light sensor stuff ///////////////////////////////////////////////////////
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_TSL2591.h>
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // sensor id
 boolean GOT_LIGHT_SENSOR = false; // we'll change later if we detect sensor
 
@@ -177,6 +177,7 @@ boolean GOT_PH_SENSOR = false; // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // RC switch stuff //////////////////////////////////////////////////////////
+#include <RCSwitch.h>
 RCSwitch mySwitch = RCSwitch();
 const int RCSW_CHANNEL = 2; // which 433 channel to use (I-IV)
 const int RCSW_HEATER = 2;  // which 433 device to switch (1-4)
@@ -196,11 +197,11 @@ boolean GOT_LEVEL_SENSOR = false;  // we'll change later if we detect sensor
 
 /////////////////////////////////////////////////////////////////////////////
 // analog sensor stuff //////////////////////////////////////////////////////
+#include "EmonLib.h" // Emon Library, see openenergymonitor.org
 String ANALOG_SENSOR_NONE = "analog_none";
 String ANALOG_SENSOR_MAINS = "analog_mains";
 String ANALOG_SENSOR_PRESSURE = "analog_pressure";
-String analogSensor = ANALOG_SENSOR_NONE;
-boolean GOT_ANALOG_SENSOR = false; // change later if we config a sensor
+String analogSensor; // loaded from config.txt
 EnergyMonitor emon1; // instance of energy monitor, for mains current sensor
 
 /////////////////////////////////////////////////////////////////////////////
@@ -331,14 +332,8 @@ FlowController flowController;
 
 /////////////////////////////////////////////////////////////////////////////
 // config utils /////////////////////////////////////////////////////////////
-String getSvrAddrP();
-void setSvrAddrP(String s);
-String getAnalogSensorP();
-void setAnalogSensorP(String s);
-String getAdafruitIOkeyP();
-void setAdafruitIOkeyP(String s);
-String getAdafruitIOuserP();
-void setAdafruitIOuserP(String s);
+template< typename G> G getConfig( G configName );
+template< typename S, typename SS > bool setConfig( S configName, SS configData );
 
 /////////////////////////////////////////////////////////////////////////////
 // setup ////////////////////////////////////////////////////////////////////
@@ -347,7 +342,6 @@ void setup() {
 
   pinMode(BUILTIN_LED, OUTPUT); // turn built-in LED on
   blink(3);                     // signal we're starting setup
-
   WiFi.begin();  // lets hope the stored credentials work...
 
   ArduinoOTA.setPasswordHash("1dee0c92b097b253f201a7da39dce6df");
@@ -393,8 +387,9 @@ void setup() {
 
   // read persistent config
   SPIFFS.begin(true); // passing true triggers format if flash unpartitioned
-  svrAddr = getSvrAddrP();
-  analogSensor = getAnalogSensorP();
+  analogSensor = getConfig("analogSensorType");
+  svrAddr = getConfig("citsciServerAddress");
+
 
   // start the sensors, the DNS and webserver, etc.
   startPeripherals();
@@ -452,7 +447,7 @@ void loop() {
       dbg(valveDBG, "; wL2: "); dbg(valveDBG, now->waterLevel2);
       dbg(valveDBG, "; wL3: "); dln(valveDBG, now->waterLevel3);
     }
-    if(GOT_ANALOG_SENSOR) getAnalog(&now->analog);
+    if(analogSensor!=ANALOG_SENSOR_NONE) getAnalog(&now->analog);
 
     flowController.step(now);   // set valves on and off etc.
     
@@ -651,7 +646,7 @@ void handle_elfstatus(AsyncWebServerRequest *request) {
   toSend += "</li>\n";
   toSend += "\n<li>Analog sensor type: "; toSend += analogSensor;
   toSend += "</li>\n";
-  toSend += "\n<li>Software Version: "; toSend += "waterelf32-OTA v1.07";
+  toSend += "\n<li>Software Version: "; toSend += "waterelf32-OTA v1.08";
   toSend += "</li>\n";
   
   toSend += "<h3>Reboot WaterElf?</h3>"; 
@@ -748,6 +743,8 @@ void handle_svrchz(AsyncWebServerRequest *request) {
   for(uint8_t i = 0; i < request->args(); i++) {
     if(request->argName(i) == "svraddr") {
       svrAddr = request->arg(i);
+      if(svrAddr.length() == 0) // default cloud server address
+        svrAddr = "citsci.wegrow.social";
       toSend += "<h2>Added local server config...</h2>";
       toSend += "<p>...at ";
       toSend += svrAddr;
@@ -759,10 +756,11 @@ void handle_svrchz(AsyncWebServerRequest *request) {
   }
 
   // persist the config
-  setSvrAddrP(svrAddr);
-
-  // TODO some way of verifying if server config worked
-  // add srvstatus, or roll that into elfstatus, or...?
+  if(setConfig("citsciServerAddress",svrAddr)){
+    toSend += "<h2>Saved to config</h2>";
+  } else {
+    toSend += "<h2>NOT SAVED!</h2>";
+  }
 
   toSend += pageFooter;
   request->send(200, "text/html", toSend);
@@ -776,22 +774,24 @@ void handle_algchz(AsyncWebServerRequest *request) {
   for(uint8_t i = 0; i < request->args(); i++) {
     if(request->argName(i) == "analog_sensor") { // remember/persist the type
       String argVal = request->arg(i);
-      analogSensor = ANALOG_SENSOR_NONE; // the default is...
-      GOT_ANALOG_SENSOR = false;         // ...no sensor
       if(argVal == "analog_mains") {
         analogSensor = ANALOG_SENSOR_MAINS;
-        GOT_ANALOG_SENSOR = true;
       } else if(argVal == "analog_pressure") {
         analogSensor = ANALOG_SENSOR_PRESSURE;
-        GOT_ANALOG_SENSOR = true;
-      } else if(argVal != "analog_none") {
-        dln(analogDBG,"unknown analog sensor type");
+      } else {
+        analogSensor = ANALOG_SENSOR_NONE; // the default is...
+        dln(analogDBG,"no analog sensor");
       }
       toSend += "<h2>Added analog sensor config...</h2>";
       toSend += "<p>...for ";
       toSend += analogSensor;
       toSend += "</p>";
-      setAnalogSensorP(analogSensor);
+
+      if(setConfig("analogSensorType",analogSensor)){
+        toSend += "<h2>Saved to config</h2>";
+      } else {
+        toSend += "<h2>NOT SAVED!</h2>";
+      }
     }
   }
 
@@ -934,7 +934,7 @@ void startPeripherals() {
     dln(monitorDBG, "Found pH sensor");
   }
 
-  if(GOT_ANALOG_SENSOR && analogSensor == "analog_mains") {
+  if(analogSensor == ANALOG_SENSOR_MAINS) {
     emon1.current(A0, 111.1); // current: input pin, calibration
   }
 }
@@ -1021,7 +1021,7 @@ void formatMonitorEntry(monitor_t *m, String* buf, bool JSON) {
     buf->concat("^ ~waterLevel3~+ "); buf->concat(m->waterLevel3);
     if(! JSON) buf->concat("\tcm");
   }
-  if(GOT_ANALOG_SENSOR){
+  if(analogSensor!=ANALOG_SENSOR_NONE){
     buf->concat("^ ~analog~+ ");
     buf->concat(m->analog);
     if(! JSON) buf->concat("\tanalog");
@@ -1111,15 +1111,17 @@ void getLevel(int echoPin, long* waterLevel) {
   return;
 }
 void getAnalog(float* a) {
-  dbg(analogDBG, "getAnalog\n");
-
-  if(! GOT_ANALOG_SENSOR) {
+  dbg(analogDBG, "getAnalog of type: ");
+  dln(analogDBG, analogSensor);
+  if(analogSensor==ANALOG_SENSOR_NONE) {
     (*a) = 0.0;
-  } else if(analogSensor == "analog_mains") {
+    dln(analogDBG, "no analog sensor");
+
+  } else if(analogSensor == ANALOG_SENSOR_MAINS) {
     (*a) = (float) ( emon1.calcIrms(1480) / 10 /*fudge!*/ );
     dbg(analogDBG, "mains reading is ");
     dbg(analogDBG, (*a)); dbg(analogDBG, "A\n");
-  } else if(analogSensor == "analog_pressure") {
+  } else if(analogSensor == ANALOG_SENSOR_PRESSURE) {
     int analogValue = analogRead(A0);
 
     // conversion/"calibration" because sensor 4.5v=1.2MPa
@@ -1137,69 +1139,82 @@ void getAnalog(float* a) {
 
 /////////////////////////////////////////////////////////////////////////////
 // config utils /////////////////////////////////////////////////////////////
-String getSvrAddrP() {
-  String s = "";
-  File f = SPIFFS.open("/svrAddr.txt");
-  if(f) {
-    s = f.readString();
-    s.trim();
-    f.close();
+//bool loadConfig() {
+template< typename G> G getConfig( G configName ){
+  File configFile = SPIFFS.open("/config.txt", FILE_READ);
+  if (!configFile) {
+    dln(miscDBG, "Failed to open config file for reading");
+    return false;
   }
-  return s;
-}
-void setSvrAddrP(String s) {
-  File f = SPIFFS.open("/svrAddr.txt", FILE_WRITE);
-  f.println(s);
-  f.close();
-}
-String getAnalogSensorP() {
-  String s = ANALOG_SENSOR_NONE; // the default is...
-  GOT_ANALOG_SENSOR = false;         // ...no sensor
-  File f = SPIFFS.open("/analogSensor.txt");
-  if(f) {
-    s = f.readString();
-    if(s!=ANALOG_SENSOR_NONE){
-      GOT_ANALOG_SENSOR = true;
-    }
-    f.close();
+
+  size_t size = configFile.size();
+  if (size > 1024) {
+    dln(miscDBG, "Config file size is too large");
+    return false;
   }
-  return s;
-}
-void setAnalogSensorP(String s) {
-  File f = SPIFFS.open("/analogSensor.txt", FILE_WRITE);
-  f.print(s);
-  f.close();
-}
-String getAdafruitIOkeyP(){
-  String s;
-  File f = SPIFFS.open("/AdafruitIOkey.txt");
-  if(f) {
-    s = f.readString();
-    s.trim();
-    f.close();
+
+  // Allocate a buffer to store contents of the file.
+  std::unique_ptr<char[]> buf(new char[size]);
+
+  // We don't use String here because ArduinoJson library requires the input
+  // buffer to be mutable. If you don't use ArduinoJson, you may as well
+  // use configFile.readString instead.
+  configFile.readBytes(buf.get(), size);
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.parseObject(buf.get());
+
+  if (!json.success()) {
+    dln(miscDBG, "Failed to parse config file");
+    return false;
   }
-  return s;
+
+  configFile.close();
+  return json[configName];
 }
-void setAdafruitIOkeyP(String s){
-  File f = SPIFFS.open("/AdafruitIOkey.txt", FILE_WRITE);
-  f.print(s);
-  f.close();
-}
-String getAdafruitIOuserP(){
-  String s;
-  File f = SPIFFS.open("/AdafruitIOuser.txt");
-  if(f) {
-    s = f.readString();
-    s.trim();
-    f.close();
+
+template< typename S, typename SS > bool setConfig( S configName, SS configData ){
+  File configFileR = SPIFFS.open("/config.txt", FILE_READ);
+  if (!configFileR) {
+    dln(miscDBG, "Failed to open config file for reading before writing");
+    return false;
   }
-  return s;
+  
+  size_t size = configFileR.size();
+  if (size > 1024) {
+    dln(miscDBG, "Config file size is too large");
+    return false;
+  }
+
+  // Allocate a buffer to store contents of the file.
+  std::unique_ptr<char[]> buf(new char[size]);
+
+  // We don't use String here because ArduinoJson library requires the input
+  // buffer to be mutable. If you don't use ArduinoJson, you may as well
+  // use configFile.readString instead.
+  configFileR.readBytes(buf.get(), size);
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.parseObject(buf.get());
+  configFileR.close();
+
+  File configFile = SPIFFS.open("/config.txt", FILE_WRITE);
+  if (!configFile) {
+    dln(miscDBG, "Failed to open config file for writing");
+    return false;
+  }
+  
+  long saves = json["configUpdateCount"];
+  saves ++;
+  json["configUpdateCount"] = saves;
+  dbg(miscDBG, "New config update count: ");
+  dln(miscDBG, saves);
+
+  json[configName] = configData;
+  json.prettyPrintTo(configFile);
+  configFile.close();
+  return true;
 }
-void setAdafruitIOuserP(String s){
-  File f = SPIFFS.open("/AdafruitIOuser.txt", FILE_WRITE);
-  f.print(s);
-  f.close();
-}
+
 /////////////////////////////////////////////////////////////////////////////
 // misc utils ///////////////////////////////////////////////////////////////
 void ledOn()  { digitalWrite(BUILTIN_LED, LOW); }

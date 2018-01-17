@@ -1,0 +1,7 @@
+{
+  "README": "This is the WaterElf configuration file. Edit it carefully as mistakes can cause boot failure and need usb reflashing of the spiffs with a working config file",
+  "configVersion": 0.22,
+  "configUpdateCount": 12,
+  "analogSensorType": "analog_none",
+  "citsciServerAddress": "citsci.gate.ac.uk"
+}
