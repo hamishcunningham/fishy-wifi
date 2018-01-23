@@ -64,7 +64,7 @@ grails {
 environments {
     production {
         grails {
-            serverURL = "http://submit.myharvest.org.uk"
+            serverURL = "https://submit.myharvest.org.uk"
         }
         grails.plugin.databasemigration.updateOnStart = true
         grails.plugin.databasemigration.updateOnStartFileName = 'changelog.groovy'
