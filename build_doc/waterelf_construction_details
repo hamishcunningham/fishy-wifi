@@ -2,13 +2,13 @@ waterelf details:
 
 echo sensor HC-SR04 & pump
 Colour code for 6 pin connector
-Pin	Wire Colour			Function
-1	Red             	VCC (5V)
-2	Purple  			Trig
-3	Blue    			Echo
-4	Black           	Gnd
-5	Green				Pump
-6	Yellow				Pump power (3V)
+Pin	Wire Colour     Alt Colour              Function
+1	Red             Orange & Orange/White   VCC (5V)
+2	Purple  		Green/White 	        Trig
+3	Blue    		Blue/White	            Echo
+4	Black           Brown & Brown/White	    Gnd
+5	Green			Green          	        Pump switched Gnd
+6	Yellow			Blue                    Pump power (3V)
 
 Colour code for 3 pin connector:
 Temp sensor DS18B20

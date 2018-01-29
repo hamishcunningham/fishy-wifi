@@ -97,6 +97,7 @@ const char* pageDefault = // TODO build the growbeds according to their num
 const char* pageFooter =
   "\n<p><a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;"
   "<a href='/edit'>SPIFFS file editor</a>&nbsp;&nbsp;&nbsp;"
+  "<a href='/waterelfoverview.html'>Documentation</a>&nbsp;&nbsp;&nbsp;"
   "<a href='https://wegrow.social/'>WeGrow</a></p></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////
