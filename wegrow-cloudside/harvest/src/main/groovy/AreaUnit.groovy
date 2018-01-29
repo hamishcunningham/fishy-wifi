@@ -23,7 +23,7 @@ public enum AreaUnit {
       case SQ_METRES:
         return area;
       case SQ_FEET:
-        return area * 0.3048;
+        return area * 0.092903;
     }
   }
 
@@ -37,7 +37,7 @@ public enum AreaUnit {
       case SQ_METRES:
         return area;
       case SQ_FEET:
-        return area / 0.3048;
+        return area / 0.092903;
     }
   }
 }
