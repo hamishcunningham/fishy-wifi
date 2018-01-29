@@ -34,6 +34,7 @@
         </tr>
 
             <div class="well-sm">
+            <p>
                 <h3>Instructions:</h3>
                 <p>
                     The following table lists the crops that you've told us you're growing. Click the icons in the table
@@ -60,6 +61,9 @@
 
 
                 </ul>
+                <g:link class="create" controller="area" action="create" class="btn btn-lg btn-primary">
+            <span class="glyphicon glyphicon-plus"></span> <g:message code="area.create.title" /></g:link></p>
+        
             </div>
             <g:each var="area" in="${areaList}" >
                 <tr class="harvestHeadingRow ${area.finished?'finished':''}" data-toggle="collapse" data-target=".rows-${area.id}">
@@ -240,9 +244,7 @@
 
 
         <div class="text-center">
-            <p>
-        <g:link class="create" controller="area" action="create" class="btn btn-lg btn-primary">
-            <span class="glyphicon glyphicon-plus"></span> <g:message code="area.create.title" /></g:link></p>
+            
         <div>
 
         <p class="lead">

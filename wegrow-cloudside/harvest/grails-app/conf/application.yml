@@ -128,4 +128,4 @@ environments:
                 jdbcInterceptors: ConnectionState
                 defaultTransactionIsolation: 2 # TRANSACTION_READ_COMMITTED
         grails:
-            serverURL: http://submit.myharvest.org.uk
+            serverURL: https://submit.myharvest.org.uk

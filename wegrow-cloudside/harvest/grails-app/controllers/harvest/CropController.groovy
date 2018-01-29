@@ -33,6 +33,8 @@ class CropController {
             exportService.export(params.f, response.outputStream, data, fields, [:],[:],[:])
         } else {
             params.max = Math.min(max ?: 10, 100)
+            params.sort = "type"
+            params.order = "asc"
             respond Crop.list(params), model:[cropCount: Crop.count()]
         }
     }
