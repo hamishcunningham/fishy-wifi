@@ -10,8 +10,8 @@ table,th,td{border: 1px solid black;border-collapse: collapse;text-align: center
 
 <p>The pH probe should be placed in the fishtank, with the bottom of the sensor in water continuously, but with the cable and first 2cm of the probe out of the water. This probe will need replacing every 6-12 months, and calibrating monthly for accurate results.</p>
 
-<img src="/pHprobe.jpg" style="float: left; width: 25%; margin-right: 1%;">
-<img src="/MinipH2_tnd.jpg" style="float: left; width: 30%; margin-right: 1%;">
+<img src="pHprobe.jpg" style="float: left; width: 25%; margin-right: 1%;">
+<img src="MinipH2_tnd.jpg" style="float: left; width: 30%; margin-right: 1%;">
 <p style="clear: left;">
   
 <p>Replacement pH probes are readily available with a standard BNC connector. We use a sub-module from Sparky's Widgets (details <a href="https://github.com/SparkysWidgets/MinipHHW">here</a>) to accurately amplify and digitize the tiny voltages created by the pH probe. They do a fantastic job of explaining pH, how pH probes work and how to design and build electronics to measure it <a href="https://www.sparkyswidgets.com/portfolio-item/ph-probe-interface/">here</a>.</p>
@@ -22,5 +22,5 @@ table,th,td{border: 1px solid black;border-collapse: collapse;text-align: center
 
 <p>To calibrate, you will need to have two known solutions; a pH4 calibration solution and one other (higher) value of pH calibration solution (typically pH7 is used). Clean the pH probe before beginning calibration. You should ensure that both solutions are at the same temperature, and for the highest accuracy, place the temperature probe into the calibration solutions along with the pH probe. Place both probes in some pH4 solution, and wait until the pH reading settles. This reading will show the error that has accumulated since the last calibration. Calibrate the probe at this pH, then rinse the probes in tap water. Place both probes into the pH7 (or higher) solution and calibrate again. Finally rinse the probes before returning them to the fishtank.</p>
 
-<p>The pH amplifier and ADC module is connected to the waterelf via I2C, the ADC that reports the pH reading has an address ranging from 0x4A through to 0x4F.</p><br>
+<p>The pH amplifier and ADC module is connected to the waterelf via I2C, with an address ranging from 0x4A to 0x4F.</p><br>
 <a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;<a href='/edit'>SPIFFS file editor</a>&nbsp;&nbsp;&nbsp;<a href='/waterelfoverview.html'>Documentation</a>&nbsp;&nbsp;&nbsp;<a href='https://wegrow.social/'>WeGrow</a></body></html>
