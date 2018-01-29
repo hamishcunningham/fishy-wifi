@@ -345,7 +345,7 @@ void setup() {
   blink(3);                     // signal we're starting setup
   WiFi.begin();  // lets hope the stored credentials work...
 
-  ArduinoOTA.setPasswordHash("1dee0c92b097b253f201a7da39dce6df");
+  //ArduinoOTA.setPasswordHash("1dee0c92b097b253f201a7da39dce6df");
   ArduinoOTA
   .onStart([]() {
     String type;
