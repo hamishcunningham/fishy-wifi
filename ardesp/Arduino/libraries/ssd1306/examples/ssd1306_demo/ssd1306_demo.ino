@@ -1,20 +1,25 @@
 /*
-    Copyright (C) 2017 Alexey Dynda
+    MIT License
 
-    This file is part of SSD1306 library.
+    Copyright (c) 2017-2018, Alexey Dynda
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 /**
  *   Attiny85 PINS (i2c)
@@ -24,12 +29,15 @@
  *   SDA (4) -|    |- (1)
  *   GND     -|____|- (0)
  *
- *   Atmega328 PINS: connect LCD to A4/A5 (i2c)
+ *   Nano/Atmega328 PINS: connect LCD to A4/A5 (i2c)
+ *   
+ *   ESP8266: GPIO4(SDA) / GPIO5( SCL )
  */
 
 #include "ssd1306.h"
 #include "sova.h"
 #include "nano_gfx.h"
+#include "font6x8.h"
 
 /* Do not include SPI.h for Attiny controllers */
 #ifdef SSD1306_SPI_SUPPORTED
@@ -44,14 +52,14 @@
  */
 const PROGMEM uint8_t heartImage[8] =
 {
-    B00001110,
-    B00011111,
-    B00111111,
-    B01111110,
-    B01111110,
-    B00111101,
-    B00011001,
-    B00001110
+    0B00001110,
+    0B00011111,
+    0B00111111,
+    0B01111110,
+    0B01111110,
+    0B00111101,
+    0B00011001,
+    0B00001110
 };
 
 /*
@@ -69,7 +77,7 @@ const char *menuItems[] =
     "sprites",
     "fonts",
     "canvas gfx",
-    "sprite pool",
+    "draw lines",
 };
 
 static void bitmapDemo()
@@ -102,13 +110,17 @@ static void spriteDemo()
 
 static void textDemo()
 {
+    ssd1306_setFixedFont(ssd1306xled_font6x8);
     ssd1306_clearScreen();
-    ssd1306_charF6x8(0, 1, "Normal text");
-    ssd1306_charF6x8(0, 2, "Bold text", STYLE_BOLD);
-    ssd1306_charF6x8(0, 3, "Italic text", STYLE_ITALIC);
+    ssd1306_printFixed(0,  8, "Normal text", STYLE_NORMAL);
+    ssd1306_printFixed(0, 16, "Bold text", STYLE_BOLD);
+    ssd1306_printFixed(0, 24, "Italic text", STYLE_ITALIC);
     ssd1306_negativeMode();
-    ssd1306_charF6x8(0, 4, "Inverted bold", STYLE_BOLD);
+    ssd1306_printFixed(0, 32, "Inverted bold", STYLE_BOLD);
     ssd1306_positiveMode();
+    delay(3000);
+    ssd1306_clearScreen();
+    ssd1306_printFixedN(0, 0, "N3", STYLE_NORMAL, FONT_SIZE_8X);
     delay(3000);
 }
 
@@ -116,6 +128,7 @@ static void canvasDemo()
 {
     uint8_t buffer[64*16/8];
     NanoCanvas canvas(64,16, buffer);
+    ssd1306_setFixedFont(ssd1306xled_font6x8);
     ssd1306_clearScreen();
     canvas.clear();
     canvas.fillRect(10, 3, 80, 5, 0xFF);
@@ -124,13 +137,29 @@ static void canvasDemo()
     canvas.fillRect(50, 1, 60, 15, 0xFF);
     canvas.blt((ssd1306_displayWidth()-64)/2, 1);
     delay(1500);
-    canvas.charF6x8(20, 1, " DEMO " );
+    canvas.printFixed(20, 1, " DEMO " );
     canvas.blt((ssd1306_displayWidth()-64)/2, 1);
+    delay(3000);
+}
+
+static void drawLinesDemo()
+{
+    ssd1306_clearScreen();
+    for (uint8_t y = 0; y < ssd1306_displayHeight(); y += 8)
+    {
+        ssd1306_drawLine(0,0, ssd1306_displayWidth() -1, y);
+    }
+    for (uint8_t x = ssd1306_displayWidth() - 1; x > 7; x -= 8)
+    {
+        ssd1306_drawLine(0,0, x, ssd1306_displayHeight() - 1);
+    }
     delay(3000);
 }
 
 void setup()
 {
+    /* Select the font to use with menu and all font functions */
+    ssd1306_setFixedFont(ssd1306xled_font6x8);
     /* Do not init Wire library for Attiny controllers */
     ssd1306_128x64_i2c_init();
 
@@ -164,6 +193,11 @@ void loop()
         case 3:
             canvasDemo();
             break;
+
+        case 4:
+            drawLinesDemo();
+            break;
+
         default:
             break;
     }
@@ -173,7 +207,3 @@ void loop()
     ssd1306_menuDown(&menu);
     ssd1306_updateMenu(&menu);
 }
-
-
-
-

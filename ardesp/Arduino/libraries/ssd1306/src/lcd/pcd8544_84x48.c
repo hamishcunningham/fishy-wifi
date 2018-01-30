@@ -1,20 +1,25 @@
 /*
-    Copyright (C) 2017 Alexey Dynda
+    MIT License
 
-    This file is part of SSD1306 library.
+    Copyright (c) 2017-2018, Alexey Dynda
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 #include "pcd8544_84x48.h"
@@ -22,6 +27,10 @@
 #include "pcd8544_commands.h"
 #include "intf/ssd1306_interface.h"
 #include "spi/ssd1306_spi.h"
+#include "hal/io.h"
+
+#include <stdlib.h>
+
 
 static const uint8_t PROGMEM s_lcd84x48_initData[] =
 {
@@ -67,7 +76,7 @@ void pcd8544_84x48_init()
     ssd1306_commandStart();
     ssd1306_setRamBlock = pcd8544_setBlock;
     ssd1306_nextRamPage = pcd8544_nextPage;
-    ssd1306_setRamPos = NULL;
+    ssd1306_sendPixels = ssd1306_sendByte;
     for( uint8_t i=0; i<sizeof(s_lcd84x48_initData); i++)
     {
         ssd1306_sendByte(pgm_read_byte(&s_lcd84x48_initData[i]));

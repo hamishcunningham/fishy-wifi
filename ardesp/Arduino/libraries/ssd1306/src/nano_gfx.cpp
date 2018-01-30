@@ -1,26 +1,32 @@
 /*
-    Copyright (C) 2016-2017 Alexey Dynda
+    MIT License
 
-    This file is part of SSD1306 library.
+    Copyright (c) 2016-2018, Alexey Dynda
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 #include "nano_gfx.h"
 #include "ssd1306.h"
 
 extern const uint8_t *s_font6x8;
+extern SFixedFontInfo s_fixedFont;
 
 #define YADDR(y) (((y) >> 3) << m_p)
 #define BADDR(b) ((b) << m_p)
@@ -83,7 +89,7 @@ void NanoCanvas::fillRect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_
         uint8_t mask = 0xFF;
         if (bank1 == bank2)
         {
-            mask = (mask >> ((y1 & 7) + 7 - (y2 & 7))) << (7 - (y2 & 7));
+            mask = (mask >> ((y1 & 7) + 7 - (y2 & 7))) << (y1 & 7);
         }
         else if (bank1 == bank)
         {
@@ -93,7 +99,7 @@ void NanoCanvas::fillRect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_
         {
             mask = (mask >> (7 - (y2 & 7)));
         }
-        for (uint8_t x=x1; x<x2; x++)
+        for (uint8_t x=x1; x<=x2; x++)
         {
             m_bytes[BADDR(bank) + x] &= ~mask;
             m_bytes[BADDR(bank) + x] |= (templ & mask);
@@ -104,7 +110,7 @@ void NanoCanvas::fillRect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_
 
 void NanoCanvas::clear()
 {
-    for(uint16_t i=0; i<m_w* (m_h >> 3); i++)
+    for(uint16_t i=0; i< static_cast<uint16_t>(m_w) * (m_h >> 3); i++)
     {
        m_bytes[i] = m_invertByte;
     }
@@ -236,6 +242,168 @@ void NanoCanvas::charF12x16(uint8_t xpos, uint8_t y, const char ch[], EFontStyle
     }
 }
 
+void NanoCanvas::printFixed(uint8_t xpos, uint8_t y, const char ch[], EFontStyle style)
+{
+    uint8_t i, j = 0;
+    uint8_t text_index = 0;
+    uint8_t page_offset = 0;
+    uint8_t x = xpos;
+    uint8_t topMask, bottomMask;
+    if ( y >= m_h ) return;
+    topMask = (0xFF >> (8 - (y & 0x7)));
+    bottomMask = (0xFF << (y & 0x7));
+    for(;;)
+    {
+        if( ( x > m_w - s_fixedFont.width ) || ( ch[j] == '\0' ) )
+        {
+            x = xpos;
+            y += 8;
+            if (y > (m_h - 8))
+            {
+                break;
+            }
+            page_offset++;
+            if (page_offset == s_fixedFont.pages)
+            {
+                text_index = j;
+                page_offset = 0;
+                if (ch[j] == '\0')
+                {
+                    break;
+                }
+            }
+            else
+            {
+                j = text_index;
+            }
+        }
+        uint8_t c = ch[j] - 32;
+        if ( c > 224 )
+        {
+            c = 0;
+        }
+        uint8_t ldata = 0;
+        uint16_t offset = (c * s_fixedFont.pages + page_offset) * s_fixedFont.width;
+        for( i=0; i<s_fixedFont.width; i++)
+        {
+            uint8_t data;
+            if ( style == STYLE_NORMAL )
+            {
+                data = pgm_read_byte(&s_fixedFont.data[offset]);
+            }
+            else if ( style == STYLE_BOLD )
+            {
+                data = pgm_read_byte(&s_fixedFont.data[offset]);
+                uint8_t temp = data | ldata;
+                ldata = data;
+                data = temp;
+            }
+            else
+            {
+                data = pgm_read_byte(&s_fixedFont.data[offset + 1]);
+                uint8_t temp = (data & 0xF0) | ldata;
+                ldata = (data & 0x0F);
+                data = temp;
+            }
+            m_bytes[YADDR(y) + x] &= topMask;
+            m_bytes[YADDR(y) + x] |= (data << (y & 0x7));
+            if (y + 8 < m_h)
+            {
+                m_bytes[YADDR(y) + m_w + x] &= bottomMask;
+                m_bytes[YADDR(y) + m_w + x] |= (data >> (8 - (y & 0x7)));
+            }
+            offset++;
+            x++;
+        }
+        j++;
+    }
+}
+
+void NanoCanvas::printFixed2x(uint8_t xpos, uint8_t y, const char ch[], EFontStyle style)
+{
+    uint8_t i, j = 0;
+    uint8_t text_index = 0;
+    uint8_t page_offset = 0;
+    uint8_t x = xpos;
+    uint8_t topMask, bottomMask;
+    if ( y >= m_h ) return;
+    topMask = (0xFF >> (8 - (y & 0x7)));
+    bottomMask = (0xFF << (y & 0x7));
+    for(;;)
+    {
+        if( ( x > m_w - (s_fixedFont.width<<1) ) || ( ch[j] == '\0' ) )
+        {
+            x = xpos;
+            y += 8;
+            if (y > (m_h - 8))
+            {
+                break;
+            }
+            page_offset++;
+            if (page_offset == (s_fixedFont.pages<<1))
+            {
+                text_index = j;
+                page_offset = 0;
+                if (ch[j] == '\0')
+                {
+                    break;
+                }
+            }
+            else
+            {
+                j = text_index;
+            }
+        }
+        uint8_t c = ch[j] - 32;
+        if ( c > 224 )
+        {
+            c = 0;
+        }
+        uint8_t ldata = 0;
+        uint16_t offset = (c * s_fixedFont.pages + (page_offset >> 1)) * s_fixedFont.width;
+        for( i=0; i<s_fixedFont.width; i++)
+        {
+            uint8_t data;
+            if ( style == STYLE_NORMAL )
+            {
+                data = pgm_read_byte(&s_fixedFont.data[offset]);
+            }
+            else if ( style == STYLE_BOLD )
+            {
+                data = pgm_read_byte(&s_fixedFont.data[offset]);
+                uint8_t temp = data | ldata;
+                ldata = data;
+                data = temp;
+            }
+            else
+            {
+                data = pgm_read_byte(&s_fixedFont.data[offset + 1]);
+                uint8_t temp = (data & 0xF0) | ldata;
+                ldata = (data & 0x0F);
+                data = temp;
+            }
+            if (page_offset & 1) data >>= 4;
+            data = ((data & 0x01) ? 0x03: 0x00) |
+                   ((data & 0x02) ? 0x0C: 0x00) |
+                   ((data & 0x04) ? 0x30: 0x00) |
+                   ((data & 0x08) ? 0xC0: 0x00);
+
+            for (uint8_t n=2; n>0; n--)
+            {
+                m_bytes[YADDR(y) + x] &= topMask;
+                m_bytes[YADDR(y) + x] |= (data << (y & 0x7));
+                if (y+8 < m_h)
+                {
+                    m_bytes[YADDR(y) + m_w + x] &= bottomMask;
+                    m_bytes[YADDR(y) + m_w + x] |= (data >> (8 - (y & 0x7)));
+                }
+                x++;
+            }
+            offset++;
+        }
+        j++;
+    }
+}
 
 void NanoCanvas::drawSpritePgm(uint8_t x, uint8_t y, const uint8_t sprite[])
 {
@@ -289,7 +457,7 @@ void NanoCanvas::blt(uint8_t x, uint8_t y)
 
 void NanoCanvas::invert()
 {
-    for(uint16_t i=0; i<m_w* (m_h >> 3); i++)
+    for(uint16_t i=0; i< static_cast<uint16_t>(m_w) * (m_h >> 3); i++)
        m_bytes[i] = ~m_bytes[i];
 }
 

@@ -1,20 +1,25 @@
 /*
-    Copyright (C) 2016-2017 Alexey Dynda
+    MIT License
 
-    This file is part of SSD1306 library.
+    Copyright (c) 2017-2018, Alexey Dynda
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 #include "ssd1306_interface.h"
@@ -28,10 +33,11 @@ void  (*ssd1306_endTransmission)() = NULL;
 void  (*ssd1306_sendByte)(uint8_t data) = NULL;
 void  (*ssd1306_commandStart)() = NULL;
 void  (*ssd1306_dataStart)() = NULL;
+void  (*ssd1306_closeInterface)() = NULL;
 
 void  (*ssd1306_setRamBlock)(uint8_t x, uint8_t y, uint8_t w) = NULL;
 void  (*ssd1306_nextRamPage)() = NULL;
-void  (*ssd1306_setRamPos)(uint8_t x, uint8_t y) = NULL;
+void  (*ssd1306_sendPixels)(uint8_t data) = NULL;
 
 void ssd1306_sendCommand(uint8_t command)
 {
@@ -43,6 +49,6 @@ void ssd1306_sendCommand(uint8_t command)
 void ssd1306_sendData(uint8_t data)
 {
     ssd1306_dataStart();
-    ssd1306_sendByte( data );
+    ssd1306_sendPixels( data );
     ssd1306_endTransmission();
 }

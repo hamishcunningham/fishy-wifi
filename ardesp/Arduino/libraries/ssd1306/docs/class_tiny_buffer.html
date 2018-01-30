@@ -22,9 +22,9 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">SSD1306 OLED display driver
-   &#160;<span id="projectnumber">1.3.5</span>
+   &#160;<span id="projectnumber">1.4.6</span>
    </div>
-   <div id="projectbrief">This library is developed to control SSD1306 i2c/spi OLED display</div>
+   <div id="projectbrief">This library is developed to control SSD1306/SSD1331 RGB i2c/spi OLED displays and spi PCD8544 LED display</div>
   </td>
  </tr>
  </tbody>
@@ -106,6 +106,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a025db957c4a51f9de6afe6b413440d0e inherit pub_methods_class_nano_canvas"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa1ab1e5c598b6d46f261f45396ea2743 inherit pub_methods_class_nano_canvas"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_nano_canvas.html#aa1ab1e5c598b6d46f261f45396ea2743">charF12x16</a> (uint8_t x, uint8_t y, const char ch[], <a class="el" href="nano__gfx__types_8h.html#a4ceb6be9200d0bb016cbbb87dcf5ed88">EFontStyle</a> style=STYLE_NORMAL)</td></tr>
 <tr class="separator:aa1ab1e5c598b6d46f261f45396ea2743 inherit pub_methods_class_nano_canvas"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f89c3edb9833b7d79f7d1f771b44254 inherit pub_methods_class_nano_canvas"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_nano_canvas.html#a6f89c3edb9833b7d79f7d1f771b44254">printFixed</a> (uint8_t xpos, uint8_t y, const char ch[], <a class="el" href="nano__gfx__types_8h.html#a4ceb6be9200d0bb016cbbb87dcf5ed88">EFontStyle</a> style=STYLE_NORMAL)</td></tr>
+<tr class="separator:a6f89c3edb9833b7d79f7d1f771b44254 inherit pub_methods_class_nano_canvas"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6dcb23724a60a84baaa06c189903edef inherit pub_methods_class_nano_canvas"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_nano_canvas.html#a6dcb23724a60a84baaa06c189903edef">printFixed2x</a> (uint8_t xpos, uint8_t y, const char ch[], <a class="el" href="nano__gfx__types_8h.html#a4ceb6be9200d0bb016cbbb87dcf5ed88">EFontStyle</a> style=STYLE_NORMAL)</td></tr>
+<tr class="separator:a6dcb23724a60a84baaa06c189903edef inherit pub_methods_class_nano_canvas"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a599f8d8cdaba51b639f8ed8531ecba91 inherit pub_methods_class_nano_canvas"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_nano_canvas.html#a599f8d8cdaba51b639f8ed8531ecba91">drawSpritePgm</a> (uint8_t x, uint8_t y, const uint8_t sprite[])</td></tr>
 <tr class="separator:a599f8d8cdaba51b639f8ed8531ecba91 inherit pub_methods_class_nano_canvas"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6a6a7006f415cbf2db983b1c41acde17 inherit pub_methods_class_nano_canvas"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_nano_canvas.html#a6a6a7006f415cbf2db983b1c41acde17">drawSprite</a> (uint8_t x, uint8_t y, const uint8_t sprite[])</td></tr>
@@ -129,7 +133,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p><a class="el" href="class_tiny_buffer.html">TinyBuffer</a> represents object to work with double buffered display. Easy to use: <a class="el" href="class_tiny_buffer.html">TinyBuffer</a> lcd( SSD1306_128x64 ); void setup() { lcd.beginI2C();</p>
 <p>lcd.clear(); lcd.charF6x8(0,0,"Hello"); } </p>
 
-<p class="definition">Definition at line <a class="el" href="tiny__buffer_8h_source.html#l00042">42</a> of file <a class="el" href="tiny__buffer_8h_source.html">tiny_buffer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tiny__buffer_8h_source.html#l00047">47</a> of file <a class="el" href="tiny__buffer_8h_source.html">tiny_buffer.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a6272b477cea5f1bdef9dde5754a1c382"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6272b477cea5f1bdef9dde5754a1c382">&#9670;&nbsp;</a></span>TinyBuffer()</h2>
@@ -180,7 +184,7 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="tiny__buffer_8h_source.html#l00055">55</a> of file <a class="el" href="tiny__buffer_8h_source.html">tiny_buffer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tiny__buffer_8h_source.html#l00060">60</a> of file <a class="el" href="tiny__buffer_8h_source.html">tiny_buffer.h</a>.</p>
 
 </div>
 </div>

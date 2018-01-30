@@ -1,20 +1,25 @@
 /*
-    Copyright (C) 2017 Alexey Dynda
+    MIT License
 
-    This file is part of SSD1306 library.
+    Copyright (c) 2017-2018, Alexey Dynda
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 /**
@@ -25,7 +30,7 @@
 #define _SSD1306_HW_SPI_H_
 
 #include "ssd1306_spi_conf.h"
-#include <Arduino.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,24 +54,10 @@ void         ssd1306_spiConfigure_hw();
  * It uses standard MOSI, SCLK pins to send data to LCD.
  * @param cesPin - pin, controlling chip enable of LCD
  * @param dcPin - pin, controlling data/command mode of LCD
+ *
+ * @note: after call to this function you need to initialize lcd display.
  */
 void         ssd1306_spiInit_hw(int8_t cesPin, int8_t dcPin);
-
-/**
- * Starts spi transmission to the device
- */
-void         ssd1306_spiStart_hw();
-
-/**
- * Completes spi transaction
- */
-void         ssd1306_spiStop_hw();
-
-/**
- * Sends byte to spi device.
- * @param data - byte to send
- */
-void         ssd1306_spiSendByte_hw(uint8_t data);
 
 #endif
 

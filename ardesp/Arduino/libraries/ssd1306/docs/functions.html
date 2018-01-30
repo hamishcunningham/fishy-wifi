@@ -22,9 +22,9 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">SSD1306 OLED display driver
-   &#160;<span id="projectnumber">1.3.5</span>
+   &#160;<span id="projectnumber">1.4.6</span>
    </div>
-   <div id="projectbrief">This library is developed to control SSD1306 i2c/spi OLED display</div>
+   <div id="projectbrief">This library is developed to control SSD1306/SSD1331 RGB i2c/spi OLED displays and spi PCD8544 LED display</div>
   </td>
  </tr>
  </tbody>
@@ -66,6 +66,9 @@ $(function() {
 <li>add()
 : <a class="el" href="class_sprite_pool.html#a60cdca785f31e9535d97485afb4b2202">SpritePool</a>
 </li>
+<li>ascii_offset
+: <a class="el" href="struct_s_fixed_font_info.html#ab1ce9f48a6468de8d4677a32be0d516d">SFixedFontInfo</a>
+</li>
 </ul>
 
 
@@ -75,6 +78,12 @@ $(function() {
 </li>
 <li>beginI2C()
 : <a class="el" href="class_tiny_s_s_d1306.html#a24c3a9e999fc0be31fd0c0622aa32fc8">TinySSD1306</a>
+</li>
+<li>beginI2CEmbedded()
+: <a class="el" href="class_tiny_s_s_d1306.html#a991bfbe83cd490f868cf05c0f50ec450">TinySSD1306</a>
+</li>
+<li>beginI2CWire()
+: <a class="el" href="class_tiny_s_s_d1306.html#a2b966c048fe7e21ffc0a1924a8470619">TinySSD1306</a>
 </li>
 <li>beginSPI()
 : <a class="el" href="class_tiny_s_s_d1306.html#a137d4efc4047edfb3cb5abca5ec71cde">TinySSD1306</a>
@@ -122,7 +131,8 @@ $(function() {
 
 <h3><a id="index_d"></a>- d -</h3><ul>
 <li>data
-: <a class="el" href="struct_s_p_r_i_t_e.html#ac56b0c16d0bcd810ae1289350df821c3">SPRITE</a>
+: <a class="el" href="struct_s_fixed_font_info.html#a0f7b369b22f547c125f83c708d8a6c39">SFixedFontInfo</a>
+, <a class="el" href="struct_s_p_r_i_t_e.html#ac56b0c16d0bcd810ae1289350df821c3">SPRITE</a>
 </li>
 <li>draw()
 : <a class="el" href="struct_s_p_r_i_t_e.html#af3f35eab30dd39e4434b29923f0afab6">SPRITE</a>
@@ -276,8 +286,17 @@ $(function() {
 
 
 <h3><a id="index_p"></a>- p -</h3><ul>
+<li>pages
+: <a class="el" href="struct_s_fixed_font_info.html#ae1f28bffdc33257500d04b8999edb9b2">SFixedFontInfo</a>
+</li>
 <li>positiveMode()
 : <a class="el" href="class_tiny_s_s_d1306.html#ab25af0058dfc82355bd0dadbe57df50f">TinySSD1306</a>
+</li>
+<li>printFixed()
+: <a class="el" href="class_nano_canvas.html#a6f89c3edb9833b7d79f7d1f771b44254">NanoCanvas</a>
+</li>
+<li>printFixed2x()
+: <a class="el" href="class_nano_canvas.html#a6dcb23724a60a84baaa06c189903edef">NanoCanvas</a>
 </li>
 <li>putPixel()
 : <a class="el" href="class_nano_canvas.html#a54a4d7fccec6cd25aa2651301e787241">NanoCanvas</a>
@@ -349,6 +368,7 @@ $(function() {
 </li>
 <li>width()
 : <a class="el" href="class_nano_canvas.html#a01a8ceef1a9d26fb263f1f950774d4c6">NanoCanvas</a>
+, <a class="el" href="struct_s_fixed_font_info.html#a3a19df1e396115c8e04256af069d7091">SFixedFontInfo</a>
 , <a class="el" href="class_tiny_s_s_d1306.html#af83a6e87532bb64e3d295059bb13bb1c">TinySSD1306</a>
 </li>
 <li>write()
