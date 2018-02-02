@@ -97,6 +97,7 @@ const char* pageDefault = // TODO build the growbeds according to their num
 const char* pageFooter =
   "\n<p><a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;"
   "<a href='/edit'>SPIFFS file editor</a>&nbsp;&nbsp;&nbsp;"
+  "<a href='/waterelfoverview.html'>Documentation</a>&nbsp;&nbsp;&nbsp;"
   "<a href='https://wegrow.social/'>WeGrow</a></p></body></html>";
 
 /////////////////////////////////////////////////////////////////////////////
@@ -344,7 +345,7 @@ void setup() {
   blink(3);                     // signal we're starting setup
   WiFi.begin();  // lets hope the stored credentials work...
 
-  ArduinoOTA.setPasswordHash("1dee0c92b097b253f201a7da39dce6df");
+  //ArduinoOTA.setPasswordHash("1dee0c92b097b253f201a7da39dce6df");
   ArduinoOTA
   .onStart([]() {
     String type;

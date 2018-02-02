@@ -1,20 +1,25 @@
 /*
-    Copyright (C) 2017 Alexey Dynda
+    MIT License
 
-    This file is part of SSD1306 library.
+    Copyright (c) 2017-2018, Alexey Dynda
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 /**
@@ -54,24 +59,10 @@ void ssd1306_i2cConfigure_Wire(int8_t scl, int8_t sda);
  * If you do not know i2c parameters, try ssd1306_i2cInit_Wire(0).
  * SCL and SDA pins depend on platform and Wire library implementation.
  * @param sa  - i2c address of lcd display. Use 0 to leave default
+ *
+ * @note: after call to this function you need to initialize lcd display.
  */
 void ssd1306_i2cInit_Wire(uint8_t sa);
-
-/**
- * Starts i2c communication with lcd display via Wire library.
- */
-void ssd1306_i2cStart_Wire();
-
-/**
- * Stops i2c communication.
- */
-void ssd1306_i2cStop_Wire();
-
-/**
- * Sends single byte to i2c device using Wire library.
- * @param data - byte to send
- */
-void ssd1306_i2cSendByte_Wire(uint8_t data);
 
 /**
  * @}

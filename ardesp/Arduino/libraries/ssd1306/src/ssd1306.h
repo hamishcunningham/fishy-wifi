@@ -1,20 +1,25 @@
 /*
-    Copyright (C) 2016-2017 Alexey Dynda
+    MIT License
 
-    This file is part of SSD1306 library.
+    Copyright (c) 2016-2018, Alexey Dynda
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 /**
  * @file ssd1306.h SSD1306 basic draw functions
@@ -29,6 +34,7 @@
 #include "spi/ssd1306_spi_conf.h"
 #include "lcd/ssd1306_128x64.h"
 #include "lcd/ssd1306_128x32.h"
+#include "lcd/ssd1331_96x64.h"
 #include "lcd/sh1106_128x64.h"
 #include "lcd/pcd8544_84x48.h"
 
@@ -56,13 +62,21 @@ void         ssd1306_displayOff();
 void         ssd1306_displayOn();
 
 /**
+ * Set display contrast, ie light intensity
+ * @param contrast - contrast value to see, refer to ssd1306 datasheet
+ */
+void         ssd1306_setContrast(uint8_t contrast);
+
+/**
  * Switches display to inverse mode.
  * LCD will display 0-pixels as white, and 1-pixels as black.
+ * @note Not supported for SSD1331
  */
 void         ssd1306_invertMode();
 
 /**
  * Switches display to normal mode.
+ * @note Not supported for SSD1331
  */
 void         ssd1306_normalMode();
 
@@ -119,6 +133,59 @@ void         ssd1306_negativeMode();
 void         ssd1306_positiveMode();
 
 /**
+ * Prints text to screen using fixed font.
+ * @param xpos - horizontal position in pixels
+ * @param y - vertical position in pixels
+ * @param ch - NULL-terminated string to print
+ * @param style - font style (EFontStyle), normal by default.
+ * @returns number of chars in string
+ * @see ssd1306_setFixedFont
+ * @warning ssd1306_printFixed() can output chars at fixed y positions: 0, 8, 16, 24, 32, etc.
+ *          If you specify [10,18], ssd1306_printFixed() will output text starting at [10,16] position.
+ * @warning Be careful with you flash space! Do not mix too many different functions in single sketch.
+ *          ssd1306_printFixedN() uses much flash: ~396 bytes, ssd1306_printFixed() needs 388 bytes.
+ *          Placing both of these functions to your sketch will consume almost 1KiB.
+ */
+uint8_t     ssd1306_printFixed(uint8_t xpos, uint8_t y, const char ch[], EFontStyle style);
+
+/**
+ * Prints text to screen using double size fixed font.
+ * @param xpos - horizontal position in pixels
+ * @param y - vertical position in pixels
+ * @param ch - NULL-terminated string to print
+ * @param style - font style (EFontStyle), normal by default.
+ * @returns number of chars in string
+ * @see ssd1306_setFixedFont
+ * @warning ssd1306_printFixed2x() can output chars at fixed y positions: 0, 8, 16, 24, 32, etc.
+ *          If you specify [10,18], ssd1306_printFixed2x() will output text starting at [10,16] position.
+ * @warning Be careful with you flash space! Do not mix too many different functions in single sketch.
+ *          ssd1306_printFixedN() uses much flash: ~474 bytes, ssd1306_printFixed() needs 388 bytes.
+ *          Placing both of these functions to your sketch will consume almost 1KiB.
+ */
+uint8_t     ssd1306_printFixed2x(uint8_t xpos, uint8_t y, const char ch[], EFontStyle style) __attribute__ ((deprecated));
+
+/**
+ * Prints text to screen using size fixed font, scaled by factor value. <br>
+ * Factor value 0 gives regular font size (6x8 for example) <br>
+ * Factor value 1 gives double font size (12x16 if 6x8 font is used) <br>
+ * Factor value 2 gives fourth font size (24x32 if 6x8 font is used) <br>
+ * Factor value 3 gives eighth font size (48x64 if 6x8 font is used) <br>
+ * @param xpos - horizontal position in pixels
+ * @param y - vertical position in pixels
+ * @param ch - NULL-terminated string to print
+ * @param style - font style (EFontStyle), normal by default.
+ * @param factor - 0, 1, 2, 3.
+ * @returns number of chars in string
+ * @see ssd1306_setFixedFont
+ * @warning ssd1306_printFixed2x() can output chars at fixed y positions: 0, 8, 16, 24, 32, etc.
+ *          If you specify [10,18], ssd1306_printFixed2x() will output text starting at [10,16] position.
+ * @warning Be careful with you flash space! Do not mix too many different functions in single sketch.
+ *          ssd1306_printFixedN() uses much flash: ~474 bytes, ssd1306_printFixed() needs 388 bytes.
+ *          Placing both of these functions to your sketch will consume almost 1KiB.
+ */
+uint8_t     ssd1306_printFixedN(uint8_t xpos, uint8_t y, const char ch[], EFontStyle style, uint8_t factor);
+
+/**
  * Prints text to screen using font 6x8.
  * @param x - horizontal position in pixels
  * @param y - vertical position in blocks (pixels/8)
@@ -132,7 +199,7 @@ uint8_t      ssd1306_charF6x8(uint8_t x, uint8_t y,
 #ifdef __cplusplus
                               = STYLE_NORMAL
 #endif
-                             );
+                             ) __attribute__ ((deprecated));
 
 /**
  * Prints text to screen using double size font 12x16.
@@ -145,7 +212,7 @@ uint8_t      ssd1306_charF6x8(uint8_t x, uint8_t y,
 uint8_t      ssd1306_charF12x16(uint8_t xpos,
                                 uint8_t y,
                                 const char ch[],
-                                EFontStyle style);
+                                EFontStyle style) __attribute__ ((deprecated));
 
 
 /**
@@ -164,8 +231,28 @@ uint8_t      ssd1306_charF6x8_eol(uint8_t left,
                                   uint8_t y,
                                   const char ch[],
                                   EFontStyle style,
-                                  uint8_t right);
+                                  uint8_t right) __attribute__ ((deprecated));
 
+
+/**
+ * Function allows to set another fixed font for the library.
+ * By default, the font supports only first 128 - 32 ascii chars.
+ * First 32 chars of ascii table are non-printable, and removed
+ * from the font table to reduce flash memory consumption.
+ * Default font doesn't support russian characters. Using
+ * this function you can implement your own fonts.
+ * First font char must be started with \<space\> image.
+ * Font data should be in the following format:
+ * | 0x00 | 0xWW | 0xHH | 0xAA | FONT DATA |,
+ * where 0xWW - width in pixels, 0xHH - height in pixels, 0xAA - ascii offset (0x20).<br>
+ * For fixed font 6x8 each char is presented by 6 bytes:<br>
+ * COL0, COL1, COL2, COL3, COL4, COL5.<br>
+ * For fixed font 4x16 each char is presented by 4x16/8 = 8 bytes:<br>
+ * ROW0: COL0, COL1, COL2, COL3,<br>
+ * ROW1: COL0, COL1, COL2, COL3<br>
+ * @param progmemFont - font to setup located in Flash area
+ */
+void         ssd1306_setFixedFont(const uint8_t * progmemFont);
 
 /**
  * Function allows to set another font for the library.
@@ -177,7 +264,7 @@ uint8_t      ssd1306_charF6x8_eol(uint8_t left,
  * First font char must be started with \<space\> image.
  * @param progmemFont - font to setup located in Flash area
  */
-void         ssd1306_setFont6x8(const uint8_t * progmemFont);
+void         ssd1306_setFont6x8(const uint8_t * progmemFont) __attribute__ ((deprecated));
 
 /**
  * Put single pixel on the LCD.
@@ -204,7 +291,7 @@ void         ssd1306_putPixel(uint8_t x, uint8_t y);
  * ~~~~~~~~~~~~~~~
  *
  * @param x - horizontal position in pixels
- * @param y - vertical position in blocks (pixels/8)
+ * @param y - vertical position pixels. Should be multiply of 8.
  * @param pixels - bit-pixels to draw on display
  */
 void         ssd1306_putPixels(uint8_t x, uint8_t y, uint8_t pixels);
@@ -217,6 +304,21 @@ void         ssd1306_putPixels(uint8_t x, uint8_t y, uint8_t pixels);
  * @param y2 - bottom boundary int pixel units
  */
 void         ssd1306_drawRect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
+
+
+/**
+ * Draws line
+ * @param x1 - x position in pixels of start point
+ * @param y1 - y position in pixels of start point
+ * @param x2 - x position in pixels of end point
+ * @param y2 - y position in pixels of end point
+ *
+ * @warning Remember that this function draws line directly in GDRAM of oled controller.
+ *          Since there is no way to detect pixels already being displayed, some pixels
+ *          can be overwritten by black color. If you use RGB oled, based on ssd1331 controller,
+ *          use ssd1331_drawLine() function.
+ */
+void         ssd1306_drawLine(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
 
 /**
  * Draws horizontal line

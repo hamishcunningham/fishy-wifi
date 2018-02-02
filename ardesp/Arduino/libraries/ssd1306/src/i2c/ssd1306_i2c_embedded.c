@@ -1,20 +1,25 @@
 /*
-    Copyright (C) 2016-2017 Alexey Dynda
+    MIT License
 
-    This file is part of SSD1306 library.
+    Copyright (c) 2016-2018, Alexey Dynda
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 
@@ -23,9 +28,9 @@
 #include "ssd1306_i2c_conf.h"
 #include "ssd1306_i2c.h"
 
-#ifdef SSD1306_I2C_SW_SUPPORTED
+#include "hal/io.h"
 
-#include <Arduino.h>
+#ifdef SSD1306_I2C_SW_SUPPORTED
 
 /**
  * Port registers, containing pins, which SSD1306 display is connected to.
@@ -37,17 +42,15 @@ static uint8_t s_scl = (1<<SSD1306_SCL);
 static uint8_t s_sda = (1<<SSD1306_SDA);
 static uint8_t s_sa  = SSD1306_SA;
 
-#include <avr/interrupt.h>
-
-    #if defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
-        // at 8Mhz each command takes ~ 0.125us
-        #define DDR_REG      DDRB
-        #define PORT_REG     PORTB
-    #else // For Atmega
-        // at 16Mhz each command takes ~ 0.0625us
-        #define DDR_REG      DDRC
-        #define PORT_REG     PORTC
-    #endif
+#if defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
+    // at 8Mhz each command takes ~ 0.125us
+    #define DDR_REG      DDRB
+    #define PORT_REG     PORTB
+#else // For Atmega
+    // at 16Mhz each command takes ~ 0.0625us
+    #define DDR_REG      DDRC
+    #define PORT_REG     PORTC
+#endif
 
 
 #ifndef F_CPU
@@ -95,40 +98,10 @@ static uint8_t oldSREG;
 static uint8_t interruptsOff = 0;
 
 /**
- * SCL remains HIGH on EXIT, Low SDA means start transmission
- */
-void ssd1306_i2cStart_Embedded(void)
-{
-    oldSREG = SREG;
-    cli();
-    interruptsOff = 1;
-    DIGITAL_WRITE_LOW(DDR_REG, PORT_REG, s_sda);     // Set to LOW
-    ssd1306_delay(I2C_START_STOP_DELAY);
-    DIGITAL_WRITE_LOW(DDR_REG, PORT_REG, s_scl);     // Set to LOW
-    ssd1306_delay(I2C_HALF_CLOCK);
-    ssd1306_i2cSendByte_Embedded((s_sa << 1) | 0);
-}
-
-void ssd1306_i2cStop_Embedded(void)
-{
-    DIGITAL_WRITE_LOW(DDR_REG, PORT_REG, s_sda);		// Set to LOW
-    ssd1306_delay(I2C_RISE_TIME); // Fall time is the same as rise time
-    DIGITAL_WRITE_HIGH(DDR_REG, PORT_REG, s_scl);	// Set to HIGH
-    ssd1306_delay(I2C_START_STOP_DELAY); 
-    DIGITAL_WRITE_HIGH(DDR_REG, PORT_REG, s_sda);	// Set to HIGH
-    ssd1306_delay(I2C_IDLE_TIME);
-    if (interruptsOff)
-    {
-        SREG = oldSREG;
-        interruptsOff = 0;
-    }
-}
-
-/**
  * Inputs: SCL is LOW, SDA is has no meaning
  * Outputs: SCL is LOW
  */
-void ssd1306_i2cSendByte_Embedded(uint8_t data)
+static void ssd1306_i2cSendByte_Embedded(uint8_t data)
 {
     uint8_t i;
     for(i=8; i>0; i--)
@@ -155,6 +128,40 @@ void ssd1306_i2cSendByte_Embedded(uint8_t data)
     ssd1306_delay(I2C_HALF_CLOCK);
 }
 
+/**
+ * SCL remains HIGH on EXIT, Low SDA means start transmission
+ */
+static void ssd1306_i2cStart_Embedded(void)
+{
+    oldSREG = SREG;
+    cli();
+    interruptsOff = 1;
+    DIGITAL_WRITE_LOW(DDR_REG, PORT_REG, s_sda);     // Set to LOW
+    ssd1306_delay(I2C_START_STOP_DELAY);
+    DIGITAL_WRITE_LOW(DDR_REG, PORT_REG, s_scl);     // Set to LOW
+    ssd1306_delay(I2C_HALF_CLOCK);
+    ssd1306_i2cSendByte_Embedded((s_sa << 1) | 0);
+}
+
+static void ssd1306_i2cStop_Embedded(void)
+{
+    DIGITAL_WRITE_LOW(DDR_REG, PORT_REG, s_sda);		// Set to LOW
+    ssd1306_delay(I2C_RISE_TIME); // Fall time is the same as rise time
+    DIGITAL_WRITE_HIGH(DDR_REG, PORT_REG, s_scl);	// Set to HIGH
+    ssd1306_delay(I2C_START_STOP_DELAY); 
+    DIGITAL_WRITE_HIGH(DDR_REG, PORT_REG, s_sda);	// Set to HIGH
+    ssd1306_delay(I2C_IDLE_TIME);
+    if (interruptsOff)
+    {
+        SREG = oldSREG;
+        interruptsOff = 0;
+    }
+}
+
+static void ssd1306_i2cClose_Embedded()
+{
+}
+
 void ssd1306_i2cInit_Embedded(int8_t scl, int8_t sda, uint8_t sa)
 {
     if (scl>=0) s_scl = (1<<scl);
@@ -163,6 +170,7 @@ void ssd1306_i2cInit_Embedded(int8_t scl, int8_t sda, uint8_t sa)
     ssd1306_startTransmission = ssd1306_i2cStart_Embedded;
     ssd1306_endTransmission = ssd1306_i2cStop_Embedded;
     ssd1306_sendByte = ssd1306_i2cSendByte_Embedded;
+    ssd1306_closeInterface = ssd1306_i2cClose_Embedded;
     ssd1306_commandStart = ssd1306_i2cCommandStart;
     ssd1306_dataStart = ssd1306_i2cDataStart;
 }

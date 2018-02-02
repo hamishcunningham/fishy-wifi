@@ -1,20 +1,25 @@
 /*
-    Copyright (C) 2016-2017 Alexey Dynda
+    MIT License
 
-    This file is part of SSD1306 library.
+    Copyright (c) 2016-2018, Alexey Dynda
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 #include "ssd1306_i2c_wire.h"
@@ -29,13 +34,13 @@
 static uint8_t s_bytesWritten = 0;
 static uint8_t s_sa = SSD1306_SA;
 
-void ssd1306_i2cStart_Wire(void)
+static void ssd1306_i2cStart_Wire(void)
 {
     Wire.beginTransmission(s_sa);
     s_bytesWritten = 0;
 }
 
-void ssd1306_i2cStop_Wire(void)
+static void ssd1306_i2cStop_Wire(void)
 {
     Wire.endTransmission();
 }
@@ -61,7 +66,7 @@ void ssd1306_i2cConfigure_Wire(int8_t scl, int8_t sda)
  * Inputs: SCL is LOW, SDA is has no meaning
  * Outputs: SCL is LOW
  */
-void ssd1306_i2cSendByte_Wire(uint8_t data)
+static void ssd1306_i2cSendByte_Wire(uint8_t data)
 {
     // Do not write too many bytes for standard Wire.h. It may become broken
 #if defined(ESP32) || defined(ESP31B)
@@ -84,12 +89,17 @@ void ssd1306_i2cSendByte_Wire(uint8_t data)
     s_bytesWritten++;
 }
 
+static void ssd1306_i2cClose_Wire()
+{
+}
+
 void ssd1306_i2cInit_Wire(uint8_t sa)
 {
     if (sa) s_sa = sa;
     ssd1306_startTransmission = ssd1306_i2cStart_Wire;
     ssd1306_endTransmission = ssd1306_i2cStop_Wire;
     ssd1306_sendByte = ssd1306_i2cSendByte_Wire;
+    ssd1306_closeInterface = ssd1306_i2cClose_Wire;
     ssd1306_commandStart = ssd1306_i2cCommandStart;
     ssd1306_dataStart = ssd1306_i2cDataStart;
 }

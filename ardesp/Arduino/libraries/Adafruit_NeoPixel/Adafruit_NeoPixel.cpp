@@ -130,7 +130,7 @@ void Adafruit_NeoPixel::show(void) {
   // allows the mainline code to start generating the next frame of data
   // rather than stalling for the latch.
   while(!canShow());
-  // endTime is a private member (rather than global var) so that mutliple
+  // endTime is a private member (rather than global var) so that multiple
   // instances on different pins can be quickly issued in succession (each
   // instance doesn't delay the next).
 
@@ -1058,7 +1058,7 @@ void Adafruit_NeoPixel::show(void) {
 
 // ARM MCUs -- Teensy 3.0, 3.1, LC, Arduino Due ---------------------------
 
-#if defined(__MK20DX128__) || defined(__MK20DX256__) // Teensy 3.0 & 3.1
+#if defined(TEENSYDUINO) && defined(KINETISK) // Teensy 3.0, 3.1, 3.2, 3.5, 3.6
 #define CYCLES_800_T0H  (F_CPU / 4000000)
 #define CYCLES_800_T1H  (F_CPU / 1250000)
 #define CYCLES_800      (F_CPU /  800000)
@@ -1115,7 +1115,7 @@ void Adafruit_NeoPixel::show(void) {
   }
 #endif // NEO_KHZ400
 
-#elif defined(__MKL26Z64__) // Teensy-LC
+#elif defined(TEENSYDUINO) && defined(__MKL26Z64__) // Teensy-LC
 
 #if F_CPU == 48000000
   uint8_t          *p   = pixels,
@@ -1487,7 +1487,7 @@ void Adafruit_NeoPixel::show(void) {
   }
 // END of NRF52 implementation
 
-#elif defined(__SAMD21G18A__)  || defined(__SAMD21E18A__) || defined(__SAMD21J18A__) // Arduino Zero, Gemma/Trinket M0, SODAQ Autonomo and others
+#elif defined (__SAMD21E17A__) || defined(__SAMD21G18A__)  || defined(__SAMD21E18A__) || defined(__SAMD21J18A__) // Arduino Zero, Gemma/Trinket M0, SODAQ Autonomo and others
   // Tried this with a timer/counter, couldn't quite get adequate
   // resolution.  So yay, you get a load of goofball NOPs...
 
@@ -1559,6 +1559,83 @@ void Adafruit_NeoPixel::show(void) {
         bitMask = 0x80;
       }
     }
+  }
+#endif
+
+#elif defined (__SAMD51__) // M4 @ 120mhz
+  // Tried this with a timer/counter, couldn't quite get adequate
+  // resolution.  So yay, you get a load of goofball NOPs...
+
+  uint8_t  *ptr, *end, p, bitMask, portNum;
+  uint32_t  pinMask;
+
+  portNum =  g_APinDescription[pin].ulPort;
+  pinMask =  1ul << g_APinDescription[pin].ulPin;
+  ptr     =  pixels;
+  end     =  ptr + numBytes;
+  p       = *ptr++;
+  bitMask =  0x80;
+
+  volatile uint32_t *set = &(PORT->Group[portNum].OUTSET.reg),
+                    *clr = &(PORT->Group[portNum].OUTCLR.reg);
+
+#ifdef NEO_KHZ400 // 800 KHz check needed only if 400 KHz support enabled
+  if(is800KHz) {
+#endif
+    for(;;) {
+      if(p & bitMask) { // ONE
+        // High 800ns
+        *set = pinMask;
+        asm("nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;");
+        // Low 450ns
+        *clr = pinMask;
+        asm("nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop;");
+      } else { // ZERO
+        // High 400ns
+        *set = pinMask;
+        asm("nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop;");
+        // Low 850ns
+        *clr = pinMask;
+        asm("nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;");
+      }
+      if(bitMask >>= 1) {
+        // Move on to the next pixel
+        asm("nop;");
+      } else {
+        if(ptr >= end) break;
+        p       = *ptr++;
+        bitMask = 0x80;
+      }
+    }
+#ifdef NEO_KHZ400
+  } else { // 400 KHz bitstream
+    // ToDo!
   }
 #endif
 
@@ -1644,7 +1721,87 @@ void Adafruit_NeoPixel::show(void) {
   }
 #endif
 
-#else // Other ARM architecture -- Presumed Arduino Due
+#elif defined (NRF51)
+  uint8_t          *p   = pixels,
+                    pix, count, mask;
+  int32_t         num = numBytes;
+  unsigned int bitmask = ( 1 << g_ADigitalPinMap[pin] );
+// https://github.com/sandeepmistry/arduino-nRF5/blob/dc53980c8bac27898fca90d8ecb268e11111edc1/variants/BBCmicrobit/variant.cpp
+
+  volatile unsigned int *reg = (unsigned int *) (0x50000000UL + 0x508);
+
+// https://github.com/sandeepmistry/arduino-nRF5/blob/dc53980c8bac27898fca90d8ecb268e11111edc1/cores/nRF5/SDK/components/device/nrf51.h
+// http://www.iot-programmer.com/index.php/books/27-micro-bit-iot-in-c/chapters-micro-bit-iot-in-c/47-micro-bit-iot-in-c-fast-memory-mapped-gpio?showall=1
+// https://github.com/Microsoft/pxt-neopixel/blob/master/sendbuffer.asm
+
+  asm volatile(
+    // "cpsid i" ; disable irq
+
+    //    b .start
+    "b  L%=_start"                    "\n\t"
+    // .nextbit:               ;            C0
+    "L%=_nextbit:"                    "\n\t"          //;            C0
+    //    str r1, [r3, #0]    ; pin := hi  C2
+    "strb %[bitmask], [%[reg], #0]"   "\n\t"          //; pin := hi  C2
+    //    tst r6, r0          ;            C3
+    "tst %[mask], %[pix]"             "\n\t"//          ;            C3
+    //    bne .islate         ;            C4
+    "bne L%=_islate"                  "\n\t"          //;            C4
+    //    str r1, [r2, #0]    ; pin := lo  C6
+    "strb %[bitmask], [%[reg], #4]"   "\n\t"          //; pin := lo  C6
+    // .islate:
+    "L%=_islate:"                     "\n\t"
+    //    lsrs r6, r6, #1     ; r6 >>= 1   C7
+    "lsr %[mask], %[mask], #1"       "\n\t"          //; r6 >>= 1   C7
+    //    bne .justbit        ;            C8
+    "bne L%=_justbit"                 "\n\t"          //;            C8
+
+    //    ; not just a bit - need new byte
+    //    adds r4, #1         ; r4++       C9
+    "add %[p], #1"                   "\n\t"          //; r4++       C9
+    //    subs r5, #1         ; r5--       C10
+    "sub %[num], #1"                 "\n\t"          //; r5--       C10
+    //    bcc .stop           ; if (r5<0) goto .stop  C11
+    "bcc L%=_stop"                    "\n\t"          //; if (r5<0) goto .stop  C11
+    // .start:
+    "L%=_start:"
+    //    movs r6, #0x80      ; reset mask C12
+    "movs %[mask], #0x80"             "\n\t"          //; reset mask C12
+    //    nop                 ;            C13
+    "nop"                             "\n\t"          //;            C13
+
+    // .common:               ;             C13
+    "L%=_common:"                     "\n\t"          //;            C13
+    //    str r1, [r2, #0]   ; pin := lo   C15
+    "strb %[bitmask], [%[reg], #4]"   "\n\t"          //; pin := lo  C15
+    //    ; always re-load byte - it just fits with the cycles better this way
+    //    ldrb r0, [r4, #0]  ; r0 := *r4   C17
+    "ldrb  %[pix], [%[p], #0]"        "\n\t"          //; r0 := *r4   C17
+    //    b .nextbit         ;             C20
+    "b L%=_nextbit"                   "\n\t"          //;             C20
+
+    // .justbit: ; C10
+    "L%=_justbit:"                    "\n\t"          //; C10
+    //    ; no nops, branch taken is already 3 cycles
+    //    b .common ; C13
+    "b L%=_common"                    "\n\t"          //; C13
+
+    // .stop:
+    "L%=_stop:"                       "\n\t"
+    //    str r1, [r2, #0]   ; pin := lo
+    "strb %[bitmask], [%[reg], #4]"   "\n\t"          //; pin := lo
+    //    cpsie i            ; enable irq
+
+    : [p] "+r" (p),
+    [pix] "=&r" (pix),
+    [count] "=&r" (count),
+    [mask] "=&r" (mask),
+    [num] "+r" (num)
+    : [bitmask] "r" (bitmask),
+    [reg] "r" (reg)
+  );
+
+#elif defined(__SAM3X8E__) // Arduino Due
 
   #define SCALE      VARIANT_MCK / 2UL / 1000000UL
   #define INST       (2UL * F_CPU / VARIANT_MCK)
@@ -2019,3 +2176,29 @@ uint8_t Adafruit_NeoPixel::getBrightness(void) const {
 void Adafruit_NeoPixel::clear() {
   memset(pixels, 0, numBytes);
 }
+
+// This bizarre construct isn't Arduino code in the conventional sense.
+// It exploits features of GCC's preprocessor to generate a PROGMEM
+// table (in flash memory) holding an 8-bit unsigned sine wave (0-255).
+static const int _SBASE_ = __COUNTER__ + 1; // Index of 1st __COUNTER__ below
+#define _S1_ (sin((__COUNTER__ - _SBASE_) / 128.0 * M_PI) + 1.0) * 127.5 + 0.5,
+#define _S2_ _S1_ _S1_ _S1_ _S1_ _S1_ _S1_ _S1_ _S1_ // Expands to 8 items
+#define _S3_ _S2_ _S2_ _S2_ _S2_ _S2_ _S2_ _S2_ _S2_ // Expands to 64 items
+static const uint8_t PROGMEM _sineTable[] = { _S3_ _S3_ _S3_ _S3_ }; // 256
+ 
+// Similar to above, but for an 8-bit gamma-correction table.
+#define _GAMMA_ 2.6
+static const int _GBASE_ = __COUNTER__ + 1; // Index of 1st __COUNTER__ below
+#define _G1_ pow((__COUNTER__ - _GBASE_) / 255.0, _GAMMA_) * 255.0 + 0.5,
+#define _G2_ _G1_ _G1_ _G1_ _G1_ _G1_ _G1_ _G1_ _G1_ // Expands to 8 items
+#define _G3_ _G2_ _G2_ _G2_ _G2_ _G2_ _G2_ _G2_ _G2_ // Expands to 64 items
+static const uint8_t PROGMEM _gammaTable[] = { _G3_ _G3_ _G3_ _G3_ }; // 256
+
+uint8_t Adafruit_NeoPixel::sine8(uint8_t x) const {
+  return pgm_read_byte(&_sineTable[x]); // 0-255 in, 0-255 out
+}
+
+uint8_t Adafruit_NeoPixel::gamma8(uint8_t x) const {
+  return pgm_read_byte(&_gammaTable[x]); // 0-255 in, 0-255 out
+}
+

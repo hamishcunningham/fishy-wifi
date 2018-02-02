@@ -1,24 +1,29 @@
 /*
-    Copyright (C) 2016-2017 Alexey Dynda
+    MIT License
 
-    This file is part of SSD1306 library.
+    Copyright (c) 2016-2018, Alexey Dynda
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
-/**
- * Original game was developed by Ilya Titov in 2014. This version is deeply
- * reworked and based on new ssd1306 library.
+/*
+ * This game is based on original game, developed by Ilya Titov in 2014.
+ * It can be still flashed to http://webboggles.com/attiny85-breakout-keychain-game/ HW.
  */
 /*
  *   Attiny85 PINS
@@ -40,13 +45,14 @@
  * LEFT (D 4) PD4  6|    |23  PC0  Z-KEYPAD (A 0) if USE_Z_KEYPAD is defined (see below)
  *            VCC  7|    |22  GND
  *            GND  8|    |21  AREF
- *            PB6  9|    |20  AVCC
+ * BUZZ (D 6) PB6  9|    |20  AVCC
  *            PB7 10|    |19  PB5            
  *            PD5 11|    |18  PB4             
  *            PD6 12|    |17  PB3            
  *            PD7 13|    |16  PB2            
- *            PB0 14|____|15  PB1            
- * 
+ *            PB0 14|____|15  PB1
+ *
+ *  IMPORTANT!!! D6 is used instead of D3 with SSD1331 display mode
  */
 
 #include "ssd1306.h"
@@ -54,24 +60,16 @@
 #include "i2c/ssd1306_i2c_embedded.h"
 #include "intf/ssd1306_interface.h"
 
-#if defined(ESP8266) || defined(ESP32)
-    #include <pgmspace.h>
-#else
-    #include <avr/pgmspace.h>
-    #include <avr/eeprom.h>
-    #include <avr/sleep.h>
-    #include <avr/interrupt.h> // needed for the additional interrupt
-#endif
+#include <stdlib.h>
 
-#ifdef SSD1306_WIRE_SUPPORTED
-#include <Wire.h>
-#endif
+//#define ARKANOID_SSD1331
 
 #include "levels.h"
 #include "blocks.h"
 #include "sprites.h"
 #include "arkanoid.h"
 #include "buttons.h"
+#include "font6x8.h"
 
 typedef struct
 {
@@ -93,13 +91,24 @@ uint16_t *EEPROM_ADDR = (uint16_t*)0;
 #        define LEFT_BTN    4
 #        define RIGHT_BTN   2
 #    endif
-#    define BUZZER      3
+#    ifdef ARKANOID_SSD1331
+#        define BUZZER      6
+#    else
+#        define BUZZER      3
+#    endif
 #endif
 
 
 const int LEFT_EDGE         = 0;
+#ifdef ARKANOID_SSD1331
+const int RIGHT_EDGE        = (96 - 14);
+const int SCREEN_WIDTH      = (96 - 16);
+const uint8_t OUTPUT_OFFSET = 16;
+#else
 const int RIGHT_EDGE        = (128 - 14);
 const int SCREEN_WIDTH      = (128 - 16);
+const uint8_t OUTPUT_OFFSET = 0;
+#endif
 const int SCREEN_HEIGHT     = 64;
 const int BLOCK_WIDTH       = 16;
 const int PLATFORM_HEIGHT   = 10;
@@ -152,8 +161,19 @@ void playerInc()
 
 void setup()
 {
+    ssd1306_setFixedFont(ssd1306xled_font6x8_AB);
     randomSeed(analogRead(0));
-#if defined(__AVR_ATtiny85__)
+#if defined(ARKANOID_SSD1331)
+    #ifndef USE_Z_KEYPAD
+        pinMode(LEFT_BTN, INPUT);
+        pinMode(RIGHT_BTN, INPUT);
+    #endif
+    pinMode(BUZZER, OUTPUT);
+    sei();                      // enable all interrupts
+    #ifndef USE_Z_KEYPAD
+        attachInterrupt(digitalPinToInterrupt(RIGHT_BTN),playerInc,HIGH);
+    #endif
+#elif defined(__AVR_ATtiny85__)
     DDRB |= 0b00011010;         // set PB1 as output (for the speaker), PB0 and PB2 as input
     sei();                      // enable all interrupts
     attachInterrupt(0,playerInc,HIGH);
@@ -209,6 +229,7 @@ void loop()
 
 void drawStatusPanel()
 {
+    ssd1331_setColor(RGB_COLOR8(255,255,0));
     for(uint8_t i=0; i<min(hearts,3); i++)
     {
         SPRITE heart = ssd1306_createSprite( RIGHT_EDGE + 4, 16 + (i<<3), 8, heartSprite );
@@ -217,7 +238,7 @@ void drawStatusPanel()
     char temp[6] = {'0',0,0,0,0,0};
     utoa(score,temp + (score<10?1:0),10);
     temp[2] = '\0';
-    ssd1306_charF6x8(RIGHT_EDGE + 1, 1, temp);
+    ssd1306_printFixed(RIGHT_EDGE + 1, 8, temp, STYLE_NORMAL);
     SPRITE power = ssd1306_createSprite( RIGHT_EDGE + 4, 40, 8, powerSprite );
     if (platformPower)
         power.draw();
@@ -227,19 +248,24 @@ void drawStatusPanel()
 
 void drawIntro()
 {
-#if defined(__AVR_ATtiny85__)
-    ssd1306_i2cInit_Embedded(0,0,0);
+    ssd1331_setColor(RGB_COLOR8(255,0,0));
+#ifdef ARKANOID_SSD1331
+    ssd1331_96x64_spi_init(3,4,5);
+#elif defined(__AVR_ATtiny85__)
+    ssd1306_i2cInit_Embedded(-1,-1,0);
 #elif defined(SSD1306_WIRE_SUPPORTED)
     ssd1306_i2cInit_Wire(0);
 #elif defined(SSD1306_I2C_SW_SUPPORTED)
-    ssd1306_i2cInit_Embedded(0,0,0);
+    ssd1306_i2cInit_Embedded(-1,-1,0);
 #else
     #error "Not supported microcontroller or board"
 #endif
+#ifndef ARKANOID_SSD1331
     ssd1306_128x64_init();
+#endif
     ssd1306_clearScreen( );
-    ssd1306_drawBitmap(16, 2, 96, 24, arkanoid_2);
-    ssd1306_charF6x8(40, 5, "BREAKOUT");
+    ssd1306_drawBitmap(16 - OUTPUT_OFFSET, 2, 96, 24, arkanoid_2);
+    ssd1306_printFixed(40 - OUTPUT_OFFSET, 40, "BREAKOUT", STYLE_NORMAL);
     beep(200,600);
     beep(300,200);
     beep(400,300);
@@ -284,28 +310,29 @@ void resetGame()
 void drawPlatform()
 {
   uint8_t pos = (platformPos < PLATFORM_SPEED) ? 0: (platformPos - PLATFORM_SPEED);
+  ssd1331_setColor(RGB_COLOR8(255,255,0));
   ssd1306_setRamBlock( pos + LEFT_EDGE + 1, PLATFORM_ROW, platformWidth + PLATFORM_SPEED * 2 );
   ssd1306_dataStart();
   while (pos < platformPos)
   {
-     ssd1306_sendByte(B00000000);
+     ssd1306_sendPixels(0B00000000);
      pos++;
   }
-  ssd1306_sendByte(B00001110);
+  ssd1306_sendPixels(0B00001110);
   pos++;
   while (pos < platformPos + platformWidth - 1)
   {
-    ssd1306_sendByte(B00000111);
+    ssd1306_sendPixels(0B00000111);
     pos++;
   }
-  ssd1306_sendByte(B00001110);
+  ssd1306_sendPixels(0B00001110);
   while (pos < platformPos + platformWidth + PLATFORM_SPEED - 1)
   {
      if (pos >= (RIGHT_EDGE - LEFT_EDGE - 2))
      {
         break;
      }
-     ssd1306_sendByte(B00000000);
+     ssd1306_sendPixels(0B00000000);
      pos++;
   }
   ssd1306_endTransmission();
@@ -325,7 +352,7 @@ void resetBlocks()
        level = MAX_LEVELS;
     }
     blocksLeft = 0;
-    for (byte i =0; i<BLOCKS_PER_ROW; i++)
+    for (uint8_t i =0; i<BLOCKS_PER_ROW; i++)
     {
         for (int j=0; j<BLOCK_NUM_ROWS; j++)
         {
@@ -344,6 +371,7 @@ void drawBlocks()
     {
         for (uint8_t bl = 0; bl<BLOCKS_PER_ROW; bl++)
         {
+            ssd1331_setColor(RGB_COLOR8(64,64,255));
             drawBlock(bl, r);
         }
     }
@@ -351,12 +379,13 @@ void drawBlocks()
 
 void drawFieldEdges()
 {
+    ssd1331_setColor(RGB_COLOR8(255,0,0));
     for (uint8_t i=8; i>0; i--)
     {
         ssd1306_setRamBlock(LEFT_EDGE, i, 1);
-        ssd1306_sendData( B01010101 );
+        ssd1306_sendData( 0B01010101 );
         ssd1306_setRamBlock(RIGHT_EDGE, i, 1);
-        ssd1306_sendData( B01010101 );
+        ssd1306_sendData( 0B01010101 );
     }
 }
 
@@ -365,20 +394,22 @@ void drawBall(uint8_t lastx, uint8_t lasty)
 {
     uint8_t newx = ballx >> SPEED_SHIFT;
     uint8_t newy = bally >> SPEED_SHIFT;
-    ssd1306_setRamBlock(LEFT_EDGE + 1 + newx,newy >> 3, 1);
-    uint8_t temp = B00000001;
-    temp = temp << ((newy & 0x07) + 1);
+    uint8_t temp;
+    temp = 0B00000001 << (newy & 0x07);
+    ssd1331_setColor(RGB_COLOR8(0,255,0));
+    ssd1306_setRamBlock(LEFT_EDGE + 1 + newx, newy >> 3, 1);
     ssd1306_sendData( temp );
     if ((newx != lastx) || ((newy >> 3) != (lasty >> 3)))
     {
         ssd1306_setRamBlock(LEFT_EDGE + 1 + lastx, lasty >> 3, 1);
-        ssd1306_sendData( B00000000 );
+        ssd1306_sendData( 0B00000000 );
     }
 }
 
 
 void drawObjects()
 {
+    ssd1331_setColor(RGB_COLOR8(255,0,192));
     for(uint8_t i=0; i<MAX_GAME_OBJECTS; i++)
     {
        if (objects[i].type == 0)
@@ -585,6 +616,7 @@ void movePlatform()
 
 void gameOver()
 {
+    ssd1331_setColor(RGB_COLOR8(255,255,255));
 #if defined(ESP32) || defined(ESP8266)
     uint16_t topScore = score;
 #else
@@ -601,14 +633,14 @@ void gameOver()
     }
 #endif
     ssd1306_clearScreen( );
-    ssd1306_charF6x8(32, 2, "GAME OVER");
-    ssd1306_charF6x8(32, 4, "score ");
+    ssd1306_printFixed(32 - OUTPUT_OFFSET, 16, "GAME OVER", STYLE_NORMAL);
+    ssd1306_printFixed(32 - OUTPUT_OFFSET, 32, "SCORE ", STYLE_NORMAL);
     char temp[6] = {0,0,0,0,0,0};
     utoa(score,temp,10);
-    ssd1306_charF6x8(70, 4, temp);
-    ssd1306_charF6x8(32, 5, "top score ");
+    ssd1306_printFixed(70 - OUTPUT_OFFSET, 32, temp, STYLE_NORMAL);
+    ssd1306_printFixed(32 - OUTPUT_OFFSET, 40, "TOP SCORE ", STYLE_NORMAL);
     utoa(topScore,temp,10);
-    ssd1306_charF6x8(90, 5, temp);
+    ssd1306_printFixed(90 - OUTPUT_OFFSET, 40, temp, STYLE_NORMAL);
     for (int i = 0; i<1000; i++)
     {
        beep(1,random(0,i*2));
@@ -618,12 +650,12 @@ void gameOver()
 
 void platformCrashAnimation()
 {
-    for (uint8_t j = 0; j < 4; j++)
+    for (uint8_t j = 4; j > 0; j--)
     {
         for ( uint8_t i = 0; i < platformWidth >> 2; i++ )
         {
-            ssd1306_setRamBlock( platformPos + (i<<2) + ((j & 0x01)<<1) + ((j & 0x02)>>1) + LEFT_EDGE + 1, PLATFORM_ROW, platformWidth );
-            ssd1306_sendData(B00000000);
+            ssd1306_setRamBlock( platformPos + ((j & 0x01)<<1) + ((j & 0x02)>>1) + (i<<2) + LEFT_EDGE + 1, PLATFORM_ROW, platformWidth );
+            ssd1306_sendData( 0B00000000 );
         }
         delay(150);
     }
@@ -722,10 +754,10 @@ bool moveBall()
 
 void beep(int bCount,int bDelay)
 {
-    for (int i = 0; i<=bCount*2; i++)
+    for (int i = bCount*2; i>0; i--)
     {
-        digitalWrite(BUZZER,i&1);
-        for(int i2=0; i2<bDelay; i2++)
+        digitalWrite(BUZZER, i & 1);
+        for(int i2 = 0; i2 < bDelay; i2++)
         {
             __asm__("nop\n\t");
 #if F_CPU > 8000000
@@ -743,15 +775,6 @@ void beep(int bCount,int bDelay)
     digitalWrite(BUZZER,LOW);
 }
 
-// Routines to set and clear bits (used in the sleep code)
-#ifndef cbi
-#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
-#endif
-
-#ifndef sbi
-#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
-#endif
-
 #if defined(ESP32) || defined(ESP8266)
 
 void system_sleep()
@@ -763,12 +786,12 @@ void system_sleep()
 {
   ssd1306_clearScreen( );
   ssd1306_displayOff();
-  cbi(ADCSRA,ADEN);                    // switch Analog to Digitalconverter OFF
+  ADCSRA &= ~(1<<ADEN);
   set_sleep_mode(SLEEP_MODE_PWR_DOWN); // sleep mode is set here
   sleep_enable();
   sleep_mode();                        // System actually sleeps here
   sleep_disable();                     // System continues execution here when watchdog timed out
-  sbi(ADCSRA,ADEN);                    // switch Analog to Digitalconverter ON
+  ADCSRA |= (1<<ADEN);
   ssd1306_displayOn();
 }
 #endif

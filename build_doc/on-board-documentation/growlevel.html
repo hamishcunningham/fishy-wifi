@@ -1,0 +1,62 @@
+<html><head><title>WaterElf growbed level sensor [ID: WaterElf]</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>body{background:#FFF;color: #000;font-family: sans-serif;font-size: 150%;}p{font-size:80%;}
+table,th,td{border: 1px solid black;border-collapse: collapse;text-align: center;}</style></head>
+<body>
+<h2>Welcome to WaterElf</h2>
+<h3>A helpful device for monitoring and controlling aquaponics systems.</h3>
+
+<h4>Growbed Level Sensor</a></h4>
+<p>This sensor is designed to be mounted onto a tube set into the growbed and free of obstructions such as growing media. It needs to be mounted <b>at least</b> 20cm above the maximum water level to preserve it's lifespan. The sensor isn't waterproof and will eventually corrode and need replacing after a year or so.</p>
+
+<img src="hc-sr-04.jpg" style="float: right;margin-right:20%;"/>
+
+<p>Inside the case, the sensor is a HC-SR04 <a href="http://www.micropik.com/PDF/HCSR04.pdf">(datasheet)</a>, which uses ultrasonics to measure distance. It has four 0.1" header pins that are plugged into a socket.</p>
+
+<p>The waterelf connector for this sensor is a six pin type SP-13, the extra two pins are used for controlling the growbed valves. The connectors have numbered pins on the plugs and sockets themselves. The diagram below is looking into the face of the sensor plug.</p>
+<div id="header" style="height:15%;width:100%;">
+  <div style="float:left">
+    <img src="SP13-6pin-connector.png" style="margin-left:50%;margin-top:40%;"/>
+  </div>
+  <div style="float:left";>
+    <table width="150%" border="1" style="margin-left:30%;float:top;">
+      <tr>
+        <th>Pin</th>
+        <th>Function</th>
+        <th>Cable colour</th>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td>Power (5V)</td>
+        <td>Orange + Orange/White</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Trigger</td>
+        <td>Green/White</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Echo</td>
+        <td>Blue/White</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Ground</td>
+        <td>Brown + Brown/White</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Pump switched ground</td>
+        <td>Green</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>Pump power (3.3V)</td>
+        <td>Blue</td>
+      </tr>
+    </table>
+  </div>
+</div>
+<br><br><br>
+<a href='/'>WaterElf</a>&nbsp;&nbsp;&nbsp;<a href='/edit'>SPIFFS file editor</a>&nbsp;&nbsp;&nbsp;<a href='/waterelfoverview.html'>Documentation</a>&nbsp;&nbsp;&nbsp;<a href='https://wegrow.social/'>WeGrow</a></body></html>

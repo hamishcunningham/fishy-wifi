@@ -1,28 +1,35 @@
 /*
-    Copyright (C) 2017 Alexey Dynda
+    MIT License
 
-    This file is part of SSD1306 library.
+    Copyright (c) 2017-2018, Alexey Dynda
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 #include "ssd1306_spi_hw.h"
 #include "ssd1306_spi.h"
 
 #include "intf/ssd1306_interface.h"
-#include "ssd1306_spi_conf.h"
 #include "lcd/lcd_common.h"
+#include "hal/io.h"
+
+#include <stdlib.h>
 
 #ifdef SSD1306_SPI_SUPPORTED
 /* STANDARD branch */
@@ -33,21 +40,11 @@ void ssd1306_spiConfigure_hw()
     SPI.begin();
 }
 
-
-void ssd1306_spiInit_hw(int8_t cesPin, int8_t dcPin)
+static void ssd1306_spiClose_hw()
 {
-    if (cesPin >=0) pinMode(cesPin, OUTPUT);
-    if (dcPin >= 0) pinMode(dcPin, OUTPUT);
-    if (cesPin) s_ssd1306_cs = cesPin;
-    if (dcPin) s_ssd1306_dc = dcPin;
-    ssd1306_startTransmission = ssd1306_spiStart_hw;
-    ssd1306_endTransmission = ssd1306_spiStop_hw;
-    ssd1306_sendByte = ssd1306_spiSendByte_hw;
-    ssd1306_commandStart = ssd1306_spiCommandStart;
-    ssd1306_dataStart = ssd1306_spiDataStart;
 }
 
-void ssd1306_spiStart_hw()
+static void ssd1306_spiStart_hw()
 {
     SPI.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
     if (s_ssd1306_cs >= 0)
@@ -56,7 +53,7 @@ void ssd1306_spiStart_hw()
     }
 }
 
-void ssd1306_spiStop_hw()
+static void ssd1306_spiStop_hw()
 {
     if (s_ssd1306_cs >= 0)
     {
@@ -71,9 +68,23 @@ void ssd1306_spiStop_hw()
     SPI.endTransaction();
 }
 
-void ssd1306_spiSendByte_hw(uint8_t data)
+static void ssd1306_spiSendByte_hw(uint8_t data)
 {
     SPI.transfer(data);
+}
+
+void ssd1306_spiInit_hw(int8_t cesPin, int8_t dcPin)
+{
+    if (cesPin >=0) pinMode(cesPin, OUTPUT);
+    if (dcPin >= 0) pinMode(dcPin, OUTPUT);
+    if (cesPin) s_ssd1306_cs = cesPin;
+    if (dcPin) s_ssd1306_dc = dcPin;
+    ssd1306_startTransmission = ssd1306_spiStart_hw;
+    ssd1306_endTransmission = ssd1306_spiStop_hw;
+    ssd1306_sendByte = ssd1306_spiSendByte_hw;
+    ssd1306_closeInterface = ssd1306_spiClose_hw;
+    ssd1306_commandStart = ssd1306_spiCommandStart;
+    ssd1306_dataStart = ssd1306_spiDataStart;
 }
 
 #endif
