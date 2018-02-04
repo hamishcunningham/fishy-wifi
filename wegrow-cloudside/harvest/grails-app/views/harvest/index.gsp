@@ -239,6 +239,8 @@
         </table>
         <div class="paginate">
             <g:paginate total="${areaCount ?: 0}"/>
+            
+            <g:form class="inline" controller="harvest" action="index">Items per page: <g:select onChange="submit();" name="max" from="${[10,50,100,200]}" value="${params.max}" /></g:form>
         </div>
 
 
