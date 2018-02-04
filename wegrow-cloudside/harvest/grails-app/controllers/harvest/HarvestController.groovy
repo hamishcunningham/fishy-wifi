@@ -14,7 +14,7 @@ class HarvestController {
     SpringSecurityService springSecurityService;
     def exportService
 
-    def index(Integer offset, Integer max) {
+    def index(Integer offset, Integer max, Boolean activeOnly) {
         if (params?.f) {
             def harvests = Harvest.visibleHarvests(springSecurityService.currentUser)
 
@@ -69,9 +69,10 @@ class HarvestController {
             // Group harvests by area and then display.
             max = max?:10
             offset = offset != null? offset :0
+            activeOnly = activeOnly?:false;
 
-            def visible = Area.visibleAreas(springSecurityService.currentUser)
-            respond areaList: visible.list(max: max, offset: offset), areaCount: visible.count()
+            def visible = Area.visibleAreas(springSecurityService.currentUser, activeOnly)
+            respond areaList: visible.list(max: max, offset: offset, sort: "crop.type", type: "asc"), areaCount: visible.count()
         }
     }
 

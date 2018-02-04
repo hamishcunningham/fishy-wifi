@@ -196,16 +196,34 @@ class Area {
     }
   }
 
-  static def visibleAreas(currentUser) {
-    if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
-      return Area
+  static def visibleAreas(currentUser, activeOnly) {
+   if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
+      if (activeOnly) {
+         return Area.where {
+           finished != true;
+         }
+      }
+      else {
+        return Area;
+      }
     } else if (currentUser?.growingSpace != null) {
       def growingSpace = currentUser.growingSpace
-
-      return Area.where {
-        space == growingSpace
+      
+      if (activeOnly) {
+        return Area.where {
+          space == growingSpace && (finished != true);
+        }
+      }
+      else {
+        return Area.where {
+          space == growingSpace;
+        }
       }
     }
+  }
+
+  static def visibleAreas(currentUser) {
+    return visibleAreas(currentUser, false)
   }
 
   /**
