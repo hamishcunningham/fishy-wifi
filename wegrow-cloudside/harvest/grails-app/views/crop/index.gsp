@@ -50,8 +50,9 @@
         </g:each>
 
         </table>
-        <div class="pagination">
+        <div class="paginate">
             <g:paginate total="${cropCount ?: 0}" />
+            <g:form class="inline" controller="crop" action="index">Items per page: <g:select onChange="submit();" name="max" from="${[10,50,100,200]}" value="${params.max}" /></g:form>
         </div>
             <div class="pull-right">
                 <g:link class="create" action="create" class="btn btn-primary btn-lg"><g:message
