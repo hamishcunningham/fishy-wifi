@@ -62,7 +62,9 @@
 
                 </ul>
                 <g:link class="create" controller="area" action="create" class="btn btn-lg btn-primary">
-            <span class="glyphicon glyphicon-plus"></span> <g:message code="area.create.title" /></g:link></p>
+            <span class="glyphicon glyphicon-plus"></span> <g:message code="area.create.title" /></g:link>
+            <g:form controller="harvest" action="index"><g:checkBox name="activeOnly" value="${params.activeOnly}" onChange="submit();"/> Hide Completed Harvests<g:hiddenField name="max" value="${params.max}"/></g:form>
+            </p>
         
             </div>
             <g:each var="area" in="${areaList}" >
@@ -240,7 +242,7 @@
         <div class="paginate">
             <g:paginate total="${areaCount ?: 0}"/>
             
-            <g:form class="inline" controller="harvest" action="index">Items per page: <g:select onChange="submit();" name="max" from="${[10,50,100,200]}" value="${params.max}" /></g:form>
+            <g:form class="inline" controller="harvest" action="index">Items per page: <g:select onChange="submit();" name="max" from="${[10,50,100,200]}" value="${params.max}" /><g:hiddenField name="activeOnly" value="${params.activeOnly}"/></g:form>
         </div>
 
 
