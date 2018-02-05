@@ -5,11 +5,13 @@
 # standard locals
 alias cd='builtin cd'
 P="$0"
-USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-S(taging)] [-H(EAD)] [-8 (1.6.8)] [-1 (1.8.1)] [-3 (1.8.3)] [-5 (1.8.5)]"
+USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-e(rase flash)] [-S(taging)] [-H(EAD)] [-8 (1.6.8)] [-1 (1.8.1)] [-3 (1.8.3)] [-5 (1.8.5)]"
 DBG=:
-OPTIONSTRING=hdSHx:8135
+OPTIONSTRING=hdSHx:8135e
 
 # specific locals
+ERASE=
+PORT='/dev/ttyUSB0'
 IDEBASE=~/esp-arduino-ide
 PREFSDIR=~/.arduino15
 SPREFSDIR=${IDEBASE}/dot-arduino15-staging
@@ -41,6 +43,7 @@ do
   case $OPTION in
     h)	usage 0 ;;
     d)	DBG=echo ;;
+    e)	ERASE=yes ;;
     S)	STAGING=yes ;;
     H)	HEAD=yes ;;
     8)	EIGHT=yes ;;
@@ -52,6 +55,15 @@ do
   esac
 done 
 shift `expr $OPTIND - 1`
+
+if [ x$ERASE == xyes ]
+then
+  [ -d Arduino ] || { echo "can't find Arduino dir from `pwd`"; exit 10; }
+  echo running erase on $PORT ...
+  echo Arduino/hardware/espressif/esp32/tools/esptool.py --port "${PORT}" erase_flash
+  Arduino/hardware/espressif/esp32/tools/esptool.py --port "${PORT}" erase_flash
+  exit 0
+fi
 
 # need to specify a version to run
 if [ x$STAGING == x -a x$HEAD == x -a x$EIGHT == x -a x$ONE8ONE == x -a x$ONE83 == x -a x$ONE85 == x ]
