@@ -19,10 +19,12 @@
     <g:if test="${areaList}">
         <table class="table stacktable">
             <tr>
-                <th >Name</th>
-
                 <th >Crop</th>
                 <th >Variety</th>
+                
+                <th >Name</th>
+
+                
 
                 <sec:access expression="hasRole('ROLE_ADMIN')">
                     <th class="text-center">Email address</th><th class="text-center">Location</th>
@@ -69,12 +71,13 @@
             </div>
             <g:each var="area" in="${areaList}" >
                 <tr class="harvestHeadingRow ${area.finished?'finished':''}" data-toggle="collapse" data-target=".rows-${area.id}">
-                    <td >${area.toString()}</td>
+                    
                     <td >${area.crop}</td>
                     <td >${area.variety}</td>
+                    <td >${area.toString()}</td>
 
                     <sec:access expression="hasRole('ROLE_ADMIN')">
-                        <td class="text-center">${area.space.user.email}</td>
+                        <td class="text-center">${area.space.user?.email}</td>
                         <td class="text-center">${area.space.locationString}</td>
                     </sec:access>
 
@@ -240,7 +243,7 @@
 
         </table>
         <div class="paginate">
-            <g:paginate total="${areaCount ?: 0}"/>
+            <g:paginate total="${areaCount ?: 0}" params="${params}"/>
             
             <g:form class="inline" controller="harvest" action="index">Items per page: <g:select onChange="submit();" name="max" from="${[10,50,100,200]}" value="${params.max}" /><g:hiddenField name="activeOnly" value="${params.activeOnly}"/></g:form>
         </div>
