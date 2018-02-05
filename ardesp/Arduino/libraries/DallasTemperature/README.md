@@ -9,7 +9,6 @@ This library supports the following devices :
 * DS18S20 - Please note there appears to be an issue with this series.
 * DS1822
 * DS1820
-* MAX31820
 
 
 You will need a pull-up resistor of about 5 KOhm between the 1-Wire data line
@@ -39,7 +38,6 @@ Miles Burton <miles@mnetcs.com> originally developed this library.
 Tim Newsome <nuisance@casualhacker.net> added support for multiple sensors on
 the same bus.
 Guil Barros [gfbarros@bappos.com] added getTempByAddress (v3.5)
-   Note: these are implemented as getTempC(address) and getTempF(address)
 Rob Tillaart [rob.tillaart@gmail.com] added async modus (v3.7.0)
 
 
@@ -47,7 +45,7 @@ Rob Tillaart [rob.tillaart@gmail.com] added async modus (v3.7.0)
 
 
 You can find the latest version of the library at
-https://www.milesburton.com/Dallas_Temperature_Control_Library
+http://milesburton.com/index.php?title=Dallas_Temperature_Control_Library
 
 # License
 

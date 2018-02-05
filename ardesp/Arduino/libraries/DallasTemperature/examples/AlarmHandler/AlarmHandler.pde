@@ -44,7 +44,7 @@ void printAddress(DeviceAddress deviceAddress)
 void printTemp(DeviceAddress deviceAddress)
 {
   float tempC = sensors.getTempC(deviceAddress);
-  if (tempC != DEVICE_DISCONNECTED_C)
+  if (tempC != DEVICE_DISCONNECTED)
   {
     Serial.print("Current Temp C: ");
     Serial.print(tempC);
