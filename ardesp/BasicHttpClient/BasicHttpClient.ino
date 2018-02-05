@@ -2,11 +2,8 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
-#include <WiFiMulti.h>
 #include <HTTPClient.h>
 #include "grunge.h"
-
-WiFiMulti wifiMulti;
 
 char MAC_ADDRESS[13]; // MAC addresses are 12 chars, plus the NULL terminator
 void getMAC(char *);
@@ -47,12 +44,7 @@ void setup() {
 
   getMAC(MAC_ADDRESS);      // store the MAC address as a chip identifier
   Serial.printf("\nsetup...\nESP32 MAC = %s\n", MAC_ADDRESS); // ESP's "ID"
-
-  for(uint8_t t = 4; t > 0; t--) {
-    Serial.printf("[SETUP] WAIT %d...\n", t);
-    Serial.flush();
-    delay(1000);
-  }
+  delay(5000);
 
   Serial.printf("starting wifi for %s / %s\n", _WSSID, _WKEY);
   WiFi.begin(_WSSID, _WKEY);
@@ -68,9 +60,8 @@ void setup() {
 }
 
 void loop() {
-  // wait for WiFi connection
-  if((wifiMulti.run() == WL_CONNECTED)) {
-
+  // if got wifi, try being an HTTP client
+  if(WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
 
     Serial.print("[HTTP] begin...\n");
@@ -84,7 +75,7 @@ void loop() {
 
     // httpCode will be negative on error
     if(httpCode > 0) {
-      // HTTP header has been send and Server response header has been handled
+      // HTTP header sent and Server response header has been handled
       Serial.printf("[HTTP] GET... code: %d\n", httpCode);
 
       // file found at server
@@ -95,7 +86,10 @@ void loop() {
         Serial.println(payload.substring(1024));
       }
     } else {
-      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+      Serial.printf(
+        "[HTTP] GET... failed, error: %s\n",
+        http.errorToString(httpCode).c_str()
+      );
     }
 
     http.end();
