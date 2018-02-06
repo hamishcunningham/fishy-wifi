@@ -67,7 +67,8 @@ void loop() {
     Serial.print("[HTTP] begin...\n");
     // configure traged server and url
     //http.begin("https://www.howsmyssl.com/a/check", ca); //HTTPS
-    http.begin("http://example.com/index.html"); //HTTP
+    // http.begin("http://example.com/index.html"); //HTTP
+    http.begin("http://httpbin.org/get"); //HTTP
 
     Serial.print("[HTTP] GET...\n");
     // start connection and send HTTP header
