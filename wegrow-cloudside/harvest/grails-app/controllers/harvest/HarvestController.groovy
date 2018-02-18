@@ -74,7 +74,10 @@ class HarvestController {
             def visible = Area.visibleAreas(springSecurityService.currentUser, activeOnly)
 
 			//this sorts by crop type, but the sort order within crop type is differnet for all vs active harvests
-            respond areaList: visible.list(max: max, offset: offset, sort: "crop.type", order: "asc"), areaCount: visible.count()
+            respond areaList: visible.list(max: max, offset: offset) {
+              order "crop.type"
+              order "id"
+            }, areaCount: visible.count()
         }
     }
 
