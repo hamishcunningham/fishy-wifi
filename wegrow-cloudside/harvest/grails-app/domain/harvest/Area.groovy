@@ -2,6 +2,7 @@ package harvest
 
 import grails.plugin.springsecurity.SpringSecurityUtils
 import org.hibernate.LazyInitializationException
+import grails.gorm.DetachedCriteria
 
 class Area {
   Double areaMeters
@@ -196,34 +197,25 @@ class Area {
     }
   }
 
-  static def visibleAreas(currentUser, activeOnly) {
-   if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
-      if (activeOnly) {
-         return Area.where {
-           finished != true;
-         }
-      }
-      else {
-        return Area;
-      }
-    } else if (currentUser?.growingSpace != null) {
-      def growingSpace = currentUser.growingSpace
-      
-      if (activeOnly) {
-        return Area.where {
-          space == growingSpace && (finished != true);
-        }
-      }
-      else {
-        return Area.where {
-          space == growingSpace;
-        }
+  static def visibleAreas(currentUser, activeOnly = false) {
+    //idea was that this was clearer but it doesn't seem to work
+    def criteria = new DetachedCriteria(Area)
+    if(activeOnly) {
+      criteria = criteria.build {
+        ne('finished', true)
       }
     }
-  }
-
-  static def visibleAreas(currentUser) {
-    return visibleAreas(currentUser, false)
+    
+    if (SpringSecurityUtils.ifAllGranted("ROLE_ADMIN")) {
+      return criteria
+    } else if (currentUser?.growingSpace != null) {
+      return criteria.build() {
+        eq('space', growingSpace)
+      }
+    } else {
+      // throw some nasty exception
+      return null
+    }
   }
 
   /**
