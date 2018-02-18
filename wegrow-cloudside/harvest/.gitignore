@@ -10,3 +10,4 @@ build/
 .settings
 .classpath
 src/main/groovy/Passwords.groovy
+/bin/
