@@ -62,14 +62,15 @@ dependencies {
   assets 'com.bertramlabs.plugins:less-asset-pipeline:2.11.1'
 
   compile "org.grails.plugins:spring-security-core:3.1.1"
-  compile "org.grails.plugins:spring-security-ui:3.0.0.M2"
+  compile "org.grails.plugins:spring-security-ui:3.0.2"
   compile "org.grails.plugins:export:2.0.0"
   compile "org.grails.plugins:mail:2.0.0.RC6"
 
 }
 
 bootRun {
-  jvmArgs('-Dspring.output.ansi.enabled=always')
+  //to force grails into production mode add '-Dgrails.env=prod'
+  jvmArgs(['-Dspring.output.ansi.enabled=always'])
 }
 
 assets {
