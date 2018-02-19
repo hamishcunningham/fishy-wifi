@@ -36,12 +36,17 @@ class HarvestController {
                         organic: harvest.area.space.isOrganic ? "yes" : "no",
                         all_data: harvest.area.space.submittingAllData ? "yes" : "no",
                         growing_space: harvest.area.space.typeLabel ? "yes" : "no",
+                        allotment_name: harvest.area.space.instanceOf(Allotment)  ? harvest.area.space.siteName : "",
+                        allotment_visits_per_week: harvest.area.space.instanceOf(Allotment)  ? harvest.area.space.visitsPerWeek : "",
+                        last_harvest: harvest.area.finished ? "yes" : "no", 
+                        growing_space_m2: harvest.area.space.areaMeters,
                         radius: harvest.area.canopyRadiusMeters,
                         in_greenhouse: harvest.area.inGreenhouse ? "yes" : "no"
                 ]
             }
             def fields = ["id",
                           "logged_at",
+                          "last_harvest",
                           "growing_space",
                           "email",
                           "yield_m2",
@@ -53,6 +58,9 @@ class HarvestController {
                           "crop",
                           "variety",
                           "type",
+                          "growing_space_m2",
+                          "allotment_name",
+                          "allotment_visits_per_week",
                           "organic",
                           "in_greenhouse",
                           "all_data"]
