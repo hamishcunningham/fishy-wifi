@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #pragma once
@@ -14,6 +14,7 @@
 #endif
 
 namespace ArduinoJson {
+namespace Internals {
 
 template <typename TStringRef>
 class JsonObjectSubscript
@@ -31,23 +32,20 @@ class JsonObjectSubscript
 
   // Set the specified value
   //
-  // operator=(TValue);
+  // operator=(const TValue&);
   // TValue = bool, char, long, int, short, float, double,
-  //          const std::string&, const String&,
-  //          const JsonArray&, const JsonObject&
+  //          std::string, String, JsonArray, JsonObject
   template <typename TValue>
-  FORCE_INLINE
-      typename TypeTraits::EnableIf<!TypeTraits::IsArray<TValue>::value,
-                                    this_type&>::type
-      operator=(const TValue& src) {
+  FORCE_INLINE typename EnableIf<!IsArray<TValue>::value, this_type&>::type
+  operator=(const TValue& src) {
     _object.set(_key, src);
     return *this;
   }
   //
   // operator=(TValue);
-  // TValue = const char*, const char[N], const FlashStringHelper*
+  // TValue = char*, const char*, const FlashStringHelper*
   template <typename TValue>
-  FORCE_INLINE this_type& operator=(const TValue* src) {
+  FORCE_INLINE this_type& operator=(TValue* src) {
     _object.set(_key, src);
     return *this;
   }
@@ -57,7 +55,7 @@ class JsonObjectSubscript
   }
 
   template <typename TValue>
-  FORCE_INLINE typename Internals::JsonVariantAs<TValue>::type as() const {
+  FORCE_INLINE typename JsonVariantAs<TValue>::type as() const {
     return _object.get<TValue>(_key);
   }
 
@@ -68,20 +66,17 @@ class JsonObjectSubscript
 
   // Sets the specified value.
   //
-  // bool set(TValue);
+  // bool set(const TValue&);
   // TValue = bool, char, long, int, short, float, double, RawJson, JsonVariant,
-  //          const std::string&, const String&,
-  //          const JsonArray&, const JsonObject&
+  //          std::string, String, JsonArray, JsonObject
   template <typename TValue>
-  FORCE_INLINE
-      typename TypeTraits::EnableIf<!TypeTraits::IsArray<TValue>::value,
-                                    bool>::type
-      set(const TValue& value) {
+  FORCE_INLINE typename EnableIf<!IsArray<TValue>::value, bool>::type set(
+      const TValue& value) {
     return _object.set(_key, value);
   }
   //
   // bool set(TValue);
-  // TValue = const char*, const char[N], const FlashStringHelper*
+  // TValue = char*, const char, const FlashStringHelper*
   template <typename TValue>
   FORCE_INLINE bool set(const TValue* value) {
     return _object.set(_key, value);
@@ -107,7 +102,8 @@ inline std::ostream& operator<<(std::ostream& os,
   return source.printTo(os);
 }
 #endif
-}  // namespace ArduinoJson
+}
+}
 
 #ifdef _MSC_VER
 #pragma warning(pop)

@@ -1,10 +1,10 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 //
 // This example shows how to implement an HTTP server that sends JSON document
 // in the responses.
-// It uses the Ethernet library but can be easily adapter for Wifi.
+// It uses the Ethernet library but can be easily adapted for Wifi.
 //
 // It sends the value of the analog and digital pins.
 // The JSON document looks like the following:
@@ -106,4 +106,4 @@ void loop() {
 // The book "Mastering ArduinoJson" contains a tutorial on serialization.
 // It begins with a simple example, then adds more features like serializing
 // directly to a file or an HTTP client.
-// Please check it out at: https://leanpub.com/arduinojson/
+// Please check it out at: https://arduinojson.org/book/

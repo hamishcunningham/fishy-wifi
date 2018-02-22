@@ -15,7 +15,7 @@ Do not forget pull-up resistors for i2c lines.
  * The library uses as little Flash memory as possible
  * Supports many interfaces:
    * i2c (software implementation, via Wire library, AVR Twi, Linux i2c-dev)
-   * spi (4-wire spi via Arduino SPI library)
+   * spi (4-wire spi via Arduino SPI library, AVR Spi, AVR USI module)
  * Usage of very little of SRAM:
    * Attiny85 with Damellis package (minimum 25 bytes of SRAM)
    * Atmega328p (minimum 56 bytes of SRAM)
@@ -49,24 +49,27 @@ configurable through API.
  * i2c ssd1306 128x32 oled display
  * spi ssd1306 128x64 oled display
  * spi ssd1331 96x64 RGB oled display
- * spi pcd8544 84x48 nokia 5110 led display (experimental support)
+ * spi pcd8544 84x48 nokia 5110 led display
 
 ## Supported platforms
 
 | **Platforms** | **I2C** | **SPI** | **Comments** |
 | :-------- |:---:|:---:|:---------|
 | **Arduino** |     |     |          |
-| Attiny85, Attiny45  |  X  |     | Refer to [Damellis attiny package](https://raw.githubusercontent.com/damellis/attiny/ide-1.6.x-boards-manager/package_damellis_attiny_index.json) |
+| Attiny85, Attiny45  |  X  |  X  | Refer to [Damellis attiny package](https://raw.githubusercontent.com/damellis/attiny/ide-1.6.x-boards-manager/package_damellis_attiny_index.json) |
 | Atmega328p, Atmega168  |  X  |  X  |    |
 | Atmega2560  |  X  |  X  |    |
 | Digispark, including PRO version  |  X  |  X  |  check [examples compatibility list](examples/Digispark_compatibility.txt)  |
 | ESP8266  |  X  |  X  | check [examples compatibility list](examples/ESP8266_compatibility.txt)   |
 | ESP32  |  X  |  X  | check [examples compatibility list](examples/ESP8266_compatibility.txt)   |
 | **Plain AVR** |   |     |          |
-| Attiny85, Attiny45 |  X  |     |         |
+| Attiny85, Attiny45 |  X  |  X  |         |
 | Atmega328p, Atmega168 |  X  |  X  |         |
 | **Linux**  |    |     |          |
 | Raspberry Pi |  X  |      | i2c-dev  |
+| [SDL Emulation](https://github.com/lexus2k/ssd1306/wiki/How-to-run-emulator-mode) |  X  |  X  | demo code can be run without real OLED HW via SDL library |
+| **Windows**  |    |     |          |
+| [SDL Emulation](https://github.com/lexus2k/ssd1306/wiki/How-to-run-emulator-mode) |  X  |  X  | demo code can be run without real OLED HW via MinGW32 + SDL library |
 
 Digispark users, please check compilation options in your Arduino prior to using this library.
 Ssd1306 library requires at least c++11 and c99 (by default Digispark package misses the options
@@ -92,8 +95,11 @@ Ssd1306 library requires at least c++11 and c99 (by default Digispark package mi
 
 *Using with plain avr-gcc:*
  * Download source from https://github.com/lexus2k/ssd1306
- * Build the library: cd ssd1306/src && make -f Makefile.avr MCU=<your_mcu>
- * Link library to your project (refer to [Makefile.avr](examples/Makefile.avr) in examples folder).
+ * Build the library (variant 1)
+   * cd ssd1306/src && make -f Makefile.avr MCU=<your_mcu>
+   * Link library to your project (refer to [Makefile.avr](examples/Makefile.avr) in examples folder).
+ * Build demo code (variant 2)
+   * cd ssd1306/tools && ./build_and_run.sh -p avr -m <your_mcu> ssd1306_demo
 
 For more information about this library, please, visit https://github.com/lexus2k/ssd1306.
 Doxygen documentation can be found at [github.io site](http://lexus2k.github.io/ssd1306).

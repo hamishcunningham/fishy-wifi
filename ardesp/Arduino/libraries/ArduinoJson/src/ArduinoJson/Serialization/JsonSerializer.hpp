@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #pragma once
@@ -9,13 +9,14 @@
 namespace ArduinoJson {
 
 class JsonArray;
-class JsonArraySubscript;
 class JsonObject;
-template <typename TKey>
-class JsonObjectSubscript;
 class JsonVariant;
 
 namespace Internals {
+
+class JsonArraySubscript;
+template <typename TKey>
+class JsonObjectSubscript;
 
 template <typename Writer>
 class JsonSerializer {

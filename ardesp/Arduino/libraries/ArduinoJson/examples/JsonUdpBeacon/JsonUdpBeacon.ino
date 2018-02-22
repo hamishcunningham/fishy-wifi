@@ -1,8 +1,8 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 //
-// This example shows how to JSON document to a UDP socket.
+// This example shows how to send a JSON document to a UDP socket.
 // At regular interval, it sends a UDP packet that contains the status of
 // analog and digital pins.
 // The JSON document looks like the following:
@@ -98,4 +98,4 @@ void loop() {
 // The book "Mastering ArduinoJson" contains a tutorial on serialization.
 // It begins with a simple example, then adds more features like serializing
 // directly to a file or any stream.
-// Please check it out at: https://leanpub.com/arduinojson/
+// Please check it out at: https://arduinojson.org/book/

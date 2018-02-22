@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #pragma once
@@ -10,7 +10,7 @@
 #include "../Polyfills/math.hpp"
 
 namespace ArduinoJson {
-namespace TypeTraits {
+namespace Internals {
 
 template <typename T, size_t = sizeof(T)>
 struct FloatTraits {};

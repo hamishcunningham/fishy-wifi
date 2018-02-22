@@ -1,11 +1,11 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #include <ArduinoJson/Polyfills/parseFloat.hpp>
 #include <catch.hpp>
 
-using namespace ArduinoJson::Polyfills;
+using namespace ArduinoJson::Internals;
 
 template <typename T>
 void check(const char* input, T expected) {

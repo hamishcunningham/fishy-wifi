@@ -33,11 +33,22 @@
 
 default: all
 
-platform=linux
+platform?=linux
 
 CCFLAGS += -g -Os -w -ffreestanding
 
 include Makefile.common
 
-flash: $(BLD)/$(PROJECT).out
-	$(BLD)/$(PROJECT).out
+ifeq ($(SDL_EMULATION),y)
+     CCFLAGS += -I../tools/sdl -DSDL_EMULATION
+     LDFLAGS += -L/mingw/lib -lssd1306_sdl $(shell sdl2-config --libs)
+endif
+
+flash: $(OUTFILE)
+	$(OUTFILE)
+
+ifeq ($(SDL_EMULATION),y)
+$(OUTFILE): ssd1306_sdl
+ssd1306_sdl:
+	$(MAKE) -C ../tools/sdl -f Makefile.$(platform)
+endif

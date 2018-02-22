@@ -28,7 +28,7 @@
 extern const uint8_t *s_font6x8;
 extern SFixedFontInfo s_fixedFont;
 
-#define YADDR(y) (((y) >> 3) << m_p)
+#define YADDR(y) (static_cast<uint16_t>((y) >> 3) << m_p)
 #define BADDR(b) ((b) << m_p)
 
 void NanoCanvas::putPixel(uint8_t x, uint8_t y)
@@ -421,6 +421,28 @@ void NanoCanvas::drawSpritePgm(uint8_t x, uint8_t y, const uint8_t sprite[])
 };
 
 
+void NanoCanvas::drawBitmap(uint8_t startX, uint8_t startY, uint8_t w, uint8_t h, const uint8_t *buf)
+{
+    uint8_t x,y;
+    for(y=0;y<h;y+=8)
+    {
+        for(x=0;x<w;x++)
+        {
+            uint8_t scrX = startX + x;
+            if (scrX >= m_w) continue;
+            uint8_t d = pgm_read_byte(&buf[x + static_cast<uint16_t>(y>>3) * w]);
+            uint8_t scrY = y + startY;
+            scrX = x + startX;
+            if (scrY < m_h)
+                m_bytes[YADDR(scrY) + scrX] |= (d << (scrY & 0x7));
+            scrY+=8;
+            if (scrY < m_h)
+                m_bytes[YADDR(scrY) + scrX] |= (d >> (8 - (scrY & 0x7)));
+        }
+    }
+}
+
+
 void NanoCanvas::drawSprite(uint8_t x, uint8_t y, const uint8_t sprite[])
 {
     uint8_t i;
@@ -470,4 +492,29 @@ void NanoCanvas::flipH()
            m_bytes[YADDR(y) + x] = m_bytes[YADDR(y) + m_w - x -1];
            m_bytes[YADDR(y) + m_w - x -1] = temp;
        }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                              SPRITE OBJECT
+////////////////////////////////////////////////////////////////////////////////
+
+void SPRITE::setPos(uint8_t x, uint8_t y)
+{
+    this->x = x;
+    this->y = y;
+}
+
+void SPRITE::draw()
+{
+    ssd1306_drawSprite(this);
+}
+
+void SPRITE::eraseTrace()
+{
+    ssd1306_eraseTrace(this);
+}
+
+void SPRITE::erase()
+{
+    ssd1306_eraseSprite(this);
 }

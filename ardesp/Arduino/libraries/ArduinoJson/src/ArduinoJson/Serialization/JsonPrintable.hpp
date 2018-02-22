@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #pragma once
@@ -29,9 +29,8 @@ template <typename T>
 class JsonPrintable {
  public:
   template <typename Print>
-  typename TypeTraits::EnableIf<!TypeTraits::IsString<Print>::value,
-                                size_t>::type
-  printTo(Print &print) const {
+  typename EnableIf<!StringTraits<Print>::has_append, size_t>::type printTo(
+      Print &print) const {
     JsonWriter<Print> writer(print);
     JsonSerializer<JsonWriter<Print> >::serialize(downcast(), writer);
     return writer.bytesWritten();
@@ -56,8 +55,8 @@ class JsonPrintable {
   }
 
   template <typename TString>
-  typename TypeTraits::EnableIf<StringTraits<TString>::has_append, size_t>::type
-  printTo(TString &str) const {
+  typename EnableIf<StringTraits<TString>::has_append, size_t>::type printTo(
+      TString &str) const {
     DynamicStringBuilder<TString> sb(str);
     return printTo(sb);
   }
@@ -79,15 +78,14 @@ class JsonPrintable {
   }
 
   template <typename Print>
-  typename TypeTraits::EnableIf<!TypeTraits::IsString<Print>::value,
-                                size_t>::type
+  typename EnableIf<!StringTraits<Print>::has_append, size_t>::type
   prettyPrintTo(Print &print) const {
     IndentedPrint<Print> indentedPrint(print);
     return prettyPrintTo(indentedPrint);
   }
 
   template <typename TString>
-  typename TypeTraits::EnableIf<StringTraits<TString>::has_append, size_t>::type
+  typename EnableIf<StringTraits<TString>::has_append, size_t>::type
   prettyPrintTo(TString &str) const {
     DynamicStringBuilder<TString> sb(str);
     return prettyPrintTo(sb);

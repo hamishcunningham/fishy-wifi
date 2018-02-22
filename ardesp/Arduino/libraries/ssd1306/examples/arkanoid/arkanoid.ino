@@ -58,11 +58,15 @@
 #include "ssd1306.h"
 #include "i2c/ssd1306_i2c_wire.h"
 #include "i2c/ssd1306_i2c_embedded.h"
+#include "i2c/ssd1306_i2c_linux.h"
 #include "intf/ssd1306_interface.h"
 
 #include <stdlib.h>
 
 //#define ARKANOID_SSD1331
+#if defined(ESP32) || defined(ESP8266) || (defined(__linux__)) || defined(__MINGW32__)
+#define DEEP_SLEEP_NOT_SUPPORTED
+#endif
 
 #include "levels.h"
 #include "blocks.h"
@@ -115,7 +119,7 @@ const int PLATFORM_HEIGHT   = 10;
 const int INITIAL_PLATFORM_WIDTH = 16;
 const int INITIAL_H_SPEED   = -1;
 const int INITIAL_V_SPEED   = -4;
-const int PLATFORM_SPEED    = 2;
+const int PLATFORM_SPEED    = 1;
 const int MAX_GAME_OBJECTS  = 4;
 const int PLATFORM_ROW      = 7;
 
@@ -123,7 +127,7 @@ const uint8_t SPEED_SHIFT  = 2;
 
 uint8_t    platformPos;       // platform position
 bool       updateStatusPanel; // Set to true if status panel update is required
-const int  platformWidth = INITIAL_PLATFORM_WIDTH;
+static const int  platformWidth = INITIAL_PLATFORM_WIDTH;
 int        ballx;
 int        bally;
 int8_t     vSpeed;
@@ -132,7 +136,7 @@ uint8_t    hearts;
 uint16_t   lastDrawTimestamp;
 uint8_t    gameField[BLOCK_NUM_ROWS][MAX_BLOCKS_PER_ROW];
 GameObject objects[MAX_GAME_OBJECTS];
-uint16_t   score;
+uint16_t    score;
 uint8_t    level = 1;
 uint8_t    blocksLeft = 0;
 uint8_t    platformPower;
@@ -154,29 +158,22 @@ void drawFieldEdges();
 void drawStatusPanel();
 void onKill();
 
-void playerInc()
-{
-   // PB2 pin button interrupt
-}
-
 void setup()
 {
     ssd1306_setFixedFont(ssd1306xled_font6x8_AB);
     randomSeed(analogRead(0));
-#if defined(ARKANOID_SSD1331)
+#if defined(SSD1306_LINUX_SUPPORTED)
+    // no need to do anything here
+#elif defined(ARKANOID_SSD1331)
     #ifndef USE_Z_KEYPAD
         pinMode(LEFT_BTN, INPUT);
         pinMode(RIGHT_BTN, INPUT);
     #endif
     pinMode(BUZZER, OUTPUT);
     sei();                      // enable all interrupts
-    #ifndef USE_Z_KEYPAD
-        attachInterrupt(digitalPinToInterrupt(RIGHT_BTN),playerInc,HIGH);
-    #endif
 #elif defined(__AVR_ATtiny85__)
     DDRB |= 0b00011010;         // set PB1 as output (for the speaker), PB0 and PB2 as input
     sei();                      // enable all interrupts
-    attachInterrupt(0,playerInc,HIGH);
 #elif defined(SSD1306_WIRE_SUPPORTED)
     Wire.begin();
     #ifdef SSD1306_WIRE_CLOCK_CONFIGURABLE
@@ -188,9 +185,6 @@ void setup()
     #endif
     pinMode(BUZZER, OUTPUT);
     sei();                      // enable all interrupts
-    #ifndef USE_Z_KEYPAD
-        attachInterrupt(digitalPinToInterrupt(RIGHT_BTN),playerInc,HIGH);
-    #endif
 #elif defined(SSD1306_I2C_SW_SUPPORTED)
     #error "Not supported microcontroller or board"
 #else
@@ -205,6 +199,7 @@ void loop()
     {
         uint8_t lastx = (ballx >> SPEED_SHIFT);
         uint8_t lasty = (bally >> SPEED_SHIFT);
+        lastDrawTimestamp += 30;
         // continue moving after the interrupt
         movePlatform();
         // bounce off the sides of the screen
@@ -212,17 +207,16 @@ void loop()
         {
             if (moveObjects())
             {
-               // update whats on the screen
-               drawPlatform();
-               drawBall(lastx, lasty);
-               drawObjects();
-               if (updateStatusPanel)
-               {
-                   updateStatusPanel = false;
-                   drawStatusPanel();
-               }
-               lastDrawTimestamp += 30;
+                // update whats on the screen
+                drawPlatform();
+                drawBall(lastx, lasty);
+                drawObjects();
             }
+        }
+        if (updateStatusPanel)
+        {
+            updateStatusPanel = false;
+            drawStatusPanel();
         }
     }
 }
@@ -248,7 +242,6 @@ void drawStatusPanel()
 
 void drawIntro()
 {
-    ssd1331_setColor(RGB_COLOR8(255,0,0));
 #ifdef ARKANOID_SSD1331
     ssd1331_96x64_spi_init(3,4,5);
 #elif defined(__AVR_ATtiny85__)
@@ -257,6 +250,8 @@ void drawIntro()
     ssd1306_i2cInit_Wire(0);
 #elif defined(SSD1306_I2C_SW_SUPPORTED)
     ssd1306_i2cInit_Embedded(-1,-1,0);
+#elif defined(SSD1306_LINUX_SUPPORTED)
+    ssd1306_i2cInit_Linux(-1,-1);
 #else
     #error "Not supported microcontroller or board"
 #endif
@@ -264,7 +259,13 @@ void drawIntro()
     ssd1306_128x64_init();
 #endif
     ssd1306_clearScreen( );
-    ssd1306_drawBitmap(16 - OUTPUT_OFFSET, 2, 96, 24, arkanoid_2);
+    ssd1331_setColor(RGB_COLOR8(255,0,0));
+    for (int8_t y=-24; y<16; y++)
+    {
+        gfx_drawMonoBitmap(16 - OUTPUT_OFFSET, y, 96, 24, arkanoid_2);
+        delay(20);
+    }
+    ssd1331_setColor(RGB_COLOR8(255,255,0));
     ssd1306_printFixed(40 - OUTPUT_OFFSET, 40, "BREAKOUT", STYLE_NORMAL);
     beep(200,600);
     beep(300,200);
@@ -273,10 +274,10 @@ void drawIntro()
 
 void drawStartScreen()
 {
-  ssd1306_clearScreen( );
-  drawBlocks();
-  drawFieldEdges();
-  drawStatusPanel();
+    ssd1306_clearScreen( );
+    drawBlocks();
+    drawFieldEdges();
+    updateStatusPanel = true;
 }
 
 void startLevel()
@@ -341,7 +342,12 @@ void drawPlatform()
 
 void drawBlock(uint8_t x, uint8_t y)
 {
-    ssd1306_drawSpriteEx(LEFT_EDGE + 1 + (x << 4), y, 16, &blockImages[gameField[y][x]][0]);
+    uint8_t block = gameField[y][x];
+    if (block == 1) ssd1331_setColor(RGB_COLOR8(64,64,255));
+    else if (block == 2) ssd1331_setColor(RGB_COLOR8(64,255,255));
+    else if (block == 3) ssd1331_setColor(RGB_COLOR8(64,255,64));
+    else ssd1331_setColor(RGB_COLOR8(64,64,255));
+    ssd1306_drawSpriteEx(LEFT_EDGE + 1 + (x << 4), y, 16, &blockImages[block][0]);
 }
 
 
@@ -371,7 +377,6 @@ void drawBlocks()
     {
         for (uint8_t bl = 0; bl<BLOCKS_PER_ROW; bl++)
         {
-            ssd1331_setColor(RGB_COLOR8(64,64,255));
             drawBlock(bl, r);
         }
     }
@@ -379,9 +384,11 @@ void drawBlocks()
 
 void drawFieldEdges()
 {
+    uint8_t i=8;
     ssd1331_setColor(RGB_COLOR8(255,0,0));
-    for (uint8_t i=8; i>0; i--)
+    while (i)
     {
+        i--;
         ssd1306_setRamBlock(LEFT_EDGE, i, 1);
         ssd1306_sendData( 0B01010101 );
         ssd1306_setRamBlock(RIGHT_EDGE, i, 1);
@@ -664,9 +671,9 @@ void platformCrashAnimation()
 
 void onKill()
 {
+    platformCrashAnimation();
     if (hearts == 0)
     {
-        platformCrashAnimation();
         // game over if the ball misses the platform
         gameOver();
         system_sleep();
@@ -675,7 +682,6 @@ void onKill()
     }
     else
     {
-        platformCrashAnimation();
         hearts--;
         startLevel();
     }
@@ -775,7 +781,7 @@ void beep(int bCount,int bDelay)
     digitalWrite(BUZZER,LOW);
 }
 
-#if defined(ESP32) || defined(ESP8266)
+#ifdef DEEP_SLEEP_NOT_SUPPORTED
 
 void system_sleep()
 {

@@ -22,9 +22,11 @@
     SOFTWARE.
 */
 
-#if defined(__linux__) && !defined(ARDUINO)
+#if (defined(__linux__) || defined(__MINGW32__)) && !defined(ARDUINO)
 
 #include "io.h"
+
+#ifndef __KERNEL__
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -32,55 +34,68 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
- 
+
+#ifdef IN
+#undef IN
+#endif
 #define IN  0
+
+#ifdef OUT
+#undef OUT
+#endif
 #define OUT 1
- 
+
 int gpio_export(int pin)
 {
     char buffer[4];
     ssize_t bytes_written;
     int fd;
- 
+
     fd = open("/sys/class/gpio/export", O_WRONLY);
     if (-1 == fd)
     {
         fprintf(stderr, "Failed to allocate gpio pin resources!\n");
         return(-1);
     }
- 
+
     bytes_written = snprintf(buffer, sizeof(buffer), "%d", pin);
-    write(fd, buffer, bytes_written);
+    if (write(fd, buffer, bytes_written) < 0)
+    {
+        fprintf(stderr, "Failed to allocate gpio pin resources!\n");
+    }
     close(fd);
     return(0);
 }
- 
+
 int gpio_unexport(int pin)
 {
     char buffer[4];
     ssize_t bytes_written;
     int fd;
- 
+
     fd = open("/sys/class/gpio/unexport", O_WRONLY);
     if (-1 == fd)
     {
         fprintf(stderr, "Failed to free gpio pin resources!\n");
         return(-1);
     }
- 
+
     bytes_written = snprintf(buffer, sizeof(buffer), "%d", pin);
-    write(fd, buffer, bytes_written);
+    if (write(fd, buffer, bytes_written) < 0)
+    {
+        fprintf(stderr, "Failed to free gpio pin resources!\n");
+    }
     close(fd);
     return(0);
 }
- 
+
 int gpio_direction(int pin, int dir)
 {
     static const char s_directions_str[]  = "in\0out";
- 
+
     char path[64];
     int fd;
- 
+
     snprintf(path, sizeof(path), "/sys/class/gpio/gpio%d/direction", pin);
     fd = open(path, O_WRONLY);
     if (-1 == fd)
@@ -155,5 +170,6 @@ int gpio_write(int pin, int value)
     -1 == gpio_write(N, HIGH)
     -1 == gpio_unexport(N)
 */
+#endif
 
 #endif

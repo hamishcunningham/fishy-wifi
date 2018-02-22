@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #include <ArduinoJson.h>
@@ -239,12 +239,5 @@ TEST_CASE("std::string") {
     size_t sizeAfter = jb.size();
 
     REQUIRE(sizeBefore == sizeAfter);
-  }
-
-  SECTION("JsonBuffer_strdup") {
-    std::string original("hello");
-    char *copy = jb.strdup(original);
-    original[0] = 'w';
-    REQUIRE(std::string("hello") == copy);
   }
 }

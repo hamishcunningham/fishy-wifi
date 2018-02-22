@@ -30,13 +30,13 @@
 #define _SSD1306_H_
 
 #include "nano_gfx_types.h"
+#include "ssd1306_fonts.h"
 #include "i2c/ssd1306_i2c_conf.h"
 #include "spi/ssd1306_spi_conf.h"
-#include "lcd/ssd1306_128x64.h"
-#include "lcd/ssd1306_128x32.h"
-#include "lcd/ssd1331_96x64.h"
-#include "lcd/sh1106_128x64.h"
-#include "lcd/pcd8544_84x48.h"
+#include "lcd/oled_ssd1306.h"
+#include "lcd/oled_ssd1331.h"
+#include "lcd/oled_sh1106.h"
+#include "lcd/lcd_pcd8544.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,12 +54,12 @@ extern "C" {
 /**
  * Turns off display
  */
-void         ssd1306_displayOff();
+void         ssd1306_displayOff(void);
 
 /**
  * Turns on display
  */
-void         ssd1306_displayOn();
+void         ssd1306_displayOn(void);
 
 /**
  * Set display contrast, ie light intensity
@@ -72,23 +72,45 @@ void         ssd1306_setContrast(uint8_t contrast);
  * LCD will display 0-pixels as white, and 1-pixels as black.
  * @note Not supported for SSD1331
  */
-void         ssd1306_invertMode();
+void         ssd1306_invertMode(void);
 
 /**
  * Switches display to normal mode.
  * @note Not supported for SSD1331
  */
-void         ssd1306_normalMode();
+void         ssd1306_normalMode(void);
+
+/**
+ * @brief performs horizontal flip
+ *
+ * Performs horizontal flip. If you need to turn display by 180 degree,
+ * please use both ssd1306_flipHorizontal() and ssd1306_flipVertical().
+ *
+ * @param mode - 0 to disable horizontal flip
+ *               1 to enable horizontal flip
+ */
+void         ssd1306_flipHorizontal(uint8_t mode);
+
+/**
+ * @brief performs vertical flip
+ *
+ * Performs vertical flip. If you need to turn display by 180 degree,
+ * please use both ssd1306_flipHorizontal() and ssd1306_flipVertical().
+ *
+ * @param mode - 0 to disable vertical flip
+ *               1 to enable vertical flip
+ */
+void         ssd1306_flipVertical(uint8_t mode);
 
 /**
  * Returns display height in pixels
  */
-uint8_t      ssd1306_displayHeight();
+uint8_t      ssd1306_displayHeight(void);
 
 /**
  * Returns display width in pixels
  */
-uint8_t      ssd1306_displayWidth();
+uint8_t      ssd1306_displayWidth(void);
 
 /**
  * @}
@@ -118,19 +140,19 @@ void         ssd1306_fillScreen(uint8_t fill_Data);
 /**
  * Fills screen with zero-byte
  */
-void         ssd1306_clearScreen();
+void         ssd1306_clearScreen(void);
 
 /**
  * All drawing functions start to work in negative mode.
  * Old picture on the display remains unchanged.
  */
-void         ssd1306_negativeMode();
+void         ssd1306_negativeMode(void);
 
 /**
  * All drawing functions start to work in positive (default) mode.
  * Old picture on the display remains unchanged.
  */
-void         ssd1306_positiveMode();
+void         ssd1306_positiveMode(void);
 
 /**
  * Prints text to screen using fixed font.
@@ -233,7 +255,6 @@ uint8_t      ssd1306_charF6x8_eol(uint8_t left,
                                   EFontStyle style,
                                   uint8_t right) __attribute__ ((deprecated));
 
-
 /**
  * Function allows to set another fixed font for the library.
  * By default, the font supports only first 128 - 32 ascii chars.
@@ -305,7 +326,6 @@ void         ssd1306_putPixels(uint8_t x, uint8_t y, uint8_t pixels);
  */
 void         ssd1306_drawRect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
 
-
 /**
  * Draws line
  * @param x1 - x position in pixels of start point
@@ -370,6 +390,16 @@ void         ssd1306_drawBuffer(uint8_t x, uint8_t y, uint8_t w, uint8_t h, cons
  */
 void         ssd1306_drawBitmap(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t *buf);
 
+/**
+ * Draws bitmap, located in Flash, on the display
+ *
+ * @param x - horizontal position in pixels
+ * @param y - vertical position in pixels
+ * @param w - width of bitmap in pixels
+ * @param h - height of bitmap in pixels (must be divided by 8)
+ * @param buf - pointer to data, located in Flash: each byte represents 8 vertical pixels.
+ */
+void         gfx_drawMonoBitmap(lcdint_t x, lcdint_t y, lcduint_t w, lcduint_t h, const uint8_t *buf);
 
 /**
  * Fills block with black pixels
@@ -380,7 +410,6 @@ void         ssd1306_drawBitmap(uint8_t x, uint8_t y, uint8_t w, uint8_t h, cons
  * @note usually this method is used to erase bitmap on the screen.
  */
 void         ssd1306_clearBlock(uint8_t x, uint8_t y, uint8_t w, uint8_t h);
-
 
 /**
  * Draws bitmap, located in Flash, on the display. This sprite must have wx8 size
@@ -485,7 +514,6 @@ void ssd1306_showMenu(SAppMenu *menu);
  */
 void ssd1306_updateMenu(SAppMenu *menu);
 
-
 /**
  * Returns currently selected menu item.
  * First item has zero-index.
@@ -493,7 +521,6 @@ void ssd1306_updateMenu(SAppMenu *menu);
  * @param menu - Pointer to SAppMenu structure
  */
 uint8_t ssd1306_menuSelection(SAppMenu *menu);
-
 
 /**
  * Moves selection pointer down by 1 item. If there are no items below,
@@ -503,7 +530,6 @@ uint8_t ssd1306_menuSelection(SAppMenu *menu);
  * @param menu - Pointer to SAppMenu structure
  */
 void ssd1306_menuDown(SAppMenu *menu);
-
 
 /**
  * Moves selection pointer up by 1 item. If selected item is the first one,

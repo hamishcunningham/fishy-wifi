@@ -28,7 +28,7 @@
 #include "i2c/ssd1306_i2c.h"
 #include "spi/ssd1306_spi.h"
 #include "intf/ssd1306_interface.h"
-#include <stdlib.h>
+#include "hal/io.h"
 
 // TODO: remove
 #include "lcd/ssd1306_commands.h"
@@ -114,6 +114,7 @@ uint8_t ssd1306_printFixed(uint8_t xpos, uint8_t y, const char ch[], EFontStyle 
     ssd1306_dataStart();
     for(;;)
     {
+        uint8_t c;
         if( (x > s_displayWidth - s_fixedFont.width) || (ch[j] == '\0') )
         {
             x = xpos;
@@ -140,7 +141,7 @@ uint8_t ssd1306_printFixed(uint8_t xpos, uint8_t y, const char ch[], EFontStyle 
             ssd1306_setRamBlock(xpos, y, s_displayWidth - xpos);
             ssd1306_dataStart();
         }
-        uint8_t c = ch[j];
+        c = ch[j];
         if ( c >= s_fixedFont.ascii_offset )
         {
             c -= s_fixedFont.ascii_offset;
@@ -657,6 +658,61 @@ void ssd1306_drawBitmap(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_
     ssd1306_endTransmission();
 }
 
+void gfx_drawMonoBitmap(lcdint_t x, lcdint_t y, lcduint_t w, lcduint_t h, const uint8_t *buf)
+{
+    lcduint_t origin_width = w;
+    uint8_t offset = y & 0x07;
+    uint8_t complexFlag = 0;
+    uint8_t mainFlag = 1;
+    if (y + (lcdint_t)h <= 0) return;
+    if (y >= s_displayHeight) return;
+    if (x + (lcdint_t)w <= 0) return;
+    if (x >= s_displayWidth)  return;
+    if (y < 0)
+    {
+         buf += ((lcduint_t)((-y) + 7) >> 3) * w;
+         h += y;
+         y = 0;
+         complexFlag = 1;
+    }
+    if (x < 0)
+    {
+         buf += -x;
+         w += x;
+         x = 0;
+    } 
+    uint8_t max_pages = (lcduint_t)(h + 15 - offset) >> 3;
+    if ((lcduint_t)((lcduint_t)y + h) > (lcduint_t)s_displayHeight)
+    {                                                  
+         h = (lcduint_t)(s_displayHeight - (lcduint_t)y);
+    }
+    if ((lcduint_t)((lcduint_t)x + w) > (lcduint_t)s_displayWidth)
+    {
+         w = (lcduint_t)(s_displayWidth - (lcduint_t)x);
+    }
+    uint8_t pages = ((y + h - 1) >> 3) - (y >> 3) + 1;
+    lcduint_t i, j;
+
+    ssd1306_setRamBlock(x, y >> 3, w);
+    ssd1306_dataStart();
+    for(j=0; j < pages; j++)
+    {
+        if ( j == max_pages - 1 ) mainFlag = !offset;
+        for( i=w; i > 0; i--)
+        {       
+            uint8_t data = 0;
+            if ( mainFlag )    data |= (pgm_read_byte(buf) << offset);
+            if ( complexFlag ) data |= (pgm_read_byte(buf - origin_width) >> (8 - offset));
+            buf++;
+            ssd1306_sendPixels(s_invertByte^data);
+        }
+        buf += origin_width - w;
+        complexFlag = offset;
+        ssd1306_nextRamPage();
+    }
+    ssd1306_endTransmission();
+}
+
 
 void ssd1306_clearBlock(uint8_t x, uint8_t y, uint8_t w, uint8_t h)
 {
@@ -805,6 +861,22 @@ void         ssd1306_normalMode()
     }
 }
 
+void         ssd1306_flipHorizontal(uint8_t mode)
+{
+    if (g_lcd_type != LCD_TYPE_SSD1331)
+    { 
+         ssd1306_sendCommand( SSD1306_SEGREMAP | (mode ? 0x00: 0x01 ) );
+    }
+}
+
+void         ssd1306_flipVertical(uint8_t mode)
+{
+    if (g_lcd_type != LCD_TYPE_SSD1331)
+    { 
+         ssd1306_sendCommand( mode ? SSD1306_COMSCANINC : SSD1306_COMSCANDEC );
+    }
+}
+ 
 void         ssd1306_negativeMode()
 {
     s_invertByte = 0xFF;

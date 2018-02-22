@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #include <ArduinoJson.h>
@@ -326,18 +326,6 @@ TEST_CASE("Variable Length Array") {
     arr[0] = vla;
 
     REQUIRE(std::string("world") == arr[0]);
-  }
-
-  SECTION("JsonBuffer_strdup") {
-    int i = 16;
-    char vla[i];
-    strcpy(vla, "world");
-
-    DynamicJsonBuffer jsonBuffer;
-    const char* dup = jsonBuffer.strdup(vla);
-
-    REQUIRE(static_cast<const void*>(vla) != static_cast<const void*>(dup));
-    REQUIRE(std::string("world") == dup);
   }
 }
 #endif

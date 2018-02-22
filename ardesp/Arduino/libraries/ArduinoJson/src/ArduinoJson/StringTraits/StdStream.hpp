@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #pragma once
@@ -42,14 +42,17 @@ struct StdStreamTraits {
       return _stream.eof() ? '\0' : static_cast<char>(_stream.get());
     }
   };
+
+  static const bool has_append = false;
+  static const bool has_equals = false;
 };
 
 template <typename TStream>
-struct StringTraits<TStream,
-                    // match any type that is derived from std::istream:
-                    typename TypeTraits::EnableIf<TypeTraits::IsBaseOf<
-                        std::istream, typename TypeTraits::RemoveReference<
-                                          TStream>::type>::value>::type>
+struct StringTraits<
+    TStream,
+    // match any type that is derived from std::istream:
+    typename EnableIf<IsBaseOf<
+        std::istream, typename RemoveReference<TStream>::type>::value>::type>
     : StdStreamTraits {};
 }
 }
