@@ -65,6 +65,8 @@ dependencies {
   compile "org.grails.plugins:spring-security-ui:3.0.2"
   compile "org.grails.plugins:export:2.0.0"
   compile "org.grails.plugins:mail:2.0.0.RC6"
+  
+  compile "org.grails.plugins:spring-security-rest:2.0.0.M2"
 
 }
 

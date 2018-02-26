@@ -4,7 +4,9 @@ grails.plugin.springsecurity.userLookup.userDomainClassName = 'harvest.User'
 grails.plugin.springsecurity.userLookup.authorityJoinClassName = 'harvest.UserRole'
 grails.plugin.springsecurity.authority.className = 'harvest.Role'
 
-grails.plugin.springsecurity.controllerAnnotations.staticRules = [
+//grails.plugin.springsecurity.controllerAnnotations.staticRules = [
+grails.plugin.springsecurity.securityConfigType = "InterceptUrlMap"
+grails.plugin.springsecurity.interceptUrlMap = [
   [pattern: '/',               access: ['permitAll']],
   [pattern: '/greenmail/**',        access: ['permitAll']],
 
@@ -19,13 +21,16 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
   [pattern: '/**/favicon.ico', access: ['permitAll']],
   [pattern: '/user/**',        access: 'ROLE_ADMIN'],
 
-  [pattern: '/user/**',        access: ['ROLE_ADMIN']],
   [pattern: '/admin/**',       access: ['ROLE_ADMIN', 'isFullyAuthenticated()']],
   [pattern: '/login/**',       access: ['permitAll']],
   [pattern: '/logout/**',      access: ['permitAll']],
   [pattern: '/register/**',    access: ['permitAll']],
   [pattern: '/login/impersonate', access: ['ROLE_ADMIN']],
-  [pattern: '/logout/impersonate', access: ['permitAll']]
+  [pattern: '/logout/impersonate', access: ['permitAll']],
+  [pattern: '/api/login',          access: ['permitAll']],
+  [pattern: '/api/logout',        access: ['isFullyAuthenticated()']],
+  [pattern: '/api/**',    access: ['isFullyAuthenticated()']],
+  [pattern: '/**',             access: ['isFullyAuthenticated()']]
 ]
 
 grails.plugin.springsecurity.filterChain.chainMap = [
@@ -34,7 +39,8 @@ grails.plugin.springsecurity.filterChain.chainMap = [
   [pattern: '/**/css/**',      filters: 'none'],
   [pattern: '/**/images/**',   filters: 'none'],
   [pattern: '/**/favicon.ico', filters: 'none'],
-  [pattern: '/**',             filters: 'JOINED_FILTERS']
+  [pattern: '/api/**', filters:'JOINED_FILTERS,-anonymousAuthenticationFilter,-exceptionTranslationFilter,-authenticationProcessingFilter,-securityContextPersistenceFilter'],
+  [pattern: '/**', filters:'JOINED_FILTERS,-restTokenValidationFilter,-restExceptionTranslationFilter']
 ]
 grails.plugin.springsecurity.roleHierarchy = '''
    ROLE_ADMIN > ROLE_USER
@@ -46,6 +52,16 @@ grails.plugin.springsecurity.logout.postOnly = false
 grails.plugin.springsecurity.ui.register.defaultRoleNames = ['ROLE_USER']
 grails.plugin.springsecurity.ui.register.postRegisterUrl = '/growingSpace/create'
 
+
+grails.plugin.springsecurity.rest.logout.endpointUrl = '/api/logout'
+grails.plugin.springsecurity.rest.token.validation.useBearerToken = false
+grails.plugin.springsecurity.rest.token.validation.headerName = 'X-Auth-Token'
+
+//does this point at something actually running?
+grails.plugin.springsecurity.rest.token.storage.memcached.hosts = 'localhost:11211'
+grails.plugin.springsecurity.rest.token.storage.memcached.username = ''
+grails.plugin.springsecurity.rest.token.storage.memcached.password = ''
+grails.plugin.springsecurity.rest.token.storage.memcached.expiration = 86400
 
 grails {
     mail {
