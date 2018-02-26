@@ -35,14 +35,26 @@ print_help_and_exit()
     echo "        -p      platform to compile for: avr, linux"
     echo "        -m      mcu to compiler for: atmega328p, attiny85, etc.."
     echo "        -f      flash controller after build or run executable for Linux"
+    echo "        -e      start OLED emulation mode with SDL (Linux only)"
+    echo "                OLED emulation allows to run simple demo without OLED hardware"
+    echo "                OLED emulation mode requires installed libsdl2-dev package"
+    echo ""
+    echo "# example: run demo on linux with emulator"
+    echo "    ./build_and_run.sh -p linux -e -f ssd1306_demo"
+    echo "# example: run demo on linux with real ssd1306 oled display"
+    echo "    ./build_and_run.sh -p linux -f ssd1306_demo"
+    echo "# example: build demo and flash for AVR controller"
+    echo "    ./build_and_run.sh -p avr -m attiny85 -f ssd1306_demo"
     exit 1
 }
 
-while getopts ":p::m::f" opt; do
+while getopts "fep:m:" opt; do
+  echo $opt, $OPTARG
   case $opt in
     p) platform=$OPTARG;;
     m) mcu=$OPTARG;;
     f) flash_target=flash;;
+    e) extra_args="$extra_args SDL_EMULATION=y";;
     \?)
       echo "Invalid option: -$OPTARG" >&2
       print_help_and_exit

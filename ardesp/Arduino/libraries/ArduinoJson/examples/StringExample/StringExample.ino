@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 //
 // This example shows the different ways you can use String with ArduinoJson.
@@ -40,6 +40,9 @@ void setup() {
   // WARNING: the content of the String will be duplicated in the JsonBuffer.
   root["sensor"] = sensor;
 
+  // It works with RawJson too:
+  root["sensor"] = RawJson(sensor);
+
   // You can also concatenate strings
   // WARNING: the content of the String will be duplicated in the JsonBuffer.
   root[String("sen") + "sor"] = String("gp") + "s";
@@ -68,4 +71,4 @@ void loop() {
 // The book "Mastering ArduinoJson" contains a quick C++ course that explains
 // how your microcontroller stores strings in memory. On several occasions, it
 // shows how you can avoid String in your program.
-// Please check it out at: https://leanpub.com/arduinojson/
+// Please check it out at: https://arduinojson.org/book/

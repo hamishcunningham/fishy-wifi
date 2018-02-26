@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 //
 // This example shows the different ways you can use Flash strings with
@@ -37,6 +37,9 @@ void setup() {
   // JsonBuffer.
   root["sensor"] = F("gps");
 
+  // It works with RawJson too:
+  root["sensor"] = RawJson(F("\"gps\""));
+
   // You can compare the content of a JsonVariant to a Flash String
   if (root["sensor"] == F("gps")) {
     // ...
@@ -64,4 +67,4 @@ void loop() {
 // The book "Mastering ArduinoJson" contains a quick C++ course that explains
 // how your microcontroller stores strings in memory. It also tells why you
 // should not abuse Flash strings with ArduinoJson.
-// Please check it out at: https://leanpub.com/arduinojson/
+// Please check it out at: https://arduinojson.org/book/

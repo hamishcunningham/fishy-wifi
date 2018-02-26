@@ -1,5 +1,5 @@
 # ArduinoJson - arduinojson.org
-# Copyright Benoit Blanchon 2014-2017
+# Copyright Benoit Blanchon 2014-2018
 # MIT License
 
 add_executable(DynamicJsonBufferTests 
@@ -9,7 +9,6 @@ add_executable(DynamicJsonBufferTests
 	no_memory.cpp
 	size.cpp
 	startString.cpp
-	strdup.cpp
 )
 
 target_link_libraries(DynamicJsonBufferTests catch)

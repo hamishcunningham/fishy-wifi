@@ -33,19 +33,22 @@ default: all
 
 DESTDIR ?=
 BLD ?= ../bld
+BACKSLASH?=/
+MKDIR?=mkdir -p
+convert=$(subst /,$(BACKSLASH),$1)
 
 .SUFFIXES: .c .cpp .ino
 
 $(BLD)/%.o: %.c
-	mkdir -p $(dir $@)
+	-$(MKDIR) $(call convert,$(dir $@))
 	$(CC) -std=gnu11 $(CCFLAGS) -c $< -o $@
 
 $(BLD)/%.o: %.ino
-	mkdir -p $(dir $@)
+	-$(MKDIR) $(call convert,$(dir $@))
 	$(CXX) -std=c++11 $(CCFLAGS) -x c++ -c $< -o $@
 
 $(BLD)/%.o: %.cpp
-	mkdir -p $(dir $@)
+	-$(MKDIR) $(call convert,$(dir $@))
 	$(CXX) -std=c++11 $(CCFLAGS) -c $< -o $@
 
 # ************* Common defines ********************
@@ -56,41 +59,13 @@ INCLUDES += \
 CCFLAGS += -g -Os $(INCLUDES) -Wall -Werror -ffunction-sections -fdata-sections \
 	-fno-exceptions -Wno-error=deprecated-declarations
 
+ifeq ($(SDL_EMULATION),y)
+    CCFLAGS += -DSDL_EMULATION -I../tools/sdl
+endif
+
 .PHONY: clean ssd1306 all
 
-SRCS_C = \
-	font6x8.c \
-	ssd1306.c \
-	ssd1331_api.c \
-	ssd1306_menu.c \
-	hal/avr/gpio.c \
-	hal/linux/gpio.c \
-	i2c/ssd1306_i2c_common.c \
-	i2c/ssd1306_i2c_embedded.c \
-	i2c/ssd1306_i2c_twi.c \
-	i2c/ssd1306_i2c_linux.c \
-	spi/ssd1306_spi.c \
-	spi/ssd1306_spi_avr.c \
-	intf/ssd1306_interface.c \
-	lcd/pcd8544_84x48.c \
-	lcd/sh1106_128x64.c \
-	lcd/ssd1306_128x32.c \
-	lcd/ssd1306_128x64.c \
-	lcd/ssd1331_96x64.c
-
-SRCS_CPP = \
-	nano_gfx.cpp \
-	nano_gfx_types.cpp \
-	sprite_pool.cpp \
-	i2c/ssd1306_i2c_wire.cpp \
-	spi/ssd1306_spi_hw.cpp
-
-SRCS = $(SRCS_C) $(SRCS_CPP)
-
-# Due to absence of Print class tiny_ssd1306.cpp cannot be compiled without Arduino libs.
-#	tiny_ssd1306.cpp \
- 
-OBJS = $(addprefix $(BLD)/, $(addsuffix .o, $(basename $(SRCS))))
+include Makefile.src
 
 ####################### Compiling library #########################
 

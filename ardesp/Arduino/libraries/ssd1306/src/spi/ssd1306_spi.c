@@ -26,11 +26,11 @@
 #include "ssd1306_spi.h"
 #include "ssd1306_spi_hw.h"
 #include "ssd1306_spi_avr.h"
+#include "ssd1306_spi_usi.h"
+#include "ssd1306_spi_linux.h"
 #include "intf/ssd1306_interface.h"
 #include "lcd/lcd_common.h"
 #include "hal/io.h"
-
-#include <stdlib.h>
 
 int8_t s_ssd1306_cs = 4;
 int8_t s_ssd1306_dc = 5;
@@ -42,6 +42,10 @@ void ssd1306_spiInit(int8_t cesPin, int8_t dcPin)
     ssd1306_spiInit_hw(cesPin, dcPin);
 #elif defined(SSD1306_AVR_SPI_SUPPORTED)
     ssd1306_spiInit_avr(cesPin, dcPin);
+#elif defined(SSD1306_USI_SPI_SUPPORTED)
+    ssd1306_spiInit_Usi(cesPin, dcPin);
+#elif defined(SSD1306_LINUX_SUPPORTED)
+    ssd1306_spiInit_Linux(cesPin, dcPin);
 #endif
 }
 

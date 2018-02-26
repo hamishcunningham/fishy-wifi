@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 //
 // This example shows how to store your project configuration in a file.
@@ -141,4 +141,4 @@ void loop() {
 // The book "Mastering ArduinoJson" contains a case study of a project that has
 // a complex configuration with nested members.
 // Contrary to this example, the project in the book uses the SPIFFS filesystem.
-// Please check it out at: https://leanpub.com/arduinojson/
+// Please check it out at: https://arduinojson.org/book/

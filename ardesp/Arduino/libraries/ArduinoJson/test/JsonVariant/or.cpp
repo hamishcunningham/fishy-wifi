@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #include <ArduinoJson.h>
@@ -49,6 +49,12 @@ TEST_CASE("JsonVariant::operator|()") {
     JsonVariant variant = 0;
     int result = variant | 666;
     REQUIRE(result == 0);
+  }
+
+  SECTION("double | int") {
+    JsonVariant variant = 42.0;
+    int result = variant | 666;
+    REQUIRE(result == 42);
   }
 
   SECTION("bool | bool") {

@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #pragma once
@@ -141,8 +141,7 @@ inline bool ArduinoJson::Internals::JsonParser<TReader, TWriter>::parseObjectTo(
 template <typename TReader, typename TWriter>
 inline const char *
 ArduinoJson::Internals::JsonParser<TReader, TWriter>::parseString() {
-  typename TypeTraits::RemoveReference<TWriter>::type::String str =
-      _writer.startString();
+  typename RemoveReference<TWriter>::type::String str = _writer.startString();
 
   skipSpacesAndComments(_reader);
   char c = _reader.current();
@@ -168,7 +167,7 @@ ArduinoJson::Internals::JsonParser<TReader, TWriter>::parseString() {
     }
   } else {  // no quotes
     for (;;) {
-      if (!isLetterOrNumber(c)) break;
+      if (!canBeInNonQuotedString(c)) break;
       _reader.move();
       str.append(c);
       c = _reader.current();

@@ -27,10 +27,13 @@
 #include "ssd1306_i2c_conf.h"
 #include "ssd1306_i2c.h"
 
-#ifdef SSD1306_LINUX_SUPPORTED
+#if defined(SSD1306_LINUX_SUPPORTED) && !defined(__KERNEL__)
 
 #include <stdio.h>
 #include <unistd.h>
+
+#if !defined(SDL_EMULATION)
+
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
@@ -119,6 +122,23 @@ void ssd1306_i2cInit_Linux(int8_t busId, uint8_t sa)
     ssd1306_commandStart = ssd1306_i2cCommandStart;
     ssd1306_dataStart = ssd1306_i2cDataStart;
 }
+
+#else /* SDL_EMULATION */
+
+#include "sdl_core.h"
+
+void ssd1306_i2cInit_Linux(int8_t busId, uint8_t sa)
+{
+    sdl_core_init();
+    ssd1306_startTransmission = sdl_send_init;
+    ssd1306_endTransmission = sdl_send_stop;
+    ssd1306_sendByte = sdl_send_byte;
+    ssd1306_closeInterface = sdl_core_close;
+    ssd1306_commandStart = sdl_command_start;
+    ssd1306_dataStart = sdl_data_start;
+}
+
+#endif /* SDL_EMULATION */
 
 #endif
 

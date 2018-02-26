@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #pragma once
@@ -9,11 +9,11 @@
 #include "./math.hpp"
 
 namespace ArduinoJson {
-namespace Polyfills {
+namespace Internals {
 
 template <typename T>
 inline T parseFloat(const char* s) {
-  typedef TypeTraits::FloatTraits<T> traits;
+  typedef FloatTraits<T> traits;
   typedef typename traits::mantissa_type mantissa_t;
   typedef typename traits::exponent_type exponent_t;
 

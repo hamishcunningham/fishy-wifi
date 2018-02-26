@@ -1,9 +1,9 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 //
 // This example shows how to parse a JSON document in an HTTP response.
-// It uses the Ethernet library, but can be easily adapter for Wifi.
+// It uses the Ethernet library, but can be easily adapted for Wifi.
 //
 // It performs a GET resquest on arduinojson.org/example.json
 // Here is the expected response:
@@ -109,4 +109,4 @@ void loop() {
 // showing how to parse the response from Yahoo Weather. In the last chapter,
 // it shows how to parse the huge documents from OpenWeatherMap
 // and Weather Underground.
-// Please check it out at: https://leanpub.com/arduinojson/
+// Please check it out at: https://arduinojson.org/book/

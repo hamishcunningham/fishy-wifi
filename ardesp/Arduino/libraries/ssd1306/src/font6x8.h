@@ -12,28 +12,12 @@
  *
  */
 /**
- * @file font6x8.h Fonts 6x8
+ * @file font6x8.h Fonts 6x8. Header file is here only for compatibility with older library releases
  */
 
 #ifndef FONT6x8_H
 #define FONT6x8_H
 
-#include "hal/io.h"
-#include <stdint.h>
-
-/**
- * @defgroup LCD_FONTS LCD Fonts
- * @{
- */
-
-/** Standard ASCII 6x8 font */
-extern const PROGMEM uint8_t ssd1306xled_font6x8 [];
-
-/** Standard ASCII 6x8 AB font with only capital letters */
-extern const PROGMEM uint8_t ssd1306xled_font6x8_AB [];
-
-/**
- * @}
- */
+#include "ssd1306_fonts.h"
 
 #endif // FONT6x8_H

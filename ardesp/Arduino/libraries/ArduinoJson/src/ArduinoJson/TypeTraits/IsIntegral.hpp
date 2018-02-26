@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #pragma once
@@ -9,14 +9,14 @@
 #include "IsUnsignedIntegral.hpp"
 
 namespace ArduinoJson {
-namespace TypeTraits {
+namespace Internals {
 
 // A meta-function that returns true if T is an integral type.
 template <typename T>
 struct IsIntegral {
-  static const bool value = TypeTraits::IsSignedIntegral<T>::value ||
-                            TypeTraits::IsUnsignedIntegral<T>::value ||
-                            TypeTraits::IsSame<T, char>::value;
+  static const bool value = IsSignedIntegral<T>::value ||
+                            IsUnsignedIntegral<T>::value ||
+                            IsSame<T, char>::value;
   // CAUTION: differs from std::is_integral as it doesn't include bool
 };
 

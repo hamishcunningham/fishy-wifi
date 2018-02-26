@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #pragma once
@@ -79,14 +79,14 @@ class JsonWriter {
 
   template <typename TFloat>
   void writeFloat(TFloat value) {
-    if (Polyfills::isNaN(value)) return writeRaw("NaN");
+    if (isNaN(value)) return writeRaw("NaN");
 
     if (value < 0.0) {
       writeRaw('-');
       value = -value;
     }
 
-    if (Polyfills::isInfinity(value)) return writeRaw("Infinity");
+    if (isInfinity(value)) return writeRaw("Infinity");
 
     FloatParts<TFloat> parts(value);
 

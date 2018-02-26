@@ -1,10 +1,36 @@
 ArduinoJson: change log
 =======================
 
+v5.13.1
+-------
+
+* Fixed `JsonVariant::operator|(int)` that returned the default value if the variant contained a double (issue #675)
+* Allowed non-quoted key to contain underscores (issue #665)
+
+v5.13.0
+-------
+
+* Changed the rules of string duplication (issue #658)
+* `RawJson()` accepts any kind of string and obeys to the same rules for duplication
+* Changed the return type of `strdup()` to `const char*` to prevent double duplication
+* Marked `strdup()` as deprecated
+
+> ### New rules for string duplication
+>
+> | type                       | duplication |
+> |:---------------------------|:------------|
+> | const char*                | no          |
+> | char*                      | ~~no~~ yes  |
+> | String                     | yes         |
+> | std::string                | yes         |
+> | const __FlashStringHelper* | yes         |
+>
+> These new rules make `JsonBuffer::strdup()` useless.
+
 v5.12.0
 -------
 
-* Added `JsonVariant::operator|` to return a default value (see bellow)
+* Added `JsonVariant::operator|` to return a default value (see below)
 * Added a clear error message when compiled as C instead of C++ (issue #629)
 * Added detection of MPLAB XC compiler (issue #629)
 * Added detection of Keil ARM Compiler (issue #629)

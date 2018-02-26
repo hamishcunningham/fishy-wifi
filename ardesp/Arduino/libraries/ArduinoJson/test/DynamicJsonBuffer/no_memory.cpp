@@ -1,9 +1,11 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
+
+using namespace ArduinoJson::Internals;
 
 struct NoMemoryAllocator {
   void* allocate(size_t) {

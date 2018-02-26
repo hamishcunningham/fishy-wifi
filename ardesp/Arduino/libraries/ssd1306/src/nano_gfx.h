@@ -112,7 +112,7 @@ public:
      * Clears canvas
      */
     void clear();
-    
+
     /**
      * Prints text to canvas buffer
      * @param x - start position X
@@ -167,6 +167,16 @@ public:
      * Reads sprite from Flash memory
      */
     void drawSpritePgm(uint8_t x, uint8_t y, const uint8_t sprite[]);
+
+    /**
+     * Draw bitmap to the buffer from SRAM.
+     * @param x - horizontal position in pixels
+     * @param y - vertical position in pixels
+     * @param w - width of bitmap in pixels
+     * @param h - height of bitmap in pixels (must be divided by 8)
+     * @param buf - pointer to data, located in Flash: each byte represents 8 vertical pixels.
+     */
+    void drawBitmap(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t *buf);
 
     /**
      * Sprite is small image 8x8, sprite doesn't change background

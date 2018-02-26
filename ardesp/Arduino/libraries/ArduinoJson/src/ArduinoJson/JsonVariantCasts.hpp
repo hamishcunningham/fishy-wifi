@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2017
+// Copyright Benoit Blanchon 2014-2018
 // MIT License
 
 #pragma once
@@ -8,6 +8,7 @@
 #include "Polyfills/attributes.hpp"
 
 namespace ArduinoJson {
+namespace Internals {
 
 template <typename TImpl>
 class JsonVariantCasts {
@@ -54,4 +55,5 @@ class JsonVariantCasts {
     return static_cast<const TImpl *>(this);
   }
 };
+}
 }
