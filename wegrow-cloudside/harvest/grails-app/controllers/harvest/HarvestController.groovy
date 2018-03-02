@@ -7,12 +7,19 @@ import grails.plugin.springsecurity.annotation.Secured
 import static org.springframework.http.HttpStatus.*
 import grails.transaction.Transactional
 
+import grails.rest.*
+
 @Transactional(readOnly = true)
 @Secured("hasRole('ROLE_USER')")
-class HarvestController {
+class HarvestController extends RestfulController {
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
+    
     SpringSecurityService springSecurityService;
     def exportService
+    
+    HarvestController() {
+        super(Harvest)
+    }
 
     def index(Integer offset, Integer max, Boolean activeOnly) {
         if (params?.f) {

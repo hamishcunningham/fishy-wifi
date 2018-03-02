@@ -210,7 +210,7 @@ class Area {
       return criteria
     } else if (currentUser?.growingSpace != null) {
       return criteria.build() {
-        eq('space', growingSpace)
+        eq('space', currentUser.growingSpace)
       }
     } else {
       // throw some nasty exception
