@@ -248,19 +248,7 @@
             <g:form class="inline" controller="harvest" action="index">Items per page: <g:select onChange="submit();" name="max" from="${[10,50,100,200]}" value="${params.max}" /><g:hiddenField name="activeOnly" value="${params.activeOnly}"/></g:form>
         </div>
 
-
-
-        <div class="text-center">
-            
-        <div>
-
-        <p class="lead">
-            Download your harvest record:
-            <g:link action="index" params="${[f:'csv', extension:'csv']}">CSV</g:link>
-            <g:link action="index" params="${[f:'excel', extension:'xls']}">Excel</g:link>
-            <g:link action="index" params="${[f:'xml', extension:'xml']}">XML</g:link>
-        </p>
-
+        <export:formats formats="['csv', 'excel', 'xml']"></export:formats>
 
     </g:if>
     <g:else>
