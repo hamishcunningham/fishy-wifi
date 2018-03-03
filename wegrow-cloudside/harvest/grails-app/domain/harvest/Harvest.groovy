@@ -4,7 +4,7 @@ import grails.plugin.springsecurity.SpringSecurityUtils
 
 import grails.rest.*
 
-@Resource(uri = "/api/harvest")
+@Resource()
 class Harvest {
   Double weight
   WeightUnit unit
