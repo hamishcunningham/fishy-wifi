@@ -44,9 +44,6 @@
                 </button>
                 <g:link class="navbar-brand" uri="/">
                     <img src="${asset.assetPath(src: "LOGO/WEB/MyHarvest-WEB.png")}" alt="website logo"  />
-                    <g:ifHydro>
-                    	<img src="${asset.assetPath(src: "LOGO/WEB/wegrowlogo_colour.png")}" alt="WeGrow" />
-                    </g:ifHydro>	
                 </g:link>
 
             </div>
