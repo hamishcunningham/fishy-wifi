@@ -82,6 +82,16 @@
         color: @colHighlight;
         background-color: @bgHighlight; }}}
 }
+
+.navbar-brand {
+ padding: 0px 0px 0px 15px;
+}
+
+.navbar-brand img {
+  height: 50px;
+  margin-left: 59px;
+}
+
 .widget input {
     .form-control
 }
@@ -103,5 +113,121 @@
     margin-right: 10px;
     margin-left: 10px;
     height: 3em;
+}
+
+.harvestHeadingRow {
+}
+
+.harvestHeadingRow > td {
+  font-size: inherit;
+  vertical-align: middle!important;
+}
+
+.harvestHeadingRow.in {
+  font-weight: bold;
+}
+
+
+.harvestHeadingRow.finished {
+  color: #797e1b;
+}
+
+.paginate .step, .currentStep, .nextLink, .prevLink {
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
+
+/* RESPONSIVE EXAMPLE */
+
+.stacktable.large-only { display: table; }
+.stacktable.small-only { display: none; }
+
+@media (max-width: 768px) {
+  .stacktable.large-only { display: none; }
+  .stacktable.small-only { display: table; }
+}
+
+
+.small-only { display: none; }
+tr.small-only th.st-head-row {
+  border-top: none;
+}
+
+@media (max-width: 768px) {
+  .small-only { display: table; }
+}
+
+.statsBox {
+  .make-md-column(2);
+}
+.statsBox .icon {
+  .pull-left;
+}
+
+.statsBox .statsLabel {
+  .pull-right;
+  display: block;
+}
+
+.statsBox .value {
+  .pull-right;
+  display: block;
+
+}
+.harvestControls {
+  .make-md-column(4);
+}
+
+@media (min-width: 992px) {
+  .harvestControls {
+    .make-md-column-offset(8);
+    .text-right;
+  }
+}
+
+.harvest-row{
+  display: none;
+}
+
+.harvest-count:hover {
+  text-decoration: none;
+}
+
+.myharvest-orange {
+  color: #D3714B;
+}
+
+.myharvest-green {
+  color: #C8DC5F;
+}
+
+.icon-key {
+  list-style: none;
+}
+
+.harvest-green-label {
+  border-color: #797e1b;
+  border-style: dashed;
+  color: #797e1b;
+  font-weight: normal;
+  border-width: thin;
+}
+
+.btn-harvest-orange {
+  .button-size(@padding-small-vertical; @padding-small-horizontal;
+          @font-size-base; @line-height-small; @btn-border-radius-large);
+  background-color: #D3714B;
+  color: white;
+  font-weight: normal;
+  border-width: thin;
+  padding-right: 16px;
+}
+
+#organic_footnote {
+  .alert;
+
+  font-size: small;
+  color:#8c8c8c;
+
 }
 
