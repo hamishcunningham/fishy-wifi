@@ -33,7 +33,6 @@
     <g:layoutHead/>
 </head>
 <body>
-
     <div class="navbar navbar-default navbar-static-top" role="navigation">
         <div class="container-fluid">
             <div class="navbar-header">
@@ -45,6 +44,9 @@
                 </button>
                 <g:link class="navbar-brand" uri="/">
                     <img src="${asset.assetPath(src: "LOGO/WEB/MyHarvest-WEB.png")}" alt="website logo"  />
+                    <g:ifHydro>
+                    	<img src="${asset.assetPath(src: "LOGO/WEB/wegrowlogo_colour.png")}" alt="WeGrow" />
+                    </g:ifHydro>	
                 </g:link>
 
             </div>
@@ -109,17 +111,16 @@
 
     </div>
 
-    <div class="row">
-        <div class="container-fluid">
-            <div class="col-md-12">
-                <g:layoutBody/>
-            </div>
+    <div class="container-fluid">
+        <div class="col-md-12">
+            <g:layoutBody/>
         </div>
     </div>
+
     <div class="footer" role="contentinfo"></div>
 
 
     <asset:javascript src="application.js"/>
-
+	
 </body>
 </html>
