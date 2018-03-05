@@ -30,14 +30,13 @@
                         <f:field bean="${user}" property="${pref}" />
                 </g:each>
                 </fieldset>
-
+				<input class="save btn btn-primary btn-lg form-inline" type="submit" value="${message(code: 'default.button.update.label', default: 'Update')}" />
             </g:form>
-<g:form action="updatePreferences" method="POST" class="form-inline controls-form">
-                <input class="save btn btn-primary btn-lg form-inline" type="submit" value="${message(code: 'default.button.update.label', default: 'Update')}" />
+
             <g:link action="changePassword" class="btn btn-default btn-lg">
                 <g:message code="spring.security.ui.resetPassword.title"></g:message>
             </g:link>
-</g:form>
+
 
             <g:form controller="user" class="form-inline controls-form" action="delete" id="${user.id}" method="DELETE">
                 <input class="delete btn btn-danger btn-lg"
