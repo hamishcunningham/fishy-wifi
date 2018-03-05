@@ -8,12 +8,18 @@
     </head>
     <body>
         <div id="list-crop" class="content scaffold-list" role="main">
+        <div class="pull-right">
+                <g:link class="create" action="create" class="btn btn-primary btn-lg"><g:message
+                    code="crop.new" args="[entityName]"/></g:link>
+            </div>
             <h1><g:message code="default.list.label" args="[entityName]" /></h1>
 
 
             <p class="subTitle">
                 These are the crops which are available to users of the system. It's not possible to log crops
-                which are not listed here.
+                which are not listed here.</p>
+                
+                
 
 
             <g:if test="${flash.message}">
@@ -54,10 +60,7 @@
             <g:paginate total="${cropCount ?: 0}" />
             <g:form class="inline" controller="crop" action="index">Items per page: <g:select onChange="submit();" name="max" from="${[10,50,100,200]}" value="${params.max}" /></g:form>
         </div>
-            <div class="pull-right">
-                <g:link class="create" action="create" class="btn btn-primary btn-lg"><g:message
-                    code="crop.new" args="[entityName]"/></g:link>
-            </div>
+            
             <export:formats formats="['csv', 'excel', 'xml']"></export:formats>
 
         </div>

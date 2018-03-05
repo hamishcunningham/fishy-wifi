@@ -37,6 +37,11 @@
 
             <div class="well-sm">
             <p>
+            <div class="pull-right">
+                <g:link class="create" controller="area" action="create" class="btn btn-lg btn-primary">
+            <span class="glyphicon glyphicon-plus"></span> <g:message code="area.create.title" /></g:link>
+           
+            </div>
                 <h3>Instructions:</h3>
                 <p>
                     The following table lists the crops that you've told us you're growing. Click the icons in the table
@@ -63,11 +68,12 @@
 
 
                 </ul>
-                <g:link class="create" controller="area" action="create" class="btn btn-lg btn-primary">
-            <span class="glyphicon glyphicon-plus"></span> <g:message code="area.create.title" /></g:link>
-            <g:form controller="harvest" action="index"><g:checkBox name="activeOnly" value="${params.activeOnly}" onChange="submit();"/> Hide Completed Harvests<g:hiddenField name="max" value="${params.max}"/></g:form>
+                
             </p>
         
+            </div>
+            <div class="pull-right">
+            <g:form controller="harvest" action="index"><g:checkBox name="activeOnly" value="${params.activeOnly}" onChange="submit();"/> Hide Completed Harvests<g:hiddenField name="max" value="${params.max}"/></g:form>
             </div>
             <g:each var="area" in="${areaList}" >
                 <tr class="harvestHeadingRow ${area.finished?'finished':''}" data-toggle="collapse" data-target=".rows-${area.id}">
