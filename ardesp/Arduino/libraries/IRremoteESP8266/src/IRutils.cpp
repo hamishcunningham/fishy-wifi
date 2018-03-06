@@ -110,6 +110,7 @@ std::string typeToString(const decode_type_t protocol,
     case FUJITSU_AC:    result = "FUJITSU_AC";        break;
     case GLOBALCACHE:   result = "GLOBALCACHE";       break;
     case GREE:          result = "GREE";              break;
+    case HAIER_AC:      result = "HAIER_AC";          break;
     case JVC:           result = "JVC";               break;
     case KELVINATOR:    result = "KELVINATOR";        break;
     case LG:            result = "LG";                break;
@@ -147,6 +148,8 @@ bool hasACState(const decode_type_t protocol) {
   switch (protocol) {
     case DAIKIN:
     case FUJITSU_AC:
+    case GREE:
+    case HAIER_AC:
     case KELVINATOR:
     case TOSHIBA_AC:
       return true;

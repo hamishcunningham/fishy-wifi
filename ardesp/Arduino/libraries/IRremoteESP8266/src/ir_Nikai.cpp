@@ -4,7 +4,6 @@
 #include <algorithm>
 #include "IRrecv.h"
 #include "IRsend.h"
-#include "IRtimer.h"
 #include "IRutils.h"
 
 //               NN   NN IIIII KK  KK   AAA   IIIII
@@ -39,7 +38,7 @@
 //   nbits:  The bit size of the message being sent. typically NIKAI_BITS.
 //   repeat: The number of times the message is to be repeated.
 //
-// Status: ALPHA / Untested.
+// Status: STABLE / Working.
 //
 // Ref: https://github.com/markszabo/IRremoteESP8266/issues/309
 void IRsend::sendNikai(uint64_t data, uint16_t nbits, uint16_t repeat) {
@@ -62,7 +61,7 @@ void IRsend::sendNikai(uint64_t data, uint16_t nbits, uint16_t repeat) {
 // Returns:
 //   boolean: True if it can decode it, false if it can't.
 //
-// Status: ALPHA / Untested.
+// Status: STABLE / Working.
 //
 bool IRrecv::decodeNikai(decode_results *results, uint16_t nbits, bool strict) {
   if (results->rawlen < 2 * nbits + HEADER + FOOTER - 1)
