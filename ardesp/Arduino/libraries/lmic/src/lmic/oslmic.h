@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include <stdint.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -34,8 +35,6 @@ typedef uint16_t           u2_t;
 typedef int16_t            s2_t;
 typedef uint32_t           u4_t;
 typedef int32_t            s4_t;
-typedef uint64_t           u8_t;
-typedef int64_t            s8_t;
 typedef unsigned int       uint;
 typedef const char* str_t;
 
@@ -107,16 +106,16 @@ void os_runloop_once (void);
 typedef s4_t  ostime_t;
 
 #if !HAS_ostick_conv
-#define us2osticks(us)   ((ostime_t)( ((s8_t)(us) * OSTICKS_PER_SEC) / 1000000))
-#define ms2osticks(ms)   ((ostime_t)( ((s8_t)(ms) * OSTICKS_PER_SEC)    / 1000))
-#define sec2osticks(sec) ((ostime_t)( (s8_t)(sec) * OSTICKS_PER_SEC))
-#define osticks2ms(os)   ((s4_t)(((os)*(s8_t)1000    ) / OSTICKS_PER_SEC))
-#define osticks2us(os)   ((s4_t)(((os)*(s8_t)1000000 ) / OSTICKS_PER_SEC))
+#define us2osticks(us)   ((ostime_t)( ((int64_t)(us) * OSTICKS_PER_SEC) / 1000000))
+#define ms2osticks(ms)   ((ostime_t)( ((int64_t)(ms) * OSTICKS_PER_SEC)    / 1000))
+#define sec2osticks(sec) ((ostime_t)( (int64_t)(sec) * OSTICKS_PER_SEC))
+#define osticks2ms(os)   ((s4_t)(((os)*(int64_t)1000    ) / OSTICKS_PER_SEC))
+#define osticks2us(os)   ((s4_t)(((os)*(int64_t)1000000 ) / OSTICKS_PER_SEC))
 // Special versions
-#define us2osticksCeil(us)  ((ostime_t)( ((s8_t)(us) * OSTICKS_PER_SEC + 999999) / 1000000))
-#define us2osticksRound(us) ((ostime_t)( ((s8_t)(us) * OSTICKS_PER_SEC + 500000) / 1000000))
-#define ms2osticksCeil(ms)  ((ostime_t)( ((s8_t)(ms) * OSTICKS_PER_SEC + 999) / 1000))
-#define ms2osticksRound(ms) ((ostime_t)( ((s8_t)(ms) * OSTICKS_PER_SEC + 500) / 1000))
+#define us2osticksCeil(us)  ((ostime_t)( ((int64_t)(us) * OSTICKS_PER_SEC + 999999) / 1000000))
+#define us2osticksRound(us) ((ostime_t)( ((int64_t)(us) * OSTICKS_PER_SEC + 500000) / 1000000))
+#define ms2osticksCeil(ms)  ((ostime_t)( ((int64_t)(ms) * OSTICKS_PER_SEC + 999) / 1000))
+#define ms2osticksRound(ms) ((ostime_t)( ((int64_t)(ms) * OSTICKS_PER_SEC + 500) / 1000))
 #endif
 
 
@@ -247,6 +246,8 @@ u2_t os_crc16 (xref2u1_t d, uint len);
 
     // For AVR, store constants in PROGMEM, saving on RAM usage
     #define CONST_TABLE(type, name) const type PROGMEM RESOLVE_TABLE(name)
+
+    #define lmic_printf(fmt, ...) printf_P(PSTR(fmt), ## __VA_ARGS__)
 #else
     inline u1_t table_get_u1(const u1_t *table, size_t index) { return table[index]; }
     inline s1_t table_get_s1(const s1_t *table, size_t index) { return table[index]; }
@@ -258,6 +259,7 @@ u2_t os_crc16 (xref2u1_t d, uint len);
 
     // Declare a table
     #define CONST_TABLE(type, name) const type RESOLVE_TABLE(name)
+    #define lmic_printf printf
 #endif
 
 // ======================================================================
