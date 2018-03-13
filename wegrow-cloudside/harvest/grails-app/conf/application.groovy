@@ -80,6 +80,8 @@ grails {
     }
 }
 
+harvest.backup.location = "${userHome}/myharvest.backup.sql"
+harvest.backup.trigger = "0 30 23 * * ?" //this currently triggers a backup at 23:30 everyday
 
 environments {
     production {
