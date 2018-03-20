@@ -37,6 +37,7 @@ enum
     SDL_AUTODETECT,
     SDL_SSD1306,
     SDL_SSD1331,
+    SDL_SSD1351,
 };
 
 enum
@@ -46,15 +47,23 @@ enum
     SSD_MODE_DATA,
 };
 
+#if defined(SDL_NO_BORDER)
+const static int BORDER_SIZE = 0;
+const static int TOP_HEADER = 0;
+const static int RECT_THICKNESS = 0;
+#else
 const static int BORDER_SIZE = 8;
 const static int TOP_HEADER = 16;
 const static int RECT_THICKNESS = 2;
+#endif
 const static int PIXEL_SIZE = 2;
 static int screenWidth = 128;
 static int screenHeight = 64;
 SDL_Window     *g_window = NULL;
 SDL_Renderer   *g_renderer = NULL;
 static int s_analogInput[128];
+static int s_digitalPins[128];
+static int s_dcPin = -1;
 
 static int windowWidth() { return screenWidth * PIXEL_SIZE + BORDER_SIZE * 2; };
 static int windowHeight() { return screenHeight * PIXEL_SIZE + BORDER_SIZE * 2 + TOP_HEADER; };
@@ -97,40 +106,45 @@ void sdl_core_init(void)
 static void sdl_poll_event(void)
 {
     SDL_Event event;
-    if (SDL_PollEvent(&event))
+    while (SDL_PollEvent(&event))
     {
         if (event.type == SDL_QUIT) exit(0);
+        switch (event.type)
+        {
+            case SDL_KEYDOWN:
+                if (event.key.keysym.scancode == SDL_SCANCODE_DOWN)  s_analogInput[0] = 300;
+                if (event.key.keysym.scancode == SDL_SCANCODE_UP)    s_analogInput[0] = 150;
+                if (event.key.keysym.scancode == SDL_SCANCODE_LEFT)  s_analogInput[0] = 500;
+                if (event.key.keysym.scancode == SDL_SCANCODE_RIGHT) s_analogInput[0] = 50;
+                if (event.key.keysym.scancode == SDL_SCANCODE_SPACE) s_analogInput[0] = 700;
+                break;
+            case SDL_KEYUP:
+                if ((event.key.keysym.scancode == SDL_SCANCODE_DOWN)  ||
+                    (event.key.keysym.scancode == SDL_SCANCODE_UP) ||
+                    (event.key.keysym.scancode == SDL_SCANCODE_LEFT) ||
+                    (event.key.keysym.scancode == SDL_SCANCODE_RIGHT) ||
+                    (event.key.keysym.scancode == SDL_SCANCODE_SPACE)) s_analogInput[0] = 1023;
+                break;
+            default:
+                break;
+        };
     }
-    else
-    {
-        event.type = SDL_USEREVENT;
-        event.user.code = 0;
-    }
-    switch (event.type)
-    {
-        case SDL_KEYDOWN:
-            if (event.key.keysym.scancode == SDL_SCANCODE_DOWN)  s_analogInput[0] = 300;
-            if (event.key.keysym.scancode == SDL_SCANCODE_UP)    s_analogInput[0] = 150;
-            if (event.key.keysym.scancode == SDL_SCANCODE_LEFT)  s_analogInput[0] = 500;
-            if (event.key.keysym.scancode == SDL_SCANCODE_RIGHT) s_analogInput[0] = 50;
-            if (event.key.keysym.scancode == SDL_SCANCODE_SPACE) s_analogInput[0] = 700;
-            break;
-        case SDL_KEYUP:
-            if ((event.key.keysym.scancode == SDL_SCANCODE_DOWN)  ||
-                (event.key.keysym.scancode == SDL_SCANCODE_UP) ||
-                (event.key.keysym.scancode == SDL_SCANCODE_LEFT) ||
-                (event.key.keysym.scancode == SDL_SCANCODE_RIGHT) ||
-                (event.key.keysym.scancode == SDL_SCANCODE_SPACE)) s_analogInput[0] = 1023;
-            break;
-        default:
-            break;
-    };
+}
+
+void sdl_set_dc_pin(int pin)
+{
+    s_dcPin = pin;
 }
 
 int sdl_read_analog(int pin)
 {
     sdl_poll_event();
     return s_analogInput[pin];
+}
+
+void sdl_write_digital(int pin, int value)
+{
+    s_digitalPins[pin] = value;
 }
 
 void sdl_core_draw(void)
@@ -167,6 +181,7 @@ static void sdl_core_resize(void)
     r.w -= RECT_THICKNESS*2;
     r.h -= RECT_THICKNESS*2;
     SDL_RenderFillRect( g_renderer, &r );
+#if !defined(SDL_NO_BORDER)
     SDL_SetRenderDrawColor( g_renderer, 200, 200, 200, 255 );
     r.x = 4;
     r.y = 4;
@@ -178,6 +193,7 @@ static void sdl_core_resize(void)
     r.w = 16;
     r.h = 12;
     SDL_RenderFillRect( g_renderer, &r );
+#endif
 }
 
 
@@ -194,6 +210,7 @@ static int s_activeColumn = 0;
 static int s_activePage = 0;
 static int s_commandId;
 static int s_cmdArgIndex;
+static uint8_t s_ssd1351_writedata = 0;
 
 void sdl_send_init()
 {
@@ -204,12 +221,14 @@ void sdl_send_init()
 void sdl_data_start()
 {
     s_ssdMode = SSD_MODE_DATA;
+    if (s_dcPin>=0) s_digitalPins[s_dcPin] = 1;
     s_commandId = -1;
 }
 
 void sdl_command_start()
 {
     s_ssdMode = SSD_MODE_COMMAND;
+    if (s_dcPin>=0) s_digitalPins[s_dcPin] = 0;
     s_commandId = -1;
 }
 
@@ -221,6 +240,10 @@ static void sdl_ssd1331_data(uint8_t data);
 
 void sdl_send_byte(uint8_t data)
 {
+    if (s_dcPin>=0)
+    {
+        s_ssdMode = s_digitalPins[s_dcPin] ? SSD_MODE_DATA : SSD_MODE_COMMAND;
+    }
     if (s_ssdMode == SSD_MODE_NONE)
     {
         s_ssdMode = data == 0x00 ? SSD_MODE_COMMAND : SSD_MODE_DATA;
@@ -229,6 +252,13 @@ void sdl_send_byte(uint8_t data)
     {
         if (s_oled == SDL_AUTODETECT)
         {
+            if (data == 0xFD)
+            {
+                screenWidth = 128;
+                screenHeight = 128;
+                s_oled = SDL_SSD1351;
+                sdl_core_resize();
+            }
             if (data == 0xBE)
             {
                 screenWidth = 96;
@@ -257,6 +287,7 @@ void sdl_send_byte(uint8_t data)
             {
                 case SDL_SSD1306: sdl_ssd1306_commands(data); break;
                 case SDL_SSD1331: sdl_ssd1331_commands(data); break;
+                case SDL_SSD1351: sdl_ssd1331_commands(data); break;
                 default: break;
             }
         }
@@ -267,6 +298,7 @@ void sdl_send_byte(uint8_t data)
         {
             case SDL_SSD1306: sdl_ssd1306_data(data); break;
             case SDL_SSD1331: sdl_ssd1331_data(data); break;
+            case SDL_SSD1351: sdl_ssd1331_data(data); break;
             default: break;
         }
     }
@@ -276,6 +308,7 @@ void sdl_send_stop()
 {
     sdl_core_draw();
     s_ssdMode = -1;
+    s_ssd1351_writedata = 0;
 }
 
 
@@ -365,11 +398,19 @@ void sdl_ssd1306_data(uint8_t data)
     }
 }
 
+uint8_t s_verticalMode = 1;
 
 static void sdl_ssd1331_commands(uint8_t data)
 {
     switch (s_commandId)
     {
+        case 0xA0:
+            if (s_cmdArgIndex == 0)
+            {
+                s_verticalMode = data & 0x01;
+                s_commandId = SSD_COMMAND_NONE;
+            }
+            break;
         case 0x15:
             switch (s_cmdArgIndex)
             {
@@ -398,20 +439,12 @@ static void sdl_ssd1331_commands(uint8_t data)
                 default: break;
             }
             break;
+        case 0x5C:
+            if (s_oled == SDL_SSD1351)
+            {
+                s_ssd1351_writedata = 1;
+            }
         default:
-            /* Other ssd1306 commands, many commands are combined with data */
-            if ((s_commandId >= 0xb0) && (s_commandId <= 0xbf))
-            {
-                s_activePage =  (uint16_t)(s_commandId & 0x0F);
-            }
-            if ((s_commandId <= 0x0F))
-            {
-                s_activeColumn = (s_activeColumn & 0xFFF0) | (uint16_t)s_commandId;
-            }
-            if ((s_commandId <= 0x1F) && (s_commandId >= 0x10))
-            {
-                s_activeColumn = (s_activeColumn & 0x000F) | ((int16_t)(s_commandId & 0x0F) << 4);
-            }
             s_commandId = SSD_COMMAND_NONE;
             break;
     }
@@ -420,12 +453,46 @@ static void sdl_ssd1331_commands(uint8_t data)
 
 void sdl_ssd1331_data(uint8_t data)
 {
+    static uint8_t firstByte = 1;  /// SSD1351
+    static uint8_t dataFirst = 0x00;  /// SSD1351
     int y = s_activePage;
     int x = s_activeColumn;
-    SDL_SetRenderDrawColor( g_renderer, (data & 0b11100000)<<0,
-                                        (data & 0b00011100)<<3,
-                                        (data & 0b00000011)<<6,
-                                        255 );
+    if (s_oled == SDL_SSD1351)
+    {
+        if (!s_ssd1351_writedata)
+        {
+            if (s_commandId == SSD_COMMAND_NONE)
+            {
+                s_commandId = data;
+                s_cmdArgIndex = -1; // no argument
+            }
+            else
+            {
+                s_cmdArgIndex++;
+            }
+            sdl_ssd1331_commands(data);
+            return;
+        }
+        if (firstByte)
+        {
+            dataFirst = data;
+            firstByte = 0;
+            return;
+        }
+        firstByte = 1;
+        SDL_SetRenderDrawColor( g_renderer, (dataFirst & 0b11111000)<<0,
+                                            ((dataFirst & 0b00000111)<<5) | ((data&0b11100000)>>3),
+                                            (data & 0b00011111)<<3,
+                                            255 );
+    }
+    else
+    {
+        SDL_SetRenderDrawColor( g_renderer, (data & 0b11100000)<<0,
+                                            (data & 0b00011100)<<3,
+                                            (data & 0b00000011)<<6,
+                                            255 );
+    }
+
     SDL_Rect r;
     r.x = x * PIXEL_SIZE + BORDER_SIZE;
     r.y = y * PIXEL_SIZE + BORDER_SIZE + TOP_HEADER;
@@ -434,14 +501,30 @@ void sdl_ssd1331_data(uint8_t data)
     // Render rect
     SDL_RenderFillRect( g_renderer, &r );
 
-    s_activePage++;
-    if (s_activePage > s_pageEnd)
+    if (s_verticalMode)
     {
-        s_activePage = s_pageStart;
+        s_activePage++;
+        if (s_activePage > s_pageEnd)
+        {
+            s_activePage = s_pageStart;
+            s_activeColumn++;
+            if (s_activeColumn > s_columnEnd)
+            {
+                s_activeColumn = s_columnStart;
+            }
+        }
+    }
+    else
+    {
         s_activeColumn++;
         if (s_activeColumn > s_columnEnd)
         {
             s_activeColumn = s_columnStart;
+            s_activePage++;
+            if (s_activePage > s_pageEnd)
+            {
+                s_activePage = s_pageStart;
+            }
         }
     }
 }

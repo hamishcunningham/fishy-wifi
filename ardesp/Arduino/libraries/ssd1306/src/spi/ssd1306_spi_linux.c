@@ -35,8 +35,23 @@
 #if !defined(SDL_EMULATION)
 
 /// NO SUPPORT FOR LINUX YET!
+static void empty_function(void)
+{
+}
+
+static void empty_function_arg(uint8_t byte)
+{
+}
+
 void ssd1306_spiInit_Linux(int8_t cesPin, int8_t dcPin)
 {
+    ssd1306_dcQuickSwitch = 0;
+    ssd1306_startTransmission = empty_function;
+    ssd1306_endTransmission = empty_function;
+    ssd1306_sendByte = empty_function_arg;
+    ssd1306_closeInterface = empty_function;
+    ssd1306_commandStart = empty_function;
+    ssd1306_dataStart = empty_function;
 }
 
 #else /* SDL_EMULATION */
@@ -46,6 +61,8 @@ void ssd1306_spiInit_Linux(int8_t cesPin, int8_t dcPin)
 void ssd1306_spiInit_Linux(int8_t cesPin, int8_t dcPin)
 {
     sdl_core_init();
+    ssd1306_dcQuickSwitch = 0;
+    sdl_set_dc_pin(dcPin);
     ssd1306_startTransmission = sdl_send_init;
     ssd1306_endTransmission = sdl_send_stop;
     ssd1306_sendByte = sdl_send_byte;

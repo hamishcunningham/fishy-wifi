@@ -4,7 +4,7 @@
 
 SSD1306 driver is Arduino style C/C++ library. it can be compiled with plain avr-gcc compiler
 without Arduino libraries and supports monochrome and RGB oleds. It is intended for use with
-very small microcontrollers (with a little of SRAM). It was developed to use as
+very small microcontrollers (with a little of RAM). It was developed to use as
 few resources as possible. Since ATTiny controllers have no division and multiply
 operations, the library uses shift operation to speed up calculations.
 
@@ -12,31 +12,27 @@ Do not forget pull-up resistors for i2c lines.
 
 ## Key Features
 
+ * Supports color and monochrome OLED displays
  * The library uses as little Flash memory as possible
- * Supports many interfaces:
-   * i2c (software implementation, via Wire library, AVR Twi, Linux i2c-dev)
-   * spi (4-wire spi via Arduino SPI library, AVR Spi, AVR USI module)
- * Usage of very little of SRAM:
-   * Attiny85 with Damellis package (minimum 25 bytes of SRAM)
-   * Atmega328p (minimum 56 bytes of SRAM)
-   * ESP8266 (minimum 26 bytes of SRAM)
+ * Needs very little RAM (Attiny85 with Damellis package needs minimum 25 bytes of RAM to communicate with OLED)
  * Fast implementation to provide reasonable speed on slow microcontrollers
- * Primitive graphics functions (line,rectangle,pixels)
+ * Supports i2c and spi interfaces:
+   * i2c (software implementation, Wire library, AVR Twi, Linux i2c-dev)
+   * spi (4-wire spi via Arduino SPI library, AVR Spi, AVR USI module)
+ * Primitive graphics functions (line,rectangle,pixels, bitmaps)
  * Printing text to display (using fonts of different size)
- * Drawing bitmap images, located in SRAM or Flash memory (PROGMEM)
- * Work with sprite objects
- * Creating and controlling menu items (see ssd1306_demo example)
- * Memory-buffered operations (nano_gfx.h) for flickering-free output.
- * Bonus examples:
-   * Arkanoid game
-   * Simple Lode runner game
-   * Snowflakes
+ * Includes [graphics engine](https://github.com/lexus2k/ssd1306/wiki/Using-NanoEngine-for-systems-with-low-resources) to support
+   double buffering on tiny microcontrollers.
+ * Can be used for game development (bonus examples):
+   * Arkanoid game ([arkanoid](examples/arkanoid) in old style API and [arkanoid8](examples/arkanoid8) in new style API)
+   * Simple [Lode runner](examples/lode_runner) game in old style API, [Lode runner8](examples/lode_runner8) in new style API
+   * [Snowflakes](examples/snowflakes)
 
-![Image of arkanoid intro](https://github.com/lexus2k/ssd1306/blob/master/examples/arkanoid/screenshots/introscreen.png)
-![Image of lode runner](https://github.com/lexus2k/ssd1306/blob/master/examples/lode_runner/screenshots/main_screen.png)
+![Image of arkanoid intro](examples/arkanoid/screenshots/introscreen.png)
+![Image of lode runner](examples/lode_runner/screenshots/main_screen.png)
 
-![Image of menu example](https://github.com/lexus2k/ssd1306/blob/master/examples/ssd1306_demo/screenshots/mainmenu_top.png)
-![Image of color oled](https://github.com/lexus2k/ssd1306/blob/master/examples/ssd1331_demo/screenshots/fonts.png)
+![Image of menu example](examples/ssd1306_demo/screenshots/mainmenu_top.png)
+![Image of color oled](examples/ssd1331_demo/screenshots/fonts.png)
 
 The default i2c pins for embedded implementation can be modified in ssd1306_i2c_conf.h file.
 For other controllers pins are defined by standard Wire library.
@@ -49,6 +45,7 @@ configurable through API.
  * i2c ssd1306 128x32 oled display
  * spi ssd1306 128x64 oled display
  * spi ssd1331 96x64 RGB oled display
+ * spi ssd1351 128x128 RGB oled display
  * spi pcd8544 84x48 nokia 5110 led display
 
 ## Supported platforms
@@ -58,6 +55,7 @@ configurable through API.
 | **Arduino** |     |     |          |
 | Attiny85, Attiny45  |  X  |  X  | Refer to [Damellis attiny package](https://raw.githubusercontent.com/damellis/attiny/ide-1.6.x-boards-manager/package_damellis_attiny_index.json) |
 | Atmega328p, Atmega168  |  X  |  X  |    |
+| Atmega32u4  |  X  |  X  |  compilation verified  |
 | Atmega2560  |  X  |  X  |    |
 | Digispark, including PRO version  |  X  |  X  |  check [examples compatibility list](examples/Digispark_compatibility.txt)  |
 | ESP8266  |  X  |  X  | check [examples compatibility list](examples/ESP8266_compatibility.txt)   |
@@ -65,6 +63,7 @@ configurable through API.
 | **Plain AVR** |   |     |          |
 | Attiny85, Attiny45 |  X  |  X  |         |
 | Atmega328p, Atmega168 |  X  |  X  |         |
+| Atmega32u4  |  X  |  X  |  compilation verified  |
 | **Linux**  |    |     |          |
 | Raspberry Pi |  X  |      | i2c-dev  |
 | [SDL Emulation](https://github.com/lexus2k/ssd1306/wiki/How-to-run-emulator-mode) |  X  |  X  | demo code can be run without real OLED HW via SDL library |

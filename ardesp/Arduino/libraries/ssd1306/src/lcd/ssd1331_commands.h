@@ -22,7 +22,7 @@
     SOFTWARE.
 */
 /**
- * @file ssd1306_commands.h SSD1331 commands definitions
+ * @file ssd1331_commands.h SSD1331 commands definitions
  */
 
 #ifndef _SSD1331_COMMANDS_H_

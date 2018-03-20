@@ -50,11 +50,11 @@ $(BLD)/%.o: %.c
 
 $(BLD)/%.o: %.ino
 	-$(MKDIR) $(call convert,$(dir $@))
-	$(CXX) -std=c++11 $(CCFLAGS) -x c++ -c $< -o $@
+	$(CXX) -std=c++11 $(CCFLAGS) $(CXXFLAGS) -x c++ -c $< -o $@
 
 $(BLD)/%.o: %.cpp
 	-$(MKDIR) $(call convert,$(dir $@))
-	$(CXX) -std=c++11 $(CCFLAGS) -c $< -o $@
+	$(CXX) -std=c++11 $(CCFLAGS) $(CXXFLAGS) -c $< -o $@
 
 # ************* Common defines ********************
 
@@ -62,7 +62,9 @@ INCLUDES += \
 	-I./$(PROJECT) \
 	-I../src
 
-CCFLAGS += -g -Os -w -ffreestanding $(INCLUDES) -Wall -Werror \
+CXXFLAGS +=  -fno-rtti
+
+CCFLAGS += -MD -g -Os -w -ffreestanding $(INCLUDES) -Wall -Werror \
 	-Wl,--gc-sections -ffunction-sections -fdata-sections \
 	$(EXTRA_CCFLAGS)
 
@@ -89,3 +91,5 @@ $(OUTFILE): $(OBJS) ssd1306
 clean:
 	rm -rf $(BLD)
 	rm -f *~ *.out *.bin *.hex *.srec *.s *.o *.pdf *core
+
+-include $(OBJS:%.o=%.d)
