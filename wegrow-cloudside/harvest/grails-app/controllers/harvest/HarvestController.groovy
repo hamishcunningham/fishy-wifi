@@ -11,16 +11,14 @@ import grails.rest.*
 
 @Transactional(readOnly = true)
 @Secured("hasRole('ROLE_USER')")
-class HarvestController extends RestfulController {
+class HarvestController {
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
+    
+    HarvestService harvestService
     
     SpringSecurityService springSecurityService;
     def exportService
     
-    HarvestController() {
-        super(Harvest)
-    }
-
     def index(Integer offset, Integer max, Boolean activeOnly) {
         if (params?.f) {
             def harvests = Harvest.visibleHarvests(springSecurityService.currentUser)
