@@ -32,6 +32,9 @@
 #include <stdlib.h>
 
 #ifdef SSD1306_SPI_SUPPORTED
+
+extern uint32_t s_ssd1306_spi_clock;
+
 /* STANDARD branch */
     #include <SPI.h>
 
@@ -46,7 +49,9 @@ static void ssd1306_spiClose_hw()
 
 static void ssd1306_spiStart_hw()
 {
-    SPI.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
+    /* anyway, oled ssd1331 cannot work faster, clock cycle should be > 150ns: *
+     * 1s / 150ns ~ 6.7MHz                                                     */
+    SPI.beginTransaction(SPISettings(s_ssd1306_spi_clock, MSBFIRST, SPI_MODE0));
     if (s_ssd1306_cs >= 0)
     {
         digitalWrite(s_ssd1306_cs,LOW);
@@ -79,6 +84,7 @@ void ssd1306_spiInit_hw(int8_t cesPin, int8_t dcPin)
     if (dcPin >= 0) pinMode(dcPin, OUTPUT);
     if (cesPin) s_ssd1306_cs = cesPin;
     if (dcPin) s_ssd1306_dc = dcPin;
+    ssd1306_dcQuickSwitch = 1;
     ssd1306_startTransmission = ssd1306_spiStart_hw;
     ssd1306_endTransmission = ssd1306_spiStop_hw;
     ssd1306_sendByte = ssd1306_spiSendByte_hw;

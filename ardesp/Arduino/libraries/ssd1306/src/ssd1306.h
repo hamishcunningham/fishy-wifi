@@ -29,12 +29,14 @@
 #ifndef _SSD1306_H_
 #define _SSD1306_H_
 
+#include "ssd1331_api.h"
 #include "nano_gfx_types.h"
 #include "ssd1306_fonts.h"
 #include "i2c/ssd1306_i2c_conf.h"
 #include "spi/ssd1306_spi_conf.h"
 #include "lcd/oled_ssd1306.h"
 #include "lcd/oled_ssd1331.h"
+#include "lcd/oled_ssd1351.h"
 #include "lcd/oled_sh1106.h"
 #include "lcd/lcd_pcd8544.h"
 
@@ -42,13 +44,23 @@
 extern "C" {
 #endif
 
+/** Macro to generate 8-bit color for SSD1331 OLED display */
+#define RGB_COLOR8(r,g,b)    ( (r & 0xE0) | ((g >> 3)&0x1C) | (b>>6) )
+
+/** Macro to generate 16-bit color for SSD1351 OLED display */
+#define RGB_COLOR16(r,g,b)    ( ((r<<8) & 0xF800) | ((g << 3)&0x07E0) | (b>>3) )
+
 ///////////////////////////////////////////////////////////////////////
 //                 DISPLAY CONTROL FUNCTIONS
 ///////////////////////////////////////////////////////////////////////
 
 /**
- * @defgroup LCD_DISPLAY_API LCD Display control functions
+ * @defgroup LCD_SSD1306_API only ssd1306 display driver control functions
  * @{
+ *
+ * @brief The functions can be used only for OLEDs with ssd1306 controller
+ * @details Use this functions if you have ssd1306-based display and need
+ * to change display orientation, invert display content in hardware.
  */
 
 /**
@@ -103,11 +115,13 @@ void         ssd1306_flipHorizontal(uint8_t mode);
 void         ssd1306_flipVertical(uint8_t mode);
 
 /**
+ * @ingroup LCD_INTERFACE_API
  * Returns display height in pixels
  */
 uint8_t      ssd1306_displayHeight(void);
 
 /**
+ * @ingroup LCD_INTERFACE_API
  * Returns display width in pixels
  */
 uint8_t      ssd1306_displayWidth(void);
@@ -121,8 +135,16 @@ uint8_t      ssd1306_displayWidth(void);
 ///////////////////////////////////////////////////////////////////////
 
 /**
- * @defgroup LCD_GRAPHICS_API LCD direct graphics functions
+ * @defgroup LCD_GRAPHICS_GENERIC_API LCD direct graphics functions for all display types
  * @{
+ * @brief LCD direct graphics functions for all display types: color and monochrome.
+ *
+ * @details LCD Direct graphics functions applicable for all display types. These functions will work
+ *        both for monochrome and 8-bit/16-bit color OLED displays. You need remember, that for RGB
+ *        oled displays these functions work only in vertical addressing mode. If you're going to
+ *        combine NanoEngine capabilities with these fucntions, don't forget to switch addressing
+ *        mode via ssd1331_setMode(), ssd1351_setMode() and etc. This function draws directly in GDRAM
+ *        and do not use any pre-buffering.
  */
 
 /**
@@ -168,7 +190,7 @@ void         ssd1306_positiveMode(void);
  *          ssd1306_printFixedN() uses much flash: ~396 bytes, ssd1306_printFixed() needs 388 bytes.
  *          Placing both of these functions to your sketch will consume almost 1KiB.
  */
-uint8_t     ssd1306_printFixed(uint8_t xpos, uint8_t y, const char ch[], EFontStyle style);
+uint8_t     ssd1306_printFixed(uint8_t xpos, uint8_t y, const char *ch, EFontStyle style);
 
 /**
  * Prints text to screen using double size fixed font.
@@ -457,18 +479,9 @@ SPRITE       ssd1306_createSprite(uint8_t x, uint8_t y, uint8_t w, const uint8_t
  */
 void         ssd1306_replaceSprite(SPRITE *sprite, const uint8_t *data);
 
-/**
- * @}
- */
-
 ///////////////////////////////////////////////////////////////////////
 //                 HIGH-LEVEL GRAPH FUNCTIONS
 ///////////////////////////////////////////////////////////////////////
-
-/**
- * @defgroup LCD_APP_API LCD menu control functions
- * @{
- */
 
 /**
  * Describes menu object

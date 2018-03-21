@@ -29,6 +29,8 @@
 #include "spi/ssd1306_spi.h"
 #include "hal/io.h"
 
+extern uint16_t ssd1306_color;
+
 static const PROGMEM uint8_t s_oled96x64_initData[] =
 {
     SSD1331_DISPLAYOFF,             // display off
@@ -54,7 +56,6 @@ static const PROGMEM uint8_t s_oled96x64_initData[] =
 
 static uint8_t s_column;
 static uint8_t s_page;
-static uint16_t s_color = 0xFF;
 
 static void ssd1331_setBlock(uint8_t x, uint8_t y, uint8_t w)
 {
@@ -68,14 +69,26 @@ static void ssd1331_setBlock(uint8_t x, uint8_t y, uint8_t w)
     ssd1306_sendByte(SSD1331_ROWADDR);
     ssd1306_sendByte(y<<3);
     ssd1306_sendByte(((y<<3) + 7) < s_displayHeight ? ((y<<3) + 7) : (s_displayHeight - 1));
-    ssd1306_endTransmission();
+    ssd1306_spiDataMode(1);
+}
+
+static void ssd1331_setBlock2(uint8_t x, uint8_t y, uint8_t w)
+{
+    uint8_t rx = w ? (x + w - 1) : (s_displayWidth - 1);
+    ssd1306_commandStart();
+    ssd1306_sendByte(SSD1331_COLUMNADDR);
+    ssd1306_sendByte(x);
+    ssd1306_sendByte(rx < s_displayWidth ? rx : (s_displayWidth - 1));
+    ssd1306_sendByte(SSD1331_ROWADDR);
+    ssd1306_sendByte(y);
+    ssd1306_sendByte(s_displayHeight - 1);
+    ssd1306_spiDataMode(1);
 }
 
 static void ssd1331_nextPage(void)
 {
     ssd1306_endTransmission();
     ssd1331_setBlock(s_column,s_page+1,0);
-    ssd1306_dataStart();
 }
 
 static void ssd1331_sendPixels(uint8_t data)
@@ -84,7 +97,7 @@ static void ssd1331_sendPixels(uint8_t data)
     {
         if ( data & 0x01 )
         {
-            ssd1306_sendByte( (uint8_t)s_color );
+            ssd1306_sendByte( (uint8_t)ssd1306_color );
         }
         else
         {
@@ -94,14 +107,20 @@ static void ssd1331_sendPixels(uint8_t data)
     }
 }
 
-void    ssd1331_setColor(uint16_t color)
+void    ssd1331_setMode(uint8_t vertical)
 {
-    s_color = color;
-}
-
-void    ssd1331_setRgbColor(uint8_t r, uint8_t g, uint8_t b)
-{
-    s_color = RGB_COLOR8(r,g,b);
+    ssd1306_commandStart();
+    ssd1306_sendByte( SSD1331_SEGREMAP );
+    ssd1306_sendByte( 0x00 | 0x20 | 0x10 | 0x02 | vertical /* 8-bit rgb color mode */ );
+    ssd1306_endTransmission();
+    if (vertical)
+    {
+        ssd1306_setRamBlock = ssd1331_setBlock;
+    }
+    else
+    {
+        ssd1306_setRamBlock = ssd1331_setBlock2;
+    }
 }
 
 void    ssd1331_96x64_init()
@@ -112,6 +131,7 @@ void    ssd1331_96x64_init()
     ssd1306_setRamBlock = ssd1331_setBlock;
     ssd1306_nextRamPage = ssd1331_nextPage;
     ssd1306_sendPixels  = ssd1331_sendPixels;
+    ssd1306_sendPixel8 = ssd1306_sendByte;
     for( uint8_t i=0; i<sizeof(s_oled96x64_initData); i++)
     {
         ssd1306_sendCommand(pgm_read_byte(&s_oled96x64_initData[i]));

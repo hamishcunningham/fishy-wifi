@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['rgb_5fcolor8',['RGB_COLOR8',['../ssd1331__96x64_8h.html#ade80ecbb039cb905f9e27cf08657dedc',1,'ssd1331_96x64.h']]]
+  ['max',['max',['../nano__gfx__types_8h.html#affe776513b24d84b39af8ab0930fef7f',1,'nano_gfx_types.h']]],
+  ['min',['min',['../nano__gfx__types_8h.html#ac6afabdc09a49a433ee19d8a9486056d',1,'nano_gfx_types.h']]]
 ];
