@@ -14,8 +14,6 @@ import grails.rest.*
 class HarvestController {
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
     
-    HarvestService harvestService
-    
     SpringSecurityService springSecurityService;
     def exportService
     

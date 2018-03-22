@@ -10,8 +10,6 @@ import grails.plugin.springsecurity.annotation.Secured
 @Secured("hasRole('ROLE_USER')")
 class HarvestApiController extends RestfulController {
 
-	HarvestService harvestService
-
 	SpringSecurityService springSecurityService;
 
 	HarvestApiController() {
