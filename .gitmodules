@@ -1,3 +1,0 @@
-[submodule "ardesp/Arduino/libraries/Adafruit_TSL2591_Library"]
-	path = ardesp/Arduino/libraries/Adafruit_TSL2591_Library
-	url = git@github.com:hamishcunningham/Adafruit_TSL2591_Library.git
