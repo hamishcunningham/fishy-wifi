@@ -12,6 +12,7 @@
 #include <RCSwitch.h>
 #include "Adafruit_MCP23008.h"
 #include "EmonLib.h" // Emon Library, see openenergymonitor.org
+#include <stdint.h>
 #include "joinme.h"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -131,6 +132,7 @@ String ip2str(IPAddress address);
 #define miscDBG true
 #define citsciDBG false
 #define analogDBG true
+unsigned long millisWrapper();
 
 /////////////////////////////////////////////////////////////////////////////
 // temperature sensor stuff /////////////////////////////////////////////////
@@ -1128,4 +1130,13 @@ char *getMAC(char *buf) { // the MAC is 6 bytes, so needs careful conversion...
   uint64_t mac = ESP.getEfuseMac(); // ...to string (high 2, low 4):
   sprintf(buf, "%04X%08X", (uint16_t) (mac >> 32), (uint32_t) mac);
   return buf;
+}
+unsigned long millisWrapper() {
+  unsigned long now = millis();
+  if(now >= (ULONG_MAX - 10000)) {
+    dln(miscDBG, "doing flow controller (re)init to avoid millis overflow");
+    delay(10000);
+    flowController.init();
+  }
+  return now;
 }
