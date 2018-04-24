@@ -227,7 +227,7 @@ class Valve { // each valve /////////////////////////////////////////////////
   bool gotOverflow = false;     // does the growbed have an overflow?
   int fillLevel = 7;            // cms below the level sensor: drain point
   bool filling = false;         // true when closed / on
-  long lastFlip = -1;           // millis at last state change
+  unsigned long lastFlip = -1;  // millis at last state change
   int floodMins = 18;
 
   Valve() { number = counter++; }
@@ -252,13 +252,13 @@ class Valve { // each valve /////////////////////////////////////////////////
     // dbg(valveDBG, "pump Pin = "); dbg(valveDBG, pumpMcpPin);
     // dbg(valveDBG, ", solen = "); dln(valveDBG, solenoidMcpPin);
 
-    lastFlip = millis();
+    lastFlip = millisWrapper();
   }
   void on()  { stateChange(true); }  // fill time
   void off() { stateChange(false); } // drain time
   void step(monitor_t* now, char cycleMins) {   // check conditions and adjust
     dbg(valveDBG, "\nvalve[].step - number = "); dln(valveDBG, number);
-    int t = millis();
+    unsigned long t = millisWrapper();
     dbg(valveDBG, "t = "); dbg(valveDBG, t);
     dbg(valveDBG, "; filling = "); dln(valveDBG, filling);
     if(filling &&
@@ -312,7 +312,7 @@ class FlowController { // the set of valves and their config ////////////////
     staggerMins = cycleMins / numValves;
     dbg(valveDBG, "cycleMins = "); dbg(valveDBG, cycleMins);
     dbg(valveDBG, " staggerMins = "); dln(valveDBG, staggerMins);
-    long t = millis();
+    unsigned long t = millisWrapper();
     dbg(valveDBG, "millis = "); dln(valveDBG, t);
     long nextCycleStart = t;
     for(int i = 0; i < numValves; i++) {
@@ -386,7 +386,7 @@ void loop() {
     monitor_t* now = &monitorData[monitorCursor];
     if(monitorSize < MONITOR_POINTS)
       monitorSize++;
-    now->timestamp = millis();
+    now->timestamp = millisWrapper();
     if(GOT_TEMP_SENSOR) {
       getTemperature(&now->waterCelsius);               yield();
     }
