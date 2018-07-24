@@ -42,15 +42,6 @@
                             </p>
                             <g:link class="btn btn-default" controller="hydroponics" action="create" >Get Started</g:link>
                         </div>
-                        
-                        <div class="col-lg-4">
-                            <g:img class="img-circle" file="aqua_circle.png"></g:img>
-                            <h2>Aquaponics</h2>
-                            <p>
-                                Your growing space is based on aquaponics
-                            </p>
-                            <g:link class="btn btn-default" controller="aquaponics" action="create" >Get Started</g:link>
-                        </div>
                     </g:ifHydro>
 
                     <div class="col-lg-4">
