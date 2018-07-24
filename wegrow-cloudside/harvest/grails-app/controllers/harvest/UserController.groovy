@@ -95,7 +95,7 @@ class UserController {
 
     def editPreferences() {
         User user = springSecurityService.currentUser
-        [       "preferences": ["preferredAreaUnit", "preferredWeightUnit", "preferredLengthUnit"], // Only show these fields as preferences
+        [       "preferences": ["preferredAreaUnit", "preferredWeightUnit", "preferredLengthUnit","email"], // Only show these fields as preferences
                 "user": user
         ]
     }
@@ -104,11 +104,18 @@ class UserController {
         currentUser.preferredAreaUnit = user.preferredAreaUnit
         currentUser.preferredWeightUnit = user.preferredWeightUnit
         currentUser.preferredLengthUnit = user.preferredLengthUnit
-        currentUser.save()
-        flash.message = 'User preferences saved'
-        render view: 'editPreferences', model:["preferences": ["preferredAreaUnit", "preferredWeightUnit", "preferredLengthUnit"], // Only show these fields as preferences
+        currentUser.email = user.email
+        if (!currentUser.save(flush: true)) {
+        	flash.message = 'Sorry an error has occurred'
+        	flash.messageType = 'error'
+        }
+        else {
+        	flash.message = 'User preferences saved'
+        	flash.messageType = 'success'
+        }
+                
+        render view: 'editPreferences', model:["preferences": ["preferredAreaUnit", "preferredWeightUnit", "preferredLengthUnit","email"], // Only show these fields as preferences
                                                       "user": currentUser]
-
     }
 
     def changePassword() {
@@ -144,7 +151,7 @@ class UserController {
 
         user.password = password_new
         user.passwordExpired = false
-        user.save() // if you have password constraints check them here
+        user.save(flush: true) // if you have password constraints check them here
 
         flash.message = "Password changed successfully"
         flash.messageType = "success"
