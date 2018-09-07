@@ -14,6 +14,13 @@
 #include "hal.h"
 #include <stdio.h>
 
+
+#include <TCA9555.h>
+extern TCA9555 tca9555;
+#define UNPH_9555_LORA_RST     6   //   bit 6 is the LoRa reset
+void unphone_spi_cs_preserving(uint8_t, bool);
+void thingymajig(char *);
+
 // -----------------------------------------------------------------------------
 // I/O
 
@@ -24,6 +31,7 @@ static void hal_io_init () {
     ASSERT(lmic_pins.dio[1] != LMIC_UNUSED_PIN || lmic_pins.dio[2] != LMIC_UNUSED_PIN);
 
     pinMode(lmic_pins.nss, OUTPUT);
+
     if (lmic_pins.rxtx != LMIC_UNUSED_PIN)
         pinMode(lmic_pins.rxtx, OUTPUT);
     if (lmic_pins.rst != LMIC_UNUSED_PIN)
@@ -44,6 +52,28 @@ void hal_pin_rxtx (u1_t val) {
 
 // set radio RST pin to given value (or keep floating!)
 void hal_pin_rst (u1_t val) {
+
+if(val == 0)
+  thingymajig("hal_pin_rst 0");
+else if(val == 1)
+  thingymajig("hal_pin_rst 1");
+else if(val == 2)
+  thingymajig("hal_pin_rst 2");
+else 
+  ASSERT(false);
+
+if(val == 0 || val == 1) { // drive pin
+  tca9555.setPortDirectionFixed(0);
+  unphone_spi_cs_preserving(UNPH_9555_LORA_RST, true);
+} else { // keep pin floating
+  // tca9555.setPortDirection(0, 64 /*bcd of UNPH_9555_LORA_RST*/);
+  word inPorts = 0;
+  bitSet(inPorts, 6);
+  tca9555.setPortDirectionFixed(inPorts);
+}
+thingymajig("hal_pin_rst done");
+
+/*
     if (lmic_pins.rst == LMIC_UNUSED_PIN)
         return;
 
@@ -53,6 +83,7 @@ void hal_pin_rst (u1_t val) {
     } else { // keep pin floating
         pinMode(lmic_pins.rst, INPUT);
     }
+*/
 }
 
 static bool dio_states[NUM_DIO] = {0};

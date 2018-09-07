@@ -32,6 +32,18 @@ void TCA9555::setPortDirection(byte dir)
   Wire.endTransmission();	
 }
 
+void TCA9555::setPortDirectionFixed(word w)
+{
+  byte low_byte = w & 0xff;
+  byte high_byte = (w & 0xff00) >> 8;
+
+  Wire.beginTransmission(I2CAddr);
+  Wire.write(CR_CFG0);
+  Wire.write(low_byte);
+  Wire.write(high_byte);
+  Wire.endTransmission();
+}
+
 //portNum: PORT_0 or PORT_1
 void TCA9555::setPortDirection(byte portNum, byte dir)
 {
@@ -92,7 +104,32 @@ word TCA9555::getInputStates()
   byte low_byte, high_byte;
 
   Wire.beginTransmission(I2CAddr);
+// TODO ????? Wire.write(CR_IN0);
   Wire.requestFrom(I2CAddr, 2u);
+
+  while (!Wire.available()) {};
+  low_byte = Wire.read();
+  while (!Wire.available()) {};
+  high_byte = Wire.read();
+
+  Wire.endTransmission();
+  
+  word w = low_byte | (high_byte << 8);
+  
+  return w;
+}
+
+word TCA9555::getOutputStates()
+{
+  byte low_byte, high_byte;
+
+  Wire.beginTransmission(I2CAddr);
+  Wire.requestFrom(I2CAddr, 4u);
+
+  while (!Wire.available()) {};
+  Wire.read();
+  while (!Wire.available()) {};
+  Wire.read();
 
   while (!Wire.available()) {};
   low_byte = Wire.read();
