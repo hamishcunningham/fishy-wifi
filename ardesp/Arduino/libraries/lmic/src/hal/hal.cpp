@@ -63,9 +63,11 @@ else
   ASSERT(false);
 
 if(val == 0 || val == 1) { // drive pin
+  thingymajig("hal_pin_rst doing 1 or 0");
   tca9555.setPortDirectionFixed(0);
   unphone_spi_cs_preserving(UNPH_9555_LORA_RST, true);
 } else { // keep pin floating
+  thingymajig("hal_pin_rst doing 2");
   // tca9555.setPortDirection(0, 64 /*bcd of UNPH_9555_LORA_RST*/);
   word inPorts = 0;
   bitSet(inPorts, 6);
