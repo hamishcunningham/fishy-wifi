@@ -1,0 +1,4 @@
+# 98-usb-serial.rules -- copy to /etc/udev/rules.d
+
+# udev rule to link cp210x serial/uart bridges to /dev/cp210x 
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="cp210x"
