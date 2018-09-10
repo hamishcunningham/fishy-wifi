@@ -43,6 +43,7 @@ public:
 	byte getInputStates(byte portNum);
 
 	void pinMode(byte pinNum, byte dir);
+        byte getI2CAddr();
 
 private:
 	byte A2, A1, A0;

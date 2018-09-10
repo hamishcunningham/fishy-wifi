@@ -74,20 +74,30 @@ tca9555.setOutputStates(tca9555State);
 /*
 pinMode(14, 0x00);
 */
+tca9555State = 0xFFFF;
+bitClear(tca9555State, 4);
+tca9555.setOutputStates(tca9555State);
+/*
+*/
+// tca9555.setPortDirection(64);
+// THIS CODE DOESN'T WORK:
+  /*
+  // Wire.beginTransmission( 0x20 | (1 << 2 | 1 << 1 | 0)	);
+  Wire.beginTransmission( 38 );
+  Wire.write(CR_CFG1);
+  Wire.write(64);
+  Wire.endTransmission();	
+  */
 /*
 tca9555State = 0xFFFF;
 bitClear(tca9555State, 4);
 tca9555.setOutputStates(tca9555State);
 */
-// tca9555.setPortDirection(64);
-// THIS CODE DOESN'T WORK:
-  Wire.beginTransmission( 0x20 | (1 << 2 | 1 << 1 | 0)	);
-  Wire.write(CR_CFG1);
-  Wire.write(64);
-  Wire.endTransmission();	
 // THIS CODE DOES:
         pinMode(lmic_pins.rst, INPUT);
 /*
+        // alternatively:
+        digitalWrite(lmic_pins.rst, HIGH);
 */
     }
 }
@@ -124,14 +134,12 @@ void hal_pin_nss (u1_t val) {
         SPI.endTransaction();
 
 /* THIS DOESN'T WORK...
+*/
 tca9555State = 0xFFFF;
-if(val == 1)
-  bitSet(tca9555State, 4);
-else
+if(val == 0)
   bitClear(tca9555State, 4);
 tca9555.setOutputStates(tca9555State);
 return;
-*/
 
     //Serial.println(val?">>":"<<");
     digitalWrite(lmic_pins.nss, val);

@@ -21,6 +21,8 @@ TCA9555::TCA9555(byte a2, byte a1, byte a0)
   I2CAddr = 0x20 | (A2 << 2 | A1 << 1 | A0);	
 }
 
+byte TCA9555::getI2CAddr() { return I2CAddr; }
+
 //set port directions for both ports
 //dir: DIR_OUTPUT or DIR_INPUT
 void TCA9555::setPortDirection(byte dir)
