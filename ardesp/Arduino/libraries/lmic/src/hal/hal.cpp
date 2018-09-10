@@ -53,6 +53,7 @@ void hal_pin_rxtx (u1_t val) {
 // set radio RST pin to given value (or keep floating!)
 void hal_pin_rst (u1_t val) {
 
+/*
 if(val == 0)
   thingymajig("hal_pin_rst 0");
 else if(val == 1)
@@ -61,19 +62,21 @@ else if(val == 2)
   thingymajig("hal_pin_rst 2");
 else 
   ASSERT(false);
+*/
 
 if(val == 0 || val == 1) { // drive pin
-  thingymajig("hal_pin_rst doing 1 or 0");
+//  thingymajig("hal_pin_rst doing 1 or 0");
   tca9555.setPortDirectionFixed(0);
   unphone_spi_cs_preserving(UNPH_9555_LORA_RST, true);
 } else { // keep pin floating
-  thingymajig("hal_pin_rst doing 2");
+//  thingymajig("hal_pin_rst doing 2");
   // tca9555.setPortDirection(0, 64 /*bcd of UNPH_9555_LORA_RST*/);
-  word inPorts = 0;
-  bitSet(inPorts, 6);
-  tca9555.setPortDirectionFixed(inPorts);
+//  word inPorts = 0;
+//  bitSet(inPorts, 6);
+  unphone_spi_cs_preserving(UNPH_9555_LORA_RST, false);
+//  tca9555.setPortDirectionFixed(inPorts);
 }
-thingymajig("hal_pin_rst done");
+// thingymajig("hal_pin_rst done");
 
 /*
     if (lmic_pins.rst == LMIC_UNUSED_PIN)
