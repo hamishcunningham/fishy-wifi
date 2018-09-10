@@ -14,6 +14,13 @@
 #include "hal.h"
 #include <stdio.h>
 
+#include <Wire.h>
+#include <TCA9555.h>
+extern TCA9555 tca9555;
+extern uint16_t tca9555State;
+static const byte CR_CFG0 = 0x6;
+static const byte CR_CFG1 = 0x7;
+
 // -----------------------------------------------------------------------------
 // I/O
 
@@ -24,6 +31,9 @@ static void hal_io_init () {
     ASSERT(lmic_pins.dio[1] != LMIC_UNUSED_PIN || lmic_pins.dio[2] != LMIC_UNUSED_PIN);
 
     pinMode(lmic_pins.nss, OUTPUT);
+/* THIS DOESN'T WORK...
+tca9555.setPortDirection(0xFFFF);
+*/
     if (lmic_pins.rxtx != LMIC_UNUSED_PIN)
         pinMode(lmic_pins.rxtx, OUTPUT);
     if (lmic_pins.rst != LMIC_UNUSED_PIN)
@@ -48,10 +58,37 @@ void hal_pin_rst (u1_t val) {
         return;
 
     if(val == 0 || val == 1) { // drive pin
+/*
+pinMode(14, 0x01);
+digitalWrite(14, 0);
+*/
+tca9555State = 0xFFFF;
+bitClear(tca9555State, 4);
+bitClear(tca9555State, 6);
+tca9555.setOutputStates(tca9555State);
+/*
         pinMode(lmic_pins.rst, OUTPUT);
         digitalWrite(lmic_pins.rst, val);
+*/
     } else { // keep pin floating
+/*
+pinMode(14, 0x00);
+*/
+/*
+tca9555State = 0xFFFF;
+bitClear(tca9555State, 4);
+tca9555.setOutputStates(tca9555State);
+*/
+// tca9555.setPortDirection(64);
+// THIS CODE DOESN'T WORK:
+  Wire.beginTransmission( 0x20 | (1 << 2 | 1 << 1 | 0)	);
+  Wire.write(CR_CFG1);
+  Wire.write(64);
+  Wire.endTransmission();	
+// THIS CODE DOES:
         pinMode(lmic_pins.rst, INPUT);
+/*
+*/
     }
 }
 
@@ -85,6 +122,16 @@ void hal_pin_nss (u1_t val) {
         SPI.beginTransaction(settings);
     else
         SPI.endTransaction();
+
+/* THIS DOESN'T WORK...
+tca9555State = 0xFFFF;
+if(val == 1)
+  bitSet(tca9555State, 4);
+else
+  bitClear(tca9555State, 4);
+tca9555.setOutputStates(tca9555State);
+return;
+*/
 
     //Serial.println(val?">>":"<<");
     digitalWrite(lmic_pins.nss, val);
