@@ -5,14 +5,14 @@
 # standard locals
 alias cd='builtin cd'
 P="$0"
-USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-e(rase flash)] [-S(taging)] [-H(EAD)] [-8 (1.6.8)] [-1 (1.8.1)] [-3 (1.8.3)] [-5 (1.8.5)] [-9 (1.9.x)]"
+USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-e(rase flash)] [-S(taging)] [-H(EAD)] [-8 (1.6.8)] [-1 (1.8.1)] [-3 (1.8.3)] [-5 (1.8.5)] [-6 (1.8.6)] [-9 (1.9.x)]"
 DBG=:
-OPTIONSTRING=hdSHx:81359e
+OPTIONSTRING=hdSHx:813596e
 
 # specific locals
 ERASE=
 PORT='/dev/ttyUSB0'
-IDEHOME=~/esp-ides
+IDEHOME=~/esp-resources
 IDEBASE=${IDEHOME}/esp-arduino-ide
 PREFSDIR=~/.arduino15
 SPREFSDIR=${IDEBASE}/dot-arduino15-staging
@@ -21,6 +21,7 @@ EIGHTPREFSDIR=${IDEBASE}/dot-arduino15-168
 ONE8ONEPREFSDIR=${IDEBASE}/dot-arduino15-181
 ONE83PREFSDIR=${IDEBASE}/dot-arduino15-183
 ONE85PREFSDIR=${IDEBASE}/dot-arduino15-185
+ONE86PREFSDIR=${IDEBASE}/dot-arduino15-186
 ONE9xPREFSDIR=${IDEBASE}/dot-arduino15-190
 X=
 STAGING=
@@ -29,6 +30,7 @@ EIGHT=
 ONE8ONE=
 ONE83=
 ONE85=
+ONE86=
 ONE9x=
 STAGINGDIR=${IDEBASE}/arduino-1.6.5-r5
 HEADDIR=${IDEBASE}/arduino-1.6.5-r5--local-esp
@@ -36,6 +38,7 @@ EIGHTDIR=${IDEBASE}/arduino-1.6.8
 ONE8ONEDIR=${IDEBASE}/arduino-1.8.1
 ONE83DIR=${IDEBASE}/arduino-1.8.3
 ONE85DIR=${IDEBASE}/arduino-1.8.5
+ONE86DIR=${IDEBASE}/arduino-1.8.6
 ONE9xDIR=${IDEBASE}/arduino-PR-beta1.9-BUILD-37
 
 # message & exit if exit num present
@@ -54,6 +57,7 @@ do
     1)	ONE8ONE=yes ;;
     3)	ONE83=yes ;;
     5)	ONE85=yes ;;
+    6)	ONE86=yes ;;
     9)	ONE9x=yes ;;
     x)	X="${OPTARG}" ;;
     *)	usage 1 ;;
@@ -71,7 +75,7 @@ then
 fi
 
 # need to specify a version to run
-if [ x$STAGING == x -a x$HEAD == x -a x$EIGHT == x -a x$ONE8ONE == x -a x$ONE83 == x -a x$ONE85 == x -a x$ONE9x == x ]
+if [ x$STAGING == x -a x$HEAD == x -a x$EIGHT == x -a x$ONE8ONE == x -a x$ONE83 == x -a x$ONE85 == x -a x$ONE86 == x -a x$ONE9x == x ]
 then
   echo you must choose staging or head or 8 or 1 or 3
   usage 2
@@ -102,6 +106,10 @@ elif [ x$ONE85 == xyes ]
 then
   USEPREFS=${ONE85PREFSDIR}
   USEIDE=${ONE85DIR}
+elif [ x$ONE86 == xyes ]
+then
+  USEPREFS=${ONE86PREFSDIR}
+  USEIDE=${ONE86DIR}
 elif [ x$ONE9x == xyes ]
 then
   USEPREFS=${ONE9xPREFSDIR}
