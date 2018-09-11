@@ -124,6 +124,13 @@ else
   usage 3
 fi
 
+# link the prefs dir if it doesn't exist
+if [ ! -e $PREFSDIR ]
+then
+  echo linking $USEPREFS to $PREFSDIR ...
+  ( cd; ln -s $USEPREFS $PREFSDIR; )
+fi
+
 # the prefs dir should be a link to a version-specific dir
 if [ ! -L $PREFSDIR ]
 then
