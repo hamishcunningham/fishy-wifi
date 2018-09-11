@@ -14,6 +14,11 @@ ERASE=
 PORT='/dev/ttyUSB0'
 IDEHOME=~/esp-resources
 IDEBASE=${IDEHOME}/esp-arduino-ide
+IDFBASE=${IDEHOME}/esp-resources/idf/esp-idf
+IDFTOOLS=${IDEHOME}/esp-resources/idf/xtensa-esp32-elf/bin
+PATH="${IDFTOOLS}:${PATH}"; export PATH
+
+# arduino IDE vars
 PREFSDIR=~/.arduino15
 SPREFSDIR=${IDEBASE}/dot-arduino15-staging
 HPREFSDIR=${IDEBASE}/dot-arduino15-head
