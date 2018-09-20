@@ -5,9 +5,9 @@
 # standard locals
 alias cd='builtin cd'
 P="$0"
-USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-e(rase flash)] [-S(taging)] [-H(EAD)] [-8 (1.6.8)] [-1 (1.8.1)] [-3 (1.8.3)] [-5 (1.8.5)] [-6 (1.8.6)] [-9 (1.9.x)]"
+USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-e(rase flash)] [-S(taging)] [-H(EAD)] [-8 (1.6.8)] [-1 (1.8.1)] [-3 (1.8.3)] [-5 (1.8.5)] [-6 (1.8.6)] [-7 (1.8.7)] [-9 (1.9.x)]"
 DBG=:
-OPTIONSTRING=hdSHx:813596e
+OPTIONSTRING=hdSHx:8135967e
 
 # specific locals
 ERASE=
@@ -27,6 +27,7 @@ ONE8ONEPREFSDIR=${IDEBASE}/dot-arduino15-181
 ONE83PREFSDIR=${IDEBASE}/dot-arduino15-183
 ONE85PREFSDIR=${IDEBASE}/dot-arduino15-185
 ONE86PREFSDIR=${IDEBASE}/dot-arduino15-186
+ONE87PREFSDIR=${IDEBASE}/dot-arduino15-187
 ONE9xPREFSDIR=${IDEBASE}/dot-arduino15-190
 X=
 STAGING=
@@ -36,6 +37,7 @@ ONE8ONE=
 ONE83=
 ONE85=
 ONE86=
+ONE87=
 ONE9x=
 STAGINGDIR=${IDEBASE}/arduino-1.6.5-r5
 HEADDIR=${IDEBASE}/arduino-1.6.5-r5--local-esp
@@ -44,6 +46,7 @@ ONE8ONEDIR=${IDEBASE}/arduino-1.8.1
 ONE83DIR=${IDEBASE}/arduino-1.8.3
 ONE85DIR=${IDEBASE}/arduino-1.8.5
 ONE86DIR=${IDEBASE}/arduino-1.8.6
+ONE87DIR=${IDEBASE}/arduino-1.8.7
 ONE9xDIR=${IDEBASE}/arduino-PR-beta1.9-BUILD-37
 
 # message & exit if exit num present
@@ -63,6 +66,7 @@ do
     3)	ONE83=yes ;;
     5)	ONE85=yes ;;
     6)	ONE86=yes ;;
+    7)	ONE87=yes ;;
     9)	ONE9x=yes ;;
     x)	X="${OPTARG}" ;;
     *)	usage 1 ;;
@@ -80,7 +84,7 @@ then
 fi
 
 # need to specify a version to run
-if [ x$STAGING == x -a x$HEAD == x -a x$EIGHT == x -a x$ONE8ONE == x -a x$ONE83 == x -a x$ONE85 == x -a x$ONE86 == x -a x$ONE9x == x ]
+if [ x$STAGING == x -a x$HEAD == x -a x$EIGHT == x -a x$ONE8ONE == x -a x$ONE83 == x -a x$ONE85 == x -a x$ONE86 == x -a x$ONE87 == x -a x$ONE9x == x ]
 then
   echo you must choose staging or head or 8 or 1 or 3
   usage 2
@@ -115,6 +119,10 @@ elif [ x$ONE86 == xyes ]
 then
   USEPREFS=${ONE86PREFSDIR}
   USEIDE=${ONE86DIR}
+elif [ x$ONE87 == xyes ]
+then
+  USEPREFS=${ONE87PREFSDIR}
+  USEIDE=${ONE87DIR}
 elif [ x$ONE9x == xyes ]
 then
   USEPREFS=${ONE9xPREFSDIR}
