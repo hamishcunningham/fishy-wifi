@@ -47,7 +47,7 @@ ONE83DIR=${IDEBASE}/arduino-1.8.3
 ONE85DIR=${IDEBASE}/arduino-1.8.5
 ONE86DIR=${IDEBASE}/arduino-1.8.6
 ONE87DIR=${IDEBASE}/arduino-1.8.7
-ONE9xDIR=${IDEBASE}/arduino-PR-beta1.9-BUILD-37
+ONE9xDIR=${IDEBASE}/arduino-PR-beta1.9-BUILD-81
 
 # message & exit if exit num present
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
