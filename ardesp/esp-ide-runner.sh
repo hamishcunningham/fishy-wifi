@@ -5,9 +5,16 @@
 # standard locals
 alias cd='builtin cd'
 P="$0"
-USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-e(rase flash)] [-S(taging)] [-H(EAD)] [-8 (1.6.8)] [-1 (1.8.1)] [-3 (1.8.3)] [-5 (1.8.5)] [-6 (1.8.6)] [-7 (1.8.7)] [-9 (1.9.x)]"
+USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-i] [-e(rase flash)] [-S(taging)] [-H(EAD)] [-8 (1.6.8)] [-1 (1.8.1)] [-3 (1.8.3)] [-5 (1.8.5)] [-6 (1.8.6)] [-7 (1.8.7)] [-9 (1.9.x)]"
 DBG=:
-OPTIONSTRING=hdSHx:8135967e
+OPTIONSTRING=hdSHx:8135967ei
+R='\033[0;31m' # red (use with echo -e)
+G='\033[0;32m' # green
+B='\033[1;34m' # blue
+N='\033[0m'    # no color
+e() { (
+  C=""; case $1 in R|G|B|N) C=${!1}; shift; ;; esac; echo -e "${C}$*${N}";
+) }
 
 # specific locals
 ERASE=
@@ -17,6 +24,7 @@ IDEBASE=${IDEHOME}/esp-arduino-ide
 IDFBASE=${IDEHOME}/esp-resources/idf/esp-idf
 IDFTOOLS=${IDEHOME}/esp-resources/idf/xtensa-esp32-elf/bin
 PATH="${IDFTOOLS}:${PATH}"; export PATH
+RUNIDF=
 
 # arduino IDE vars
 PREFSDIR=~/.arduino15
@@ -59,6 +67,7 @@ do
     h)	usage 0 ;;
     d)	DBG=echo ;;
     e)	ERASE=yes ;;
+    e)	RUNIDF=yes ;;
     S)	STAGING=yes ;;
     H)	HEAD=yes ;;
     8)	EIGHT=yes ;;
@@ -74,23 +83,29 @@ do
 done 
 shift `expr $OPTIND - 1`
 
-if [ x$ERASE == xyes ]
+# main action branches
+if [ x$RUNIDF == xyes ]
+then
+  e G running IDF...
+  exit 0
+elif [ x$ERASE == xyes ]
 then
   [ -d Arduino ] || { echo "can't find Arduino dir from `pwd`"; exit 10; }
   echo running erase on $PORT ...
   echo Arduino/hardware/espressif/esp32/tools/esptool.py --port "${PORT}" erase_flash
   Arduino/hardware/espressif/esp32/tools/esptool.py --port "${PORT}" erase_flash
   exit 0
-fi
-
-# need to specify a version to run
-if [ x$STAGING == x -a x$HEAD == x -a x$EIGHT == x -a x$ONE8ONE == x -a x$ONE83 == x -a x$ONE85 == x -a x$ONE86 == x -a x$ONE87 == x -a x$ONE9x == x ]
-then
-  echo you must choose staging or head or 8 or 1 or 3
-  usage 2
+else
+  # need to specify an IDE version to run
+  if [ x$STAGING == x -a x$HEAD == x -a x$EIGHT == x -a x$ONE8ONE == x -a x$ONE83 == x -a x$ONE85 == x -a x$ONE86 == x -a x$ONE87 == x -a x$ONE9x == x ]
+  then
+    echo "you must choose staging or head or 8 or 1 or 3 or etc."
+    usage 2
+  fi
 fi
 
 # choose version
+e G preparing to run Arduino IDE...
 if [ x$STAGING == xyes ]
 then
   USEPREFS=${SPREFSDIR}
