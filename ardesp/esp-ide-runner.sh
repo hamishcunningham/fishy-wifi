@@ -5,7 +5,7 @@
 # standard locals
 alias cd='builtin cd'
 P="$0"
-USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-i] [-e(rase flash)] [-S(taging)] [-H(EAD)] [-8 (1.6.8)] [-1 (1.8.1)] [-3 (1.8.3)] [-5 (1.8.5)] [-6 (1.8.6)] [-7 (1.8.7)] [-9 (1.9.x)]"
+USAGE="`basename ${P}` [-h(elp)] [-d(ebug)] [-i] [-e(rase flash)] [-S(taging)] [-H(EAD)] [-8 (1.8.8)] [-1 (1.8.1)] [-3 (1.8.3)] [-5 (1.8.5)] [-6 (1.8.6)] [-7 (1.8.7)] [-9 (1.9.x)]"
 DBG=:
 OPTIONSTRING=hdSHx:8135967ei
 R='\033[0;31m' # red (use with echo -e)
@@ -19,18 +19,19 @@ e() { (
 # specific locals
 ERASE=
 PORT='/dev/ttyUSB0'
-IDEHOME=~/esp-resources
+#IDEHOME=~/esp-resources
+IDEHOME=~
 IDEBASE=${IDEHOME}/esp-arduino-ide
-IDFBASE=${IDEHOME}/esp-resources/idf/esp-idf
-IDFTOOLS=${IDEHOME}/esp-resources/idf/xtensa-esp32-elf/bin
-PATH="${IDFTOOLS}:${PATH}"; export PATH
-RUNIDF=
+#IDFBASE=${IDEHOME}/esp-resources/idf/esp-idf
+#IDFTOOLS=${IDEHOME}/esp-resources/idf/xtensa-esp32-elf/bin
+#PATH="${IDFTOOLS}:${PATH}"; export PATH
+#RUNIDF=
 
 # arduino IDE vars
 PREFSDIR=~/.arduino15
 SPREFSDIR=${IDEBASE}/dot-arduino15-staging
 HPREFSDIR=${IDEBASE}/dot-arduino15-head
-EIGHTPREFSDIR=${IDEBASE}/dot-arduino15-168
+EIGHTPREFSDIR=${IDEBASE}/dot-arduino15-188
 ONE8ONEPREFSDIR=${IDEBASE}/dot-arduino15-181
 ONE83PREFSDIR=${IDEBASE}/dot-arduino15-183
 ONE85PREFSDIR=${IDEBASE}/dot-arduino15-185
@@ -49,7 +50,7 @@ ONE87=
 ONE9x=
 STAGINGDIR=${IDEBASE}/arduino-1.6.5-r5
 HEADDIR=${IDEBASE}/arduino-1.6.5-r5--local-esp
-EIGHTDIR=${IDEBASE}/arduino-1.6.8
+EIGHTDIR=${IDEBASE}/arduino-1.8.8
 ONE8ONEDIR=${IDEBASE}/arduino-1.8.1
 ONE83DIR=${IDEBASE}/arduino-1.8.3
 ONE85DIR=${IDEBASE}/arduino-1.8.5
