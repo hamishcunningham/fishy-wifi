@@ -15,18 +15,21 @@ NC='\033[0m'       # no color
 # specific locals
 INST_DIR=`dirname ${P}`
 CLI=${INST_DIR}/rs485-api.sh
+AREA_DIR=${INST_DIR}/areas
 LOG_STRING=rs485
-VERSION=0.000001
+VERSION=0.6
 NUM_CONTROLLERS=14
 NUM_SOLENOIDS=196
+ALL_SOLENOIDS=`seq 1 $NUM_SOLENOIDS`
 DBG_LOG=/tmp/rs485-dbg.txt
+PRESSURE_RELEASE_VALVE=63
 
 # message & exit if exit num present
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
 
 # write a log; get recent log entries
 log() { logger "${LOG_STRING}: $*"; }
-log_grep() { grep -i $LOG_STRING /var/log/syslog |tail -15; }
+log_grep() { grep -i $LOG_STRING /var/log/syslog |tac; }
 
 # process options
 while getopts $OPTIONSTRING OPTION
@@ -283,7 +286,16 @@ read_board() { # grungey late-night code: enter at your peril!
   clear_solenoid_state
   for CN in `seq 1 $NUM_CONTROLLERS`
   do
-    set `cli_command -C $CN -c read_status`
+    STAT=`cli_command -C $CN -c read_status`
+    if [ $? != 0 -o "x${STAT}" = x ]
+    then
+      echo -e "${RED}failure on read_status for ${CN} $*${NC}" >&2
+      echo -e "${BLUE}hit return to continue or Cntrl&C for exit${NC}" >&2
+      read
+      continue
+    fi
+
+    set $STAT
     shift 5
     echo -e "${GR}solenoid data from read_status: $*${NC}" >&2
     HEX_BITS=""
@@ -320,12 +332,66 @@ read_board() { # grungey late-night code: enter at your peril!
 }
 
 # menu actions etc.
+do_ping() {
+  sudo ping -qw 2 -c 1 $1 |tail -2 |head -1 |sed 's,^[^,]*\, ,,'
+}
 do_about() {
+  echo; echo calculating....; echo
   whiptail --title "About" --msgbox "\
     This is a control tool for Aquaponic Green Walls.
 
-    Version ${VERSION}.
-    " $WT_HEIGHT $(( $WT_WIDTH / 2 )) $WT_MENU_HEIGHT
+    Version ${VERSION} running at local time `date +%b-%d-%Y-%T`.
+
+    IP address (wlan0): `ifconfig wlan0 | sed -n '2s/[^:]*:\([^ ]*\).*/\1/p'`
+    IP address (eth0) : `ifconfig eth0 | sed -n '2s/[^:]*:\([^ ]*\).*/\1/p'`
+
+    Pings:
+    - 8.8.8.8:           `do_ping 8.8.8.8`
+    - google.co.uk:      `do_ping google.co.uk`
+    - greenwall.local:   `do_ping greenwall.local`
+    - fishcam.local:     `do_ping fishcam.local`
+    " $WT_HEIGHT $(( ( $WT_WIDTH / 2 ) + 35 )) $WT_MENU_HEIGHT
+}
+do_reboot() {
+  echo rebooting greenwall, sleeping 2 then rebooting grippletui...
+  ( ssh pi@greenwall.local sudo reboot; )&
+  sleep 2
+  sudo reboot
+}
+do_halt() {
+  echo shutting down greenwall, sleeping 2 then shutting down grippletui...
+  ( ssh pi@greenwall.local sudo halt; )&
+  sleep 2
+  sudo halt
+}
+do_area_pulsing() {
+  # get a whiptail friendly list of wall areas
+  CLIST=""
+  for f in ${AREA_DIR}/*
+  do
+    CLIST="${CLIST} \"`basename $f`\" \" \" off"
+  done
+
+  # get a list of areas to water
+  TITLE='Pulsed Watering by Area'
+  C="whiptail --title \"${TITLE}\" \
+       --checklist \"Specify areas to water (with 5 one second pulses per m2)\" \
+       $(( $WT_HEIGHT + 3 )) $(( $WT_WIDTH / 2 + 9 )) \
+       $(( $WT_MENU_HEIGHT + 3 )) \
+       --cancel-button \"Cancel\" --ok-button \"Next\" \
+       "${CLIST}" "
+  AREA_LIST="`bash -c \"${C} 3>&1 1>&2 2>&3\"`"
+  [ "x${AREA_LIST}" = x ] || set ${AREA_LIST}
+  AREA_FILES="`for a in "$@"; do \
+    echo ${AREA_DIR}/$(echo $a |sed 's,",,g'); done`"
+
+  # for each area do pulsed watering
+  for AREA in $AREA_FILES
+  do
+    echo "area: ${AREA}"
+    cli_command -c pulse ${AREA}
+  done
+  read -p "pulse watering complete... hit return to continue"
 }
 do_water_control() {
   TITLE='Control Water Supply'
@@ -369,6 +435,81 @@ do_water_control() {
     return 0
   fi
 }
+do_mapping() {
+  TITLE='Solenoid Mapping Helper'
+  C="whiptail --title \"${TITLE}\" \
+       --checklist \"Specify carts/solenoids to map\" \
+       $(( $WT_HEIGHT + 10 )) $(( $WT_WIDTH / 2 + 9 )) \
+       $(( $WT_MENU_HEIGHT + 10 )) \
+       --cancel-button \"Cancel\" --ok-button \"Next\" \
+       "${SOLENOIDS_A[@]}" "
+  SOLENOIDS=`bash -c "${C} 3>&1 1>&2 2>&3"`
+  RET=$?
+  SOLENOIDS=`echo $SOLENOIDS |sed 's,",,g'`
+  if [ $RET -eq 1 ] 
+  then
+    return 0
+  elif [ $RET -eq 0 ]
+  then
+    whiptail --yesno \
+    "Preparing to do mini pulse to\n  ${SOLENOIDS}\n(get yer wellies on!)" \
+      --title "Map testing" \
+      --no-button "Cancel" --yes-button "Go for it!" \
+      $WT_HEIGHT $(( $WT_WIDTH / 2 + 10 )) $WT_MENU_HEIGHT
+    RET=$?
+
+    if [ $RET -eq 1 ]
+    then 
+      MESS="Cancelled"
+    elif [ $RET -eq 0 ]
+    then 
+      # all off; pressure release plus chosen set on for a sec; all off
+      cli_command -c clear_all
+      clear_solenoid_state
+      echo turning on pressure release valve and ${SOLENOIDS}
+      log turning on pressure release valve and ${SOLENOIDS}
+      echo "cli_command -c on ${SOLENOIDS}" >>${DBG_LOG}
+      cli_command -c on ${PRESSURE_RELEASE_VALVE}
+      cli_command -c on ${SOLENOIDS} ${PRESSURE_RELEASE_VALVE}
+      sleep 0.5
+      cli_command -c clear_all
+      cli_command -c clear_all
+      MESS="Map helping done -- all should be off again"
+    else
+      MESS="Oops! Internal error, RET was ${RET}"
+    fi
+    whiptail --msgbox "${MESS}" 20 60 1
+    
+    return 0
+  fi
+}
+do_test() {
+  TITLE='Test Routine'
+  whiptail --title "${TITLE}" --yesno "Are you sure?!" \
+    --no-button "Cancel" --yes-button "Go for it!" \
+    $(( $WT_HEIGHT )) $(( $WT_WIDTH / 2 + 9 )) $(( $WT_MENU_HEIGHT )) \
+  RET=$?
+  if [ $RET -eq 0 ]
+  then
+    #for s in                114 115 109  59      61  62 \
+    #                        111 110  48  49  56  53  57 \
+    #                        106 112  47  41  50  55  54 \
+    #                        100 101  36  42  39  44  46
+    #
+    #for s in `cat ${AREA_DIR}/all-planted`
+    #do
+    #  echo cli_command -c on $s
+    #  cli_command -c on $s
+    #  sleep 2
+    #  echo cli_command -c clear_all
+    #  cli_command -c clear_all
+    #done
+    cli_command -c run_solenoid_test
+
+    read -p "hit return to continue"
+  fi
+  return 0
+}
 
 # initialisation
 cli_command -c init  # configure USB port
@@ -382,27 +523,42 @@ while true; do
     --menu "\n" \
       $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT \
     --cancel-button Finish --ok-button Select \
-      "1 Watering"              "Control water supply to the wall" \
-      "2 All off"               "Turn all relays off" \
-      "3 Status"                "Show current status from the wall" \
-      "4 Show Log Entries"      "Show the most recent log entries" \
-      "5 About"                 "Information about this tool" \
+      " 1 Water by area"         "Pulse watering to specific areas" \
+      " 2 Water by cartridge"    "Control water supply to each cart" \
+      " 3 All off"               "Turn all relays off" \
+      " 4 Pressure release"      "Turn on the pressure release valve" \
+      " 5 Status"                "Show current status from the wall" \
+      " 6 Show Log Entries"      "Show the most recent log entries" \
+      " 7 Reboot"                "Reboot both controller machines" \
+      " 8 Shutdown"              "Shutdown both controller machines" \
+      " 9 Reboot fishcam"        "Reboot the fish camera machine" \
+      "10 Test"                  "Run test routine on all planted carts" \
+      "11 Map solenoids"         "Solenoid mapping helper" \
+      "12 About"                 "Data about this tool, IP addresses etc." \
     3>&1 1>&2 2>&3)
   RET=$?
   if [ $RET -eq 1 ]; then
     exit 0
   elif [ $RET -eq 0 ]; then
     case "$SEL" in
-      1\ *) do_water_control ;;
-      2\ *) cli_command -c clear; clear_solenoid_state ;;
-      3\ *) read_board; whiptail --title "Status" --msgbox \
-              "`print_solenoid_state |pr -e -t7 -w78 |expand`" \
+      \ 1\ *) do_area_pulsing ;;
+      \ 2\ *) do_water_control ;;
+      \ 3\ *) cli_command -c clear_all; clear_solenoid_state ;;
+      \ 4\ *) cli_command -c on ${PRESSURE_RELEASE_VALVE}; \
+                set_solenoid ${PRESSURE_RELEASE_VALVE} on ;;
+      \ 5\ *) read_board; whiptail --title "Status" --msgbox \
+                "`print_solenoid_state |pr -e -t7 -w78 |expand`" \
               $(( $WT_HEIGHT + 10 )) 78 1 ;;
-      4\ *) whiptail --title "Recent Log Entries" --msgbox \
-              "`log_grep`" $WT_HEIGHT $WT_WIDTH 1 ;;
-      5\ *) do_about ;;
-      *)    whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
-    esac || whiptail --msgbox "There was an error running option $SEL" 20 60 1
+      \ 6\ *) ( echo "space for more; q to quit"; echo; log_grep; ) \
+                |more; read -p "hit return to continue"; ;;
+      \ 7\ *) do_reboot ;;
+      \ 8\ *) do_halt ;;
+      \ 9\ *) ssh pi@fishcam.local "sudo reboot && exit"; sleep 2; ;;
+      10\ *) do_test ;;
+      11\ *) do_mapping ;;
+      12\ *) do_about ;;
+      *)     whiptail --msgbox "Error: unrecognized option" 20 60 1 ;;
+    esac ||  whiptail --msgbox "There was an error running option $SEL" 20 60 1
   else
     exit 5
   fi

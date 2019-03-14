@@ -29,7 +29,10 @@ on by:\n
 rs485-api.sh -B 1 -c on 7\n
 \n
 Manual:\n
-http://smarthardware.eu/manual/str2do14din_doc.pdf
+http://smarthardware.eu/manual/str2do14din_doc.pdf\n
+\n
+The read_analog_sensor command reads sensor data from WaterElves, e.g.:\n
+rs485-api.sh -c read_analog_sensor 192.168.22.73\n
 "
 DBG=:
 RED='\033[0;31m'   # red
@@ -50,9 +53,22 @@ CN=00
 BASE=00
 LOG_STRING=rs485
 DBG_LOG=/tmp/rs485-dbg.txt
+FISH_ELF_IP=192.168.207.191
+POWER_SENSOR_ELF_IP=192.168.207.192
+PRESSURE_SENSOR_ELF_IP=192.168.207.193
+PUMP_RUNNING_THRESHOLD=400
+PUMP_DURATION_MAX=120
+PRESSURE_RELEASE_VALVE=63
+FAKE_LEAK_VALVE=47
+TESTING_SOLENOIDS=/tmp/TESTING_SOLENOIDS.txt
+FAULT_SMS_SENT=/tmp/FAULT_SMS_SENT.txt
 
 ### message & exit if exit num present ######################################
 usage() { echo -e Usage: $USAGE; [ ! -z "$1" ] && exit $1; }
+
+### logging #################################################################
+log() { [ "x$1" == x-e ] && shift && echo $*; logger "${LOG_STRING}: $*"; }
+log $0 $*
 
 ### process options #########################################################
 while getopts $OPTIONSTRING OPTION
@@ -69,7 +85,6 @@ done
 shift `expr $OPTIND - 1`
 
 ### procedural interface ####################################################
-log() { logger "${LOG_STRING}: $*"; }
 init() {
   ( echo; echo; date; echo; ) >${DBG_LOG}
   stty -F ${PORT} sane
@@ -77,8 +92,7 @@ init() {
 }
 read_status() {
   run_command -b ${BC06} 11 ${CN} 00 &
-# TODO timeout on the hd:
-  hd -n 15 <${PORT} |cut -c 11- |cut -d '|' -f 1
+  timeout 0.5 bash -c "hd -n 15 <${PORT} |cut -c 11- |cut -d '|' -f 1"
 }
 bfi2bin() { # bit field index to binary
   if [ $1 -eq 1 ]
@@ -143,8 +157,8 @@ ris2hex() { # convert relay index set to hex; counts from R1
       echo -e "oops! relay bigger than 64: ${RED}$*${NC}" >&2
     fi
   done
-  $DBG -e "${RED}$*${NC}" >&2
-  $DBG -e "${RED}$BITS1 - $BITS2 - $BITS3 - $BITS4 - \
+  $DBG -e "${BLUE}$*${NC}" >&2
+  $DBG -e "${BLUE}$BITS1 - $BITS2 - $BITS3 - $BITS4 - \
     $BITS5 - $BITS6 - $BITS7 - $BITS8${NC}" >&2
   BIN1=$(( $BITS1 )); BIN2=$(( $BITS2 ))
   BIN3=$(( $BITS3 )); BIN4=$(( $BITS4 ))
@@ -160,9 +174,9 @@ calculate_check_sum() {
     SUM="${SUM} + 0x${h}"
   done
   SUM="\$((${SUM}))"
-  $DBG -e "${RED}SUM = $SUM${NC}" >&2
+  $DBG -e "${BLUE}SUM = $SUM${NC}" >&2
   S=`bash -c "printf '%X\n' ${SUM}"`
-  $DBG -e "${RED}S = $S${NC}" >&2
+  $DBG -e "${BLUE}S = $S${NC}" >&2
   echo ${S: -2}
 }
 form_command() {
@@ -175,18 +189,18 @@ form_command() {
   done
   CHECKSUM=`calculate_check_sum ${BC} $*`
   C="${C}\x${CHECKSUM}\x${MAE}"
-  echo -e "${RED}`echo ${C} |sed 's,\\\x, ,g'`${NC}" >&2
+  echo -e "${BLUE}`echo ${C} |sed 's,\\\x, ,g'`${NC}" >&2
   echo $C
 }
 run_command() {
   echo "run_command $*" >>${DBG_LOG}
   C="`form_command $*`"
-  $DBG -ne "$RED" >&2; $DBG -n "echo -ne ${C} > ${PORT}" >&2; $DBG -e "$NC"
+  $DBG -ne "$BLUE" >&2; $DBG -n "echo -ne ${C} > ${PORT}" >&2; $DBG -e "$NC"
   echo "echo -ne \"${C}\" > ${PORT}" >>${DBG_LOG}
   echo -ne "${C}" > ${PORT}
 }
 on() {
-  # if BASE unset assume that we've running on 1-196 numbering
+  # if BASE unset assume that we're running on 1-196 numbering
   if [ "x${BASE}" = "x00" ]
   then
     B0SOLS=
@@ -229,7 +243,7 @@ on() {
     fi
   fi
 }
-clear() {
+clear_all() {
   run_command 10 0 00 00 00 00 00 00 00 00
   run_command 10 1 00 00 00 00 00 00 00 00
   run_command 10 2 00 00 00 00 00 00 00 00
@@ -242,46 +256,351 @@ hpr() { # print hex number in decimal and binary
     `bc <<< \"ibase=16; obase=2; \`echo $1 |tr '[a-z]' '[A-Z]'\`\"`"
   echo -e "${NC}"
 }
+pulse() {
+  AREA=$1
+  [ -f "$AREA" ] || \
+    { echo -e "${RED}oops: ${AREA} doesn't exist :(${NC}"; return; }
+  log "running pulse watering from file at ${AREA}..."
+  echo -e "${BLUE}running pulse watering from file at ${AREA}...${NC}"
+
+  while read SOL_SET
+  do
+    echo -e "${GREEN}pulsing ${SOL_SET}...${NC}"
+    for i in `seq 1 5`
+    do
+      echo "  "on ${SOL_SET}...
+      log "  "on ${SOL_SET}...
+      BASE="00" on $SOL_SET && sleep 1
+      echo "  "off...
+      log "  "off...
+      clear_all; sleep 1; clear_all
+      sleep 9
+      echo
+    done
+
+    # pause a while to let the pump get up to pressure and turn off
+    sleep 30
+  done < ${AREA}
+}
+rapid() {
+  AREA=$1
+  [ -f "$AREA" ] || \
+    { echo -e "${RED}oops: ${AREA} doesn't exist :(${NC}"; return; }
+  log "running rapid watering from file at ${AREA}..."
+  echo -e "${BLUE}running rapid watering from file at ${AREA}...${NC}"
+  echo -e "${RED}DON'T RUN UNATTENDED! NO LEAK TRAP!${NC}"
+  sleep 2
+
+  date >$TESTING_SOLENOIDS
+  AREA_TAC=/tmp/$$-area.txt
+  tac $AREA >$AREA_TAC
+  while read SOL_SET
+  do
+    echo -e "${GREEN}watering ${SOL_SET}...${NC}"
+    echo "  "on ${SOL_SET}...
+    log "  "on ${SOL_SET}...
+    BASE="00" on $SOL_SET && sleep 3
+    echo "  "off...
+    log "  "off...
+    clear_all; sleep 1; clear_all
+    echo
+  done < ${AREA_TAC}
+
+  rm $AREA_TAC $TESTING_SOLENOIDS
+}
+read_analog_sensor() {
+  timeout 3 \
+    wget -O - "http://$1/data" 2>/dev/null |grep analog |head -1 |cut -f 2 |xargs
+}
+read_pressure_and_power() {
+  POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
+  [ x$POWER == x ] && POWER=-0.0
+  PRESSURE=`read_analog_sensor $PRESSURE_SENSOR_ELF_IP`
+  [ x$PRESSURE == x ] && PRESSURE=-0.0
+  echo "pressure = $PRESSURE PSI, power = $POWER W"
+}
+read_analog_sensor_safely() { # returns integer; minus 1 for error
+  ELF_IP=$1
+  V=`read_analog_sensor $ELF_IP`
+  [ -z "$V" -o "$V" == "0.0" -o "$V" == "0.00" ] && \
+    sleep 1 && V=`read_analog_sensor $ELF_IP`
+  [ -z "$V" -o "$V" == "0.0" -o "$V" == "0.00" ] && \
+    sleep 2 && V=`read_analog_sensor $ELF_IP`
+  [ -z "$V" -o "$V" == "0.0" -o "$V" == "0.00" ] && V=-1
+  printf "%.0f" $V
+}
+report_fault() {
+  # send email
+  sudo aws sns publish --region eu-west-2 --subject AquaMosaic \
+    --message "$*" --topic-arn \
+    "arn:aws:sns:eu-west-2:859791308343:gripple-riverside-aquamosaic-faults"
+
+  # if no SMS sent yet today, then send one
+  if [ ! -f $FAULT_SMS_SENT ]
+  then
+    for n in `cat ~/phones.txt`
+    do
+      sudo aws sns publish --region eu-west-1 --subject AquaMosaic \
+        --message "$*" --phone-number $n
+    done
+    date >$FAULT_SMS_SENT
+  fi
+}
+
+# spot leaks during normal operation, and kill the pump
+#
+# keep a running talley of how long the pump has been running, and kill it
+# when it goes over threshold
+#
+# (implies that we need to pause long enough during water cycles to
+# ensure that the pump stops working)
+#
+trap_leaks_and_kill_pump() {
+  log -e "starting leak trap at `date +%Y-%m-%d-%T`..."
+
+  PUMP_DURATION=0
+  while :
+  do
+    # don't run when doing solenoid testing
+    if [ -e $TESTING_SOLENOIDS ]
+    then
+      log -e "leak trap disabled; sleeping 30..."
+      sleep 30
+      continue
+    fi
+
+    PUMP_ON_TIME=0
+    PUMP_OFF_TIME=0
+    POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
+    echo "power is $POWER (1)"
+    if [ -z "$POWER" -o "x$POWER" == x0.00 -o "x$POWER" == x-0.0 ]
+    then
+      echo "power is zero (${POWER}), ignoring (1)"
+      continue
+    fi
+
+    if [ `printf "%.0f" $POWER` -gt $PUMP_RUNNING_THRESHOLD ]
+    then
+      PUMP_ON_TIME=`date +%s`
+      while :
+      do
+        POWER=`read_analog_sensor $POWER_SENSOR_ELF_IP`
+        NOW=`date +%s`
+        PUMP_DURATION=$(( $NOW - $PUMP_ON_TIME ))
+        echo "power is $POWER (2), duration is $PUMP_DURATION"
+        if [ -z "$POWER" -o "x$POWER" == x0.00 -o "x$POWER" == x-0.0 ]
+        then
+          echo "power is zero (${POWER}), ignoring (2)"
+          continue
+        fi
+        PDATE=`date +%Y-%m-%d-%T`
+
+        if [ `printf "%.0f" $POWER` -lt $PUMP_RUNNING_THRESHOLD ]
+        then
+          log -e "pump seen running for $PUMP_DURATION at $PDATE"
+          break
+        fi
+
+        if [ $PUMP_DURATION -gt $PUMP_DURATION_MAX ]
+        then
+          MESS="AquaMosaic fault? Pump ran for ${PUMP_DURATION} at ${PDATE}: killing power!"
+          log -e "$MESS"
+          report_fault "$MESS"
+
+          # trigger 433 transmitter
+          for ELF_IP in \
+            $PRESSURE_SENSOR_ELF_IP $FISH_ELF_IP $POWER_SENSOR_ELF_IP
+          do
+            log -e "\nsending off to $ELF_IP ..."
+            /usr/bin/curl \
+              -v "http://${ELF_IP}/actuate" \
+              -H "Origin: http://${ELF_IP}" \
+              -H 'Accept-Encoding: gzip, deflate' \
+              -H 'Accept-Language: en-GB,en-US;q=0.8,en;q=0.6' \
+              -H 'Upgrade-Insecure-Requests: 1' \
+              -H 'User-Agent: curl' \
+              -H 'Content-Type: application/x-www-form-urlencoded' \
+              -H 'Accept: text/html,application/xhtml+xml,application/xml' \
+              -H 'Cache-Control: max-age=0' \
+              -H "Referer: http://${ELF_IP}/" \
+              -H 'Connection: keep-alive' \
+              --data "state=off" --compressed >>${DBG_LOG}
+            echo >>${DBG_LOG}
+            log -e "\ndone"
+            sleep 1
+          done
+
+          # turn pressure release valve on
+          # TODO BASE="00" on $PRESSURE_RELEASE_VALVE
+        fi
+      done
+    fi
+  done
+
+  log -e "leak trap ending at `date +%Y-%m-%d-%T`"
+}
+
+# try to identify non-functional solenoids (intended to be run when other
+# functions are NOT operating)
+#
+# starting at a decent level of pressure, open each solenoid under test in
+# turn, and check the pressure drops (and then stops dropping)
+#
+# pseudocode:
+# for s in `cat $( dirname $P )/areas/all-planted`
+# do
+#   clear_all
+#   PSI_START= check pressure;   if pressure zero or pump on then continue
+#   if pressure < 45 then
+#     open pressure release valve
+#     wait for pump to run;  if pump zero then continue
+#     close pressure release valve
+#     wait for pump to stop; if pump zero then continue
+#   fi
+#   PSI_BEFORE= check pressure;  if pressure zero or pump on then continue
+#   open s
+#   PSI_DURING= check pressure;  if pressure zero or pump on then continue
+#   sleep 2
+#   clear_all
+#   PSI_AFTER= check pressure;   if pressure zero or pump on then continue
+#   sleep 15
+#   PSI_AT_REST= check pressure; if pressure zero or pump on then continue
+#   sleep 15
+#   PSI_FINISH= check pressure;  if pressure zero or pump on then continue
+#
+#   ( PSI_BEFORE > PSI_DURING > PSI_AFTER && 
+#     PSI_AFTER ~= PSI_AT_REST ~= PSI_FINISH ) || FAIL
+# done
+#
+run_solenoid_test() {
+  AREA=$1
+  [ x${AREA} == x ] && AREA=$( dirname $P )/areas/all-planted
+  [ -f "$AREA" ] || \
+    { echo -e "${RED}oops: ${AREA} doesn't exist :(${NC}"; return; }
+  log -e "running solenoid test protocol from file at ${AREA}..."
+  echo -e "${RED}DON'T RUN UNATTENDED! NO LEAK TRAP!${NC}"
+
+  ENOUGH_PRESSURE_TO_TEST=40
+  date >$TESTING_SOLENOIDS
+# TODO add trap to remove file
+  sleep 5 # wait for the leak trap to stop
+
+  for s in `tac ${AREA}`
+  do
+    log -e "testing solenoid number $s at `date +%Y-%m-%d-%T`..."
+    clear_all >/dev/null 2>&1
+    PSI_START=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
+    [ $PSI_START -eq -1 ]  && log -e "-1 (a)" && continue
+    log -e $PSI_START PSI_START
+
+    if [ $PSI_START -lt $ENOUGH_PRESSURE_TO_TEST ]
+    then
+      log -e releasing pressure to trigger pump
+      BASE="00" on $PRESSURE_RELEASE_VALVE >/dev/null 2>&1
+      log -e waiting for pump to start
+      for iter in 0 1 2 3 4 5 6 7 8 9 # wait for pump to start
+      do
+        POWER=`read_analog_sensor_safely $POWER_SENSOR_ELF_IP`
+        [ $POWER -gt $PUMP_RUNNING_THRESHOLD ] && break
+        sleep 1
+      done
+      clear_all >/dev/null 2>&1
+      log -e waiting for pump to stop
+      for iter in 0 1 2 3 4 5 6 7 8 9 # wait for pump to stop
+      do
+        POWER=`read_analog_sensor_safely $POWER_SENSOR_ELF_IP`
+        [ $POWER -lt $PUMP_RUNNING_THRESHOLD ] && break
+        sleep 5
+      done
+    fi
+
+    PSI_BEFORE=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
+    [ $PSI_BEFORE -eq -1 ]  && log -e "-1 (b)" && continue
+    log -e $PSI_BEFORE PSI_BEFORE
+    BASE="00" on $s >/dev/null 2>&1
+
+    PSI_DURING=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
+    [ $PSI_DURING -eq -1 ]  && log -e "-1 (c)" && continue
+    log -e $PSI_DURING PSI_DURING
+    sleep 1
+    # TODO perhaps reduce ENOUGH to 38 if adding: sleep 0.5 ?
+    clear_all >/dev/null 2>&1
+
+    sleep 2
+    PSI_AFTER=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
+    [ $PSI_AFTER -eq -1 ]   && log -e "-1 (d)" && continue
+    log -e $PSI_AFTER PSI_AFTER
+    sleep 4
+
+    PSI_AT_REST=`read_analog_sensor_safely $PRESSURE_SENSOR_ELF_IP`
+    [ $PSI_AT_REST -eq -1 ] && log -e "-1 (e)" && continue
+    log -e $PSI_AT_REST PSI_AT_REST
+
+    # we can now identify failed solenoids
+    if [ $PSI_BEFORE -le $PSI_AFTER ]
+    then
+      FAILM="SOLENOID $s DIDN'T OPEN? PSI_BEFORE ($PSI_BEFORE) <= PSI_AFTER ($PSI_AFTER)"
+      log -e "${FAILM}"
+      echo -e "`date +%Y-%m-%d-%T`\n${FAILM}\n" >> ~/SOLENOID_FAILURES.txt
+    fi
+    DELTA_AFTER=$(( $PSI_AFTER - $PSI_AT_REST ))
+    [ $DELTA_AFTER -lt 0 ] && DELTA_AFTER=$(( -$DELTA_AFTER ))
+    if [ $DELTA_AFTER -gt 1 ]
+    then
+      FAILM="SOLENOID $s DIDN'T CLOSE? PSI_AFTER ($PSI_AFTER) !~= PSI_AT_REST ($PSI_AT_REST)"
+      log -e "${FAILM}"
+      echo -e "`date +%Y-%m-%d-%T`\n${FAILM}\n" >> ~/SOLENOID_FAILURES.txt
+      # TODO turn the pump off and open the pressure release, if this is to
+      # run unattended
+    fi
+
+    log -e PSI_BEFORE $PSI_BEFORE PSI_DURING $PSI_DURING PSI_AFTER \
+      $PSI_AFTER PSI_AT_REST $PSI_AT_REST
+    log -e "done testing solenoid $s at `date +%Y-%m-%d-%T`"
+    echo
+  done
+  rm $TESTING_SOLENOIDS
+}
+
+# cycle pressure release valve and monitor pump power use and system PSI
+run_pump_monitor() {
+  while :
+  do
+    s=${PRESSURE_RELEASE_VALVE}
+    while :
+    do
+      echo cycling ${s} at `date +%T`...
+      echo -n "before:  "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
+
+      BASE="00" on $s >/dev/null 2>&1
+      echo -n "during:  "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
+
+      sleep 2
+      clear_all >/dev/null 2>&1
+      sleep 1
+      echo -n "after:   "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
+
+      sleep 15
+      echo -n "at rest: "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
+      sleep 15
+      echo -n "finish:  "
+      set `read_pressure_and_power`; PRESSURE=$3; POWER=$7
+      echo $PRESSURE PSI, $POWER W
+
+      echo
+    done
+  done
+}
 
 ### CLI access to procedures ################################################
-log           "running $COMM $*"
-echo -e "${RED}running $COMM $*${NC}" >&2
+log            "running $COMM $*"
+echo -e "${BLUE}running $COMM $*${NC}" >&2
 $COMM $*
-
-### test code and docs ######################################################
-#
-# relay on command examples:
-# R6 / 7th;  \x55\xAA\x0D\x10\x00\x40\x00\x00\x00\x00\x00\x00\x00\x5F\x77
-# R7 / 8th;  \x55\xAA\x0D\x10\x00\x80\x00\x00\x00\x00\x00\x00\x00\x9F\x77
-# R8 / 9th;  \x55\xAA\x0D\x10\x00\x00\x01\x00\x00\x00\x00\x00\x00\x20\x77
-# R9 / 10th; \x55\xAA\x0D\x10\x00\x00\x02\x00\x00\x00\x00\x00\x00\x21\x77
-#
-test_relay_on1() {
-  run_command 10 00 07 00 00 00 00 00 00 00
-  sleep 2
-  run_command 10 00 00 00 00 00 00 00 00 00
-}
-test_relay_on2() {
-  echo turn it on... >&2
-  echo -ne "\x55\xAA\x0D\x10\x00\x01\x00\x00\x00\x00\x00\x00\x00\x20\x77" \
-    > ${PORT} 
-  sleep 2
-  echo turn it off >&2
-  echo -ne "\x55\xAA\x0D\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x77" \
-    > ${PORT}
-  sleep 2
-}
-test_relay_on3() {
-  SUM=$((2 + 0x0D + 0x10 + 0x00 + 0x01 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00))
-  printf "SUM: %d; checksum: 0x%X\n" $SUM $SUM
-  SUM=$((2 + 0x0D + 0x10 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00 + 0x00))
-  printf "SUM: %d; checksum: 0x%X\n" $SUM $SUM
-
-  SUM=0
-  for h in 0D 10 00 01 00 00 00 00 00 00 00
-  do
-    SUM="$((0x${SUM} + 0x${h}))"
-  done
-  #SUM="$((0x${SUM} + 2))"
-  printf "SUM: %d; checksum: 0x%X\n" $SUM $SUM
-}

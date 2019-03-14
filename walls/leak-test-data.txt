@@ -1,0 +1,53 @@
+Sat 13 May 18:54:22 BST 2017
+
+cycling 63 at 18:54:22...
+before:  62.89 PSI, 21.39 W
+during:  50.35 PSI, 21.51 W
+after:   41.99 PSI, 21.30 W
+at rest: 41.99 PSI, 21.53 W
+finish:  41.80 PSI, -0.0 W
+
+cycling 63 at 18:55:06...
+before:  41.80 PSI, 21.88 W
+during:  0.00 PSI, 21.88 W
+after:   33.82 PSI, 21.45 W
+at rest: 33.63 PSI, 21.76 W
+finish:  33.63 PSI, 21.61 W
+
+cycling 63 at 18:55:49...
+before:  33.44 PSI, 21.71 W
+during:  30.40 PSI, 21.77 W
+after:   29.64 PSI, 653.00 W
+at rest: 62.70 PSI, 652.29 W
+finish:  62.70 PSI, 21.61 W
+
+cycling 63 at 18:56:32...
+before:  62.70 PSI, 21.69 W
+during:  50.35 PSI, 21.59 W
+after:   42.18 PSI, 21.49 W
+at rest: 41.99 PSI, 22.00 W
+finish:  41.80 PSI, 21.40 W
+
+cycling 63 at 18:57:12...
+before:  0.00 PSI, 22.18 W
+during:  35.91 PSI, 21.44 W
+after:   32.68 PSI, 21.69 W
+at rest: 32.68 PSI, 21.76 W
+finish:  32.49 PSI, 22.18 W
+
+cycling 63 at 18:57:54...
+before:  32.49 PSI, 21.51 W
+during:  30.40 PSI, 21.61 W
+after:   43.51 PSI, 666.53 W
+at rest: 62.70 PSI, 661.62 W
+finish:  62.32 PSI, 21.41 W
+
+cycling 63 at 18:58:34...
+before:  62.13 PSI, 21.42 W
+during:  50.35 PSI, 21.32 W
+after:   41.99 PSI, 21.38 W
+at rest: 41.61 PSI, 21.53 W
+finish:  41.61 PSI, 21.53 W
+
+cycling 63 at 18:59:15...
+before:  
