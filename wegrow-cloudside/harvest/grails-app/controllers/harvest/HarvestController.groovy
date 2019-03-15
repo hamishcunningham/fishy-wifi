@@ -21,6 +21,30 @@ class HarvestController {
         if (params?.f) {
             def harvests = Harvest.visibleHarvests(springSecurityService.currentUser)
 
+/* TODO
+Need all the data to be consilidated into one spreadsheet when we download it.
+Obviously there will be a lot of replication in the spreadsheet because users
+will have multiple harvests but the way things stand we can't interpret the
+data properly.  This is because each person that uses the site gives an email
+address but if they are reporting yields from their garden and from their
+allotment for example ((but could be other growing space) they have multiple
+usernames associated with the same email address.  At present when we download
+the harvest data we only get the email address and not the username and so we
+can't tell where that person is growing their crop.  In addition, in the sign
+up data people provide the information below to us, but we don't get it when
+we download the data:
+
+Type of Growing Space (Allotment / Garden / Other)
+Total Growing Space (for Allotments or Other)
+Name of Allotment Site (Allotment only)
+Number of Visits to Site per Week (Allotment only)
+Description of the growing space (Other only)
+and with the harvest download data:
+
+The harvest data doesn't show whether the "This was the last harvest of the
+year from this crop." (a box ticked, or not, when each individual harvest is
+submitted). 
+*/
             def data = harvests.list().collect { Harvest harvest ->
                 [
                         email: harvest.area.space.user.email,
