@@ -48,6 +48,9 @@ submitted).
             def data = harvests.list().collect { Harvest harvest ->
                 [
                         email: harvest.area.space.user.email,
+                        username: harvest.area.space.user.username,
+                        space_type: harvest.area.space.class.name,
+                        space_area: harvest.area.space.areaMeters,
                         id: harvest.id,
                         area_label: harvest.area.name,
 
@@ -72,9 +75,12 @@ submitted).
                 ]
             }
             def fields = ["id",
+                          "username",
                           "logged_at",
                           "last_harvest",
                           "growing_space",
+                          "space_type",
+                          "space_area",
                           "email",
                           "yield_m2",
                           "area_label",
