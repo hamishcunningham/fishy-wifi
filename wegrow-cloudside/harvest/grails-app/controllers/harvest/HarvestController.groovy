@@ -44,6 +44,14 @@ and with the harvest download data:
 The harvest data doesn't show whether the "This was the last harvest of the
 year from this crop." (a box ticked, or not, when each individual harvest is
 submitted). 
+
+
+TODOs 2
+
+Time growing in registered growing space
+Allotment site address
+Postcode of garden growing space
+Postcode of other growing space
 */
             def data = harvests.list().collect { Harvest harvest ->
                 [
@@ -51,6 +59,9 @@ submitted).
                         username: harvest.area.space.user.username,
                         space_type: harvest.area.space.class.name,
                         space_area: harvest.area.space.areaMeters,
+                        // space_address: harvest.area.space?.address ?: "no address",
+                        space_location: harvest.area.space.instanceOf(PostcodeGrowingSpace) ? harvest.area.space.postCode : harvest.area.space.getLocationString(),
+                        space_timegrowing: harvest.area.space.yearsGrowing,
                         id: harvest.id,
                         area_label: harvest.area.name,
 
@@ -80,6 +91,8 @@ submitted).
                           "last_harvest",
                           "growing_space",
                           "space_type",
+                          "space_location",
+                          "space_timegrowing",
                           "space_area",
                           "email",
                           "yield_m2",
