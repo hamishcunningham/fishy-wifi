@@ -1,0 +1,5 @@
+README
+===
+
+- copy in prodDb.mv.db from citsci
+- use run-prod.sh to fire up in production mode
