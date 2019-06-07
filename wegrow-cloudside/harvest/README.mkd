@@ -1,5 +1,5 @@
 README
 ===
 
-- copy in prodDb.mv.db from citsci
+- copy in prodDb.mv.db from citsci /data/harvest/tomcat/prodDb.mv.db
 - use run-prod.sh to fire up in production mode
